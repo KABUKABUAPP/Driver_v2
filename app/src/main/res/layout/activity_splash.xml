@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Main container with rgba(22, 22, 22, 1) background -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#161616">
+
+    <!-- GIF ImageView - Takes up top 2/3 of the screen with rgba(22, 22, 22, 1) background -->
+    <ImageView
+        android:id="@+id/gifImageView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:scaleType="centerCrop"
+        android:background="#161616"
+        android:contentDescription="@string/app_name" />
+
+    <!-- Bottom Sheet - Takes up bottom 1/3 of the screen with rgba(22, 22, 22, 1) background -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#161616"
+        android:alpha="1.0">
+
+        <!-- Logo centered in the bottom sheet -->
+        <ImageView
+            android:id="@+id/logoImageView"
+            android:layout_width="200dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:src="@drawable/splashlogo"
+            android:contentDescription="@string/app_name" />
+
+    </FrameLayout>
+
+</LinearLayout> 

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Use the full screen image as both background and icon -->
+        <item name="windowSplashScreenBackground">@android:color/black</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splashfullscreen</item>
+        <item name="windowSplashScreenAnimationDuration">0</item>
+        
+        <!-- Make it full screen -->
+        <item name="android:windowFullscreen">true</item>
+        
+        <!-- Remove window background to prevent flicker -->
+        <item name="android:windowBackground">@null</item>
+        
+        <!-- Set the theme that will be used after the splash screen -->
+        <item name="postSplashScreenTheme">@style/Theme.KabukabuDriver</item>
+    </style>
+</resources> 

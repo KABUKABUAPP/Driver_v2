@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" android:opacity="opaque">
+    <!-- Background color -->
+    <item android:drawable="@android:color/black"/>
+    
+    <!-- Splash image -->
+    <item>
+        <bitmap
+            android:src="@drawable/splashfullscreen"
+            android:gravity="center|fill"
+            android:tileMode="disabled"/>
+    </item>
+</layer-list> 
