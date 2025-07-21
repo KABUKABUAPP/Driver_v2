@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Kabukabu_driver</string>
+    <string name="app_name">Kabukabu-driver</string>
+    <string name="mapbox_access_token">pk.eyJ1Ijoia2FidWthYnVhcHAiLCJhIjoiY2x6OHNrcnV2MDRtaTJqc2EzMXIydzNkZSJ9.A1YJ22uraf2CuZyz-cmV_A</string>
 </resources>

@@ -76,12 +76,19 @@ dependencies {
     implementation(libs.moshi.kotlin)
     implementation(libs.okhttp.logging.interceptor)
     
+    // DataStore for preferences
+    implementation(libs.datastore.preferences)
+    
     // Coil for GIF support in Compose
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
     
     // Glide for GIF support in traditional Views
     implementation(libs.glide)
+
+    // Mapbox Maps
+    implementation(libs.mapbox.maps)
+    implementation(libs.play.services.location)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

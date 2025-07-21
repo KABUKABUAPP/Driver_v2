@@ -6,6 +6,10 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -23,6 +27,12 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import android.util.Log
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,65 +43,104 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val navController = rememberNavController()
-
-                    NavHost(
-                        navController = navController,
-                        startDestination = Screen.Splash.route,
-                        enterTransition = {
-                            fadeIn(animationSpec = tween(500))
-                        },
-                        exitTransition = {
-                            fadeOut(animationSpec = tween(500))
-                        },
-                        popEnterTransition = {
-                            fadeIn(animationSpec = tween(500))
-                        },
-                        popExitTransition = {
-                            fadeOut(animationSpec = tween(500))
-                        }
-                    ) {
-                        composable(Screen.Splash.route) {
-                            SplashScreen(
-                                onGetStartedClick = {
-                                    navController.navigate(Screen.Login.route) {
-                                        popUpTo(Screen.Splash.route) { inclusive = true }
-                                    }
-                                }
-                            )
-                        }
-
-                        composable(Screen.Login.route) {
-                            LoginScreen(
-                                onNavigateToOtp = { email ->
-                                    navController.navigate("${Screen.OtpVerification.route}/$email")
-                                }
-                            )
-                        }
-
-                        composable(
-                            route = "${Screen.OtpVerification.route}/{${NavArg.Email.key}}",
-                            arguments = listOf(
-                                navArgument(NavArg.Email.key) { type = NavType.StringType }
-                            )
-                        ) { backStackEntry ->
-                            val email = backStackEntry.arguments?.getString(NavArg.Email.key) ?: ""
-                            OtpVerificationScreen(
-                                email = email,
-                                onNavigateToHome = {
-                                    navController.navigate(Screen.Home.route) {
-                                        popUpTo(Screen.Login.route) { inclusive = true }
-                                    }
-                                }
-                            )
-                        }
-
-                        composable(Screen.Home.route) {
-                            HomeScreen()
-                        }
-                    }
+                    AppNavigation()
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun AppNavigation() {
+    val navController = rememberNavController()
+    val userPreferences = KabukabuDriverApp.getInstance().userPreferences
+    val authToken by userPreferences.authToken.collectAsState(initial = null)
+    val coroutineScope = rememberCoroutineScope()
+    
+    // Check for auth token and navigate accordingly
+    LaunchedEffect(authToken) {
+        if (!authToken.isNullOrBlank()) {
+            Log.d("AppNavigation", "Auth token found: ${authToken?.take(10)}..., navigating to home")
+            // Add a delay to ensure the NavHost is fully set up
+            delay(500)
+            // User is logged in, navigate to home screen
+            navController.navigate(Screen.Home.route) {
+                popUpTo(navController.graph.id) { inclusive = true }
+            }
+        } else {
+            Log.d("AppNavigation", "No auth token found")
+        }
+    }
+
+    NavHost(
+        navController = navController,
+        startDestination = Screen.Splash.route,
+        enterTransition = {
+            fadeIn(animationSpec = tween(500))
+        },
+        exitTransition = {
+            fadeOut(animationSpec = tween(500))
+        },
+        popEnterTransition = {
+            fadeIn(animationSpec = tween(500))
+        },
+        popExitTransition = {
+            fadeOut(animationSpec = tween(500))
+        }
+    ) {
+        composable(Screen.Splash.route) {
+            SplashScreen(
+                onGetStartedClick = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Login.route) {
+            LoginScreen(
+                onNavigateToOtp = { email ->
+                    navController.navigate("${Screen.OtpVerification.route}/$email")
+                }
+            )
+        }
+
+        composable(
+            route = "${Screen.OtpVerification.route}/{${NavArg.Email.key}}",
+            arguments = listOf(
+                navArgument(NavArg.Email.key) { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString(NavArg.Email.key) ?: ""
+            OtpVerificationScreen(
+                email = email,
+                onNavigateToHome = {
+                    Log.d("AppNavigation", "Navigating to home from OTP screen")
+                    coroutineScope.launch {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.OtpVerification.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Home.route) {
+            Log.d("AppNavigation", "Home screen composable called")
+            HomeScreen(
+                onLogout = {
+                    Log.d("AppNavigation", "Logout triggered, navigating to login")
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 } 

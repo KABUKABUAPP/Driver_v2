@@ -5,31 +5,58 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.data.model.ConfirmOtpRequest
 import com.kabukabu.driver.data.model.ConfirmOtpResponse
 import com.kabukabu.driver.data.remote.ApiClient
 import com.kabukabu.driver.utils.OtpUiState
 import kotlinx.coroutines.launch
+import android.util.Log
 
 class OtpViewModel : ViewModel() {
     var uiState: OtpUiState by mutableStateOf(OtpUiState.Idle)
         private set
+    
+    private val userPreferences = KabukabuDriverApp.getInstance().userPreferences
 
     fun isValidOtp(otp: String): Boolean {
         return otp.length == 4 && otp.all { it.isDigit() }
     }
 
-    fun verifyOtp(otp: String) {
+    fun verifyOtp(otp: String, email: String) {
         viewModelScope.launch {
             uiState = OtpUiState.Loading
             try {
-                val response = ApiClient.apiService.confirmOtp(ConfirmOtpRequest(otp = otp.toInt()))
+                Log.d("OtpViewModel", "Verifying OTP: $otp for email: $email")
+                val response = ApiClient.apiService.confirmOtp(
+                    ConfirmOtpRequest(
+                        otp = otp.toInt(),
+                        email = email
+                    )
+                )
+                Log.d("OtpViewModel", "Response: ${response}")
+                
                 if (response.status == "success" && response.data?.loggedInUser != null) {
+                    // Save auth token - use access_tokens from the response
+                    response.data.accessTokens?.let { token ->
+                        Log.d("OtpViewModel", "Saving token: $token")
+                        userPreferences.saveAuthToken(token)
+                    }
+                    
+                    // Save user email if available
+                    response.data.loggedInUser.email?.let { email ->
+                        Log.d("OtpViewModel", "Saving email: $email")
+                        userPreferences.saveUserEmail(email)
+                    }
+                    
                     uiState = OtpUiState.Success(response)
+                    Log.d("OtpViewModel", "Success state set")
                 } else {
+                    Log.e("OtpViewModel", "Error: ${response.message}")
                     uiState = OtpUiState.Error(response.message)
                 }
             } catch (e: Exception) {
+                Log.e("OtpViewModel", "Exception: ${e.message}", e)
                 uiState = OtpUiState.Error(e.message ?: "An unknown error occurred")
             }
         }

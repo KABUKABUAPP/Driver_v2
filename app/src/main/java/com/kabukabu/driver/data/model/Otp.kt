@@ -6,7 +6,8 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class ConfirmOtpRequest(
     @Json(name = "otp") val otp: Int,
-    @Json(name = "user_type") val userType: String = "driver"
+    @Json(name = "user_type") val userType: String = "driver",
+    @Json(name = "email") val email: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -20,7 +21,7 @@ data class ConfirmOtpResponse(
 @JsonClass(generateAdapter = true)
 data class LoginSuccessData(
     @Json(name = "logged_in_user") val loggedInUser: Driver?,
-    @Json(name = "access_tokens") val accessToken: String?,
+    @Json(name = "access_tokens") val accessTokens: String?,
     @Json(name = "pendingUpdates") val pendingUpdates: PendingUpdates?
 )
 
@@ -42,6 +43,9 @@ data class PendingUpdates(
     @Json(name = "_id") val id: String?,
     @Json(name = "title") val title: String?,
     @Json(name = "content") val content: String?,
+    @Json(name = "images") val images: List<String>?,
+    @Json(name = "audience") val audience: String?,
+    @Json(name = "is_active") val isActive: Boolean?,
     @Json(name = "link") val link: String?,
     @Json(name = "app_path") val appPath: String?
 ) 
