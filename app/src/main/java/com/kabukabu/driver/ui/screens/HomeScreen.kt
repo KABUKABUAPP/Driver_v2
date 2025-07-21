@@ -139,7 +139,11 @@ fun HomeScreen(onLogout: () -> Unit) {
                     )
             )
 
-            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 30.dp)
+            ) {
                 TripRequestCard(
                     isVisible = true,
                     tripDetails = currentTripState.tripDetails,
