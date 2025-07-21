@@ -28,7 +28,7 @@ class OtpViewModel : ViewModel() {
             uiState = OtpUiState.Loading
             try {
                 Log.d("OtpViewModel", "Verifying OTP: $otp for email: $email")
-                val response = ApiClient.apiService.confirmOtp(
+                val response = ApiClient.authService.confirmOtp(
                     ConfirmOtpRequest(
                         otp = otp.toInt(),
                         email = email

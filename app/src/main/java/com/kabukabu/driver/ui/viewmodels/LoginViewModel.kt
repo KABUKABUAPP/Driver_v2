@@ -24,8 +24,8 @@ class LoginViewModel : ViewModel() {
         viewModelScope.launch {
             uiState = LoginUiState.Loading
             try {
-                val response = ApiClient.apiService.otpLogin(OtpLoginRequest(email))
-                if (response.status == "success" && response.data != null) {
+                val response = ApiClient.authService.otpLogin(OtpLoginRequest(numberOrEmail = email))
+                if (response.status == "success") {
                     uiState = LoginUiState.Success(response)
                 } else {
                     uiState = LoginUiState.Error(response.message)

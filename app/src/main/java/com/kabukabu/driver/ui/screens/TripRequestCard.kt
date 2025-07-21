@@ -17,12 +17,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kabukabu.driver.data.socket.SocketEvent
+import com.kabukabu.driver.data.socket.TripFoundEvent
 
 @Composable
 fun TripRequestCard(
     isVisible: Boolean,
-    tripDetails: SocketEvent.TripFound,
+    tripDetails: TripFoundEvent,
     onAccept: () -> Unit,
     onDecline: () -> Unit
 ) {
@@ -54,9 +54,9 @@ fun TripRequestCard(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 // Simplified trip details
-                Text("Pickup: ${tripDetails.trip.pickupLocation.name}", color = Color.DarkGray)
-                Text("Destination: ${tripDetails.trip.destinationLocation.name}", color = Color.DarkGray)
-                Text("Fare: ₦${tripDetails.trip.fare}", color = Color.Black, fontWeight = FontWeight.SemiBold)
+                Text("Pickup: ${tripDetails.pickupLocation.name}", color = Color.DarkGray)
+                Text("Destination: ${tripDetails.destinationLocation.name}", color = Color.DarkGray)
+                Text("Fare: ₦${tripDetails.fare}", color = Color.Black, fontWeight = FontWeight.SemiBold)
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 

@@ -1,10 +1,10 @@
 package com.kabukabu.driver.utils
 
-import com.kabukabu.driver.data.socket.SocketEvent
+import com.kabukabu.driver.data.socket.TripFoundEvent
 
 sealed class TripUiState {
     object Idle : TripUiState()
-    data class TripRequest(val tripDetails: SocketEvent.TripFound) : TripUiState()
+    data class TripRequest(val tripDetails: TripFoundEvent) : TripUiState()
     object TripInProgress : TripUiState()
     data class Error(val message: String) : TripUiState()
 } 

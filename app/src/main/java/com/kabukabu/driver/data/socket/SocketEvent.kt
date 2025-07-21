@@ -3,36 +3,32 @@ package com.kabukabu.driver.data.socket
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-sealed class SocketEvent {
-    @JsonClass(generateAdapter = true)
-    data class TripFound(
-        @Json(name = "status") val status: String,
-        @Json(name = "eventId") val eventId: String,
-        @Json(name = "trip") val trip: TripDetails
-    ) : SocketEvent()
-}
-
+// The entire payload is the trip, so this is our top-level class for this event.
 @JsonClass(generateAdapter = true)
-data class TripDetails(
-    @Json(name = "_id") val id: String,
+data class TripFoundEvent(
+    @Json(name = "_id") val eventId: String, // We use the trip's _id as the eventId for acknowledgement
+    @Json(name = "status") val status: String,
     @Json(name = "user") val user: User,
-    @Json(name = "pickup_location") val pickupLocation: Location,
-    @Json(name = "destination_location") val destinationLocation: Location,
-    @Json(name = "fare") val fare: Double,
-    @Json(name = "distance") val distance: String,
-    @Json(name = "duration") val duration: String
+    @Json(name = "start_address") val pickupLocation: Address,
+    @Json(name = "end_address") val destinationLocation: Address,
+    @Json(name = "price") val fare: Double,
+    @Json(name = "distance_in_km") val distance: Double,
+    @Json(name = "duration_in_minutes") val duration: Int
 )
 
 @JsonClass(generateAdapter = true)
 data class User(
-    @Json(name = "fullname") val fullname: String,
-    @Json(name = "profile_image") val profileImage: String?,
-    @Json(name = "rating") val rating: Double
+    @Json(name = "full_name") val fullname: String,
+    @Json(name = "profile_image") val profileImage: String? = null,
+    @Json(name = "average_rating") val rating: Rating
 )
 
 @JsonClass(generateAdapter = true)
-data class Location(
-    @Json(name = "name") val name: String,
-    @Json(name = "latitude") val latitude: Double,
-    @Json(name = "longitude") val longitude: Double
+data class Rating(
+    @Json(name = "value") val value: Double
+)
+
+@JsonClass(generateAdapter = true)
+data class Address(
+    @Json(name = "full_address") val name: String
 ) 

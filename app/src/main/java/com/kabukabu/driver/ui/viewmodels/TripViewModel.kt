@@ -2,7 +2,6 @@ package com.kabukabu.driver.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kabukabu.driver.data.socket.SocketEvent
 import com.kabukabu.driver.data.socket.SocketService
 import com.kabukabu.driver.utils.TripUiState
 import kotlinx.coroutines.flow.MutableStateFlow

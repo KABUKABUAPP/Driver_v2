@@ -68,10 +68,9 @@ import com.mapbox.maps.plugin.attribution.attribution
 import androidx.compose.ui.draw.blur
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.ui.viewmodels.TripViewModel
+import com.kabukabu.driver.ui.viewmodels.DriverViewModel
 import com.kabukabu.driver.utils.SoundPlayer
 import com.kabukabu.driver.utils.TripUiState
-import com.kabukabu.driver.ui.viewmodels.DriverViewModel
-import com.kabukabu.driver.ui.viewmodels.OnlineStatus
 
 @Composable
 fun HomeScreen(onLogout: () -> Unit) {
@@ -79,6 +78,7 @@ fun HomeScreen(onLogout: () -> Unit) {
     val (currentLocation, setCurrentLocation) = remember { mutableStateOf<Point?>(null) }
     var hasLocationPermission by remember { mutableStateOf(false) }
     val tripViewModel: TripViewModel = viewModel()
+    val driverViewModel: DriverViewModel = viewModel()
     val tripUiState by tripViewModel.uiState.collectAsState()
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
@@ -187,7 +187,6 @@ private fun UIOverlay(currentLocation: Point?, onLogout: () -> Unit, modifier: M
     val context = LocalContext.current
     var locationName by remember { mutableStateOf("Loading location...") }
     val driverViewModel: DriverViewModel = viewModel()
-    val onlineStatus by driverViewModel.onlineStatus.collectAsState()
 
     // Geocoder to get address from location
     LaunchedEffect(currentLocation) {
@@ -281,9 +280,8 @@ private fun UIOverlay(currentLocation: Point?, onLogout: () -> Unit, modifier: M
         ) {
             ExpandableDriverStatusCard(
                 onLogout = onLogout,
-                isOnline = onlineStatus == OnlineStatus.ONLINE,
-                onStateChange = { newStatus ->
-                    driverViewModel.setOnlineStatus(newStatus)
+                onOnlineStatusChanged = { isOnline ->
+                    driverViewModel.updateOnlineStatus(isOnline)
                 }
             )
         }
@@ -293,10 +291,10 @@ private fun UIOverlay(currentLocation: Point?, onLogout: () -> Unit, modifier: M
 @Composable
 private fun ExpandableDriverStatusCard(
     onLogout: () -> Unit,
-    isOnline: Boolean,
-    onStateChange: (Boolean) -> Unit
+    onOnlineStatusChanged: (Boolean) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
+    var isOnline by remember { mutableStateOf(false) }
 
     Column {
         Box {
@@ -344,7 +342,10 @@ private fun ExpandableDriverStatusCard(
         
         OnlineSlider(
             isOnline = isOnline,
-            onStateChange = onStateChange
+            onStateChange = { newStatus ->
+                isOnline = newStatus
+                onOnlineStatusChanged(newStatus)
+            }
         )
     }
 }
