@@ -90,6 +90,9 @@ dependencies {
     implementation(libs.mapbox.maps)
     implementation(libs.play.services.location)
 
+    // Socket.IO
+    implementation(libs.socket.io.client)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

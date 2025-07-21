@@ -1,10 +1,13 @@
 package com.kabukabu.driver.ui.screens
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.location.Geocoder
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
@@ -58,90 +61,242 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
 import kotlinx.coroutines.launch
 import androidx.compose.animation.core.Animatable
+import com.mapbox.maps.plugin.compass.compass
+import com.mapbox.maps.plugin.logo.logo
+import com.mapbox.maps.plugin.scalebar.scalebar
+import com.mapbox.maps.plugin.attribution.attribution
+import androidx.compose.ui.draw.blur
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kabukabu.driver.ui.viewmodels.TripViewModel
+import com.kabukabu.driver.utils.SoundPlayer
+import com.kabukabu.driver.utils.TripUiState
+import com.kabukabu.driver.ui.viewmodels.DriverViewModel
+import com.kabukabu.driver.ui.viewmodels.OnlineStatus
 
 @Composable
 fun HomeScreen(onLogout: () -> Unit) {
     val context = LocalContext.current
-    var mapView: MapView? by remember { mutableStateOf(null) }
+    val (currentLocation, setCurrentLocation) = remember { mutableStateOf<Point?>(null) }
+    var hasLocationPermission by remember { mutableStateOf(false) }
+    val tripViewModel: TripViewModel = viewModel()
+    val tripUiState by tripViewModel.uiState.collectAsState()
 
-    val addMarkerToMap = { lat: Double, lng: Double ->
-        mapView?.let {
-            bitmapFromDrawable(context, R.drawable.ic_red_marker)?.let { bitmap ->
-                val annotationApi = it.annotations
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        ) {
+            hasLocationPermission = true
+            getCurrentLocation(context) { lat, lng ->
+                val point = Point.fromLngLat(lng, lat)
+                setCurrentLocation(point)
+            }
+        } else {
+            // Handle permission denial if necessary
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        locationPermissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
+    }
+
+    // Play sound on new trip request
+    LaunchedEffect(tripUiState) {
+        if (tripUiState is TripUiState.TripRequest) {
+            SoundPlayer.playTripAlert(context)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        val isTripIncoming = tripUiState is TripUiState.TripRequest
+        MapComponent(
+            currentLocation = currentLocation,
+            modifier = Modifier.blur(if (isTripIncoming) 20.dp else 0.dp)
+        )
+        UIOverlay(
+            currentLocation = currentLocation,
+            onLogout = onLogout,
+            modifier = Modifier.blur(if (isTripIncoming) 20.dp else 0.dp)
+        )
+
+        if (tripUiState is TripUiState.TripRequest) {
+            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+                TripRequestCard(
+                    isVisible = true,
+                    tripDetails = (tripUiState as TripUiState.TripRequest).tripDetails,
+                    onAccept = { tripViewModel.acceptTrip() },
+                    onDecline = { tripViewModel.declineTrip() }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MapComponent(currentLocation: Point?, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val mapView = remember { MapView(context) }
+
+    AndroidView(
+        factory = { mapView },
+        modifier = modifier
+    )
+
+    // Animate map to current location
+    LaunchedEffect(currentLocation, mapView) {
+        if (currentLocation != null) {
+            val cameraOptions = cameraOptions {
+                center(currentLocation)
+                zoom(16.0)
+            }
+            mapView.getMapboxMap().setCamera(cameraOptions)
+            
+            // Add marker
+            bitmapFromDrawable(context, R.drawable._d_cars)?.let { bitmap ->
+                val annotationApi = mapView.annotations
                 val pointAnnotationManager = annotationApi.createPointAnnotationManager()
                 pointAnnotationManager.deleteAll()
                 val pointAnnotationOptions: PointAnnotationOptions = PointAnnotationOptions()
-                    .withPoint(Point.fromLngLat(lng, lat))
+                    .withPoint(currentLocation)
                     .withIconImage(bitmap)
                 pointAnnotationManager.create(pointAnnotationOptions)
             }
         }
     }
 
-    val locationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            if (isGranted) {
-                getCurrentLocation(context) { lat, lng ->
-                    mapView?.getMapboxMap()?.setCamera(
-                        CameraOptions.Builder()
-                            .center(Point.fromLngLat(lng, lat))
-                            .zoom(16.0)
-                            .build()
-                    )
-                    addMarkerToMap(lat, lng)
-                }
-            }
-        }
-    )
-
+    // Initial map setup
     LaunchedEffect(mapView) {
-        if (mapView != null) {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                getCurrentLocation(context) { lat, lng ->
-                    mapView?.getMapboxMap()?.setCamera(
-                        CameraOptions.Builder()
-                            .center(Point.fromLngLat(lng, lat))
-                            .zoom(16.0)
-                            .build()
-                    )
-                    addMarkerToMap(lat, lng)
+        mapView.getMapboxMap().loadStyleUri("mapbox://styles/kabukabuapp/cmd1e8u2s009k01s913jc4ywh")
+        
+        // Disable default Mapbox UI components
+        mapView.logo.enabled = false
+        mapView.attribution.enabled = false
+        mapView.compass.enabled = false
+        mapView.scalebar.enabled = false
+    }
+}
+
+@Composable
+private fun UIOverlay(currentLocation: Point?, onLogout: () -> Unit, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    var locationName by remember { mutableStateOf("Loading location...") }
+    val driverViewModel: DriverViewModel = viewModel()
+    val onlineStatus by driverViewModel.onlineStatus.collectAsState()
+
+    // Geocoder to get address from location
+    LaunchedEffect(currentLocation) {
+        if (currentLocation != null) {
+            try {
+                val geocoder = Geocoder(context)
+                @Suppress("DEPRECATION")
+                val addresses = geocoder.getFromLocation(currentLocation.latitude(), currentLocation.longitude(), 1)
+                if (addresses?.isNotEmpty() == true) {
+                    val address = addresses[0]
+                    val town = address.subLocality
+                    val city = address.locality
+                    val state = address.adminArea
+                    locationName = if (town != null && state != null) {
+                        "$town, $state"
+                    } else if (city != null && state != null) {
+                        "$city, $state"
+                    } else {
+                        city ?: "Unknown location"
+                    }
                 }
-            } else {
-                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            } catch (e: Exception) {
+                locationName = "Could not find location"
+                Log.e("HomeScreen", "Geocoder failed", e)
             }
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        AndroidView(
-            factory = {
-                MapView(it).apply {
-                    getMapboxMap().loadStyleUri("mapbox://styles/kabukabuapp/cmd1e8u2s009k01s913jc4ywh")
-                    mapView = this
-                }
-            },
-            modifier = Modifier.fillMaxSize()
-        )
+    Box(modifier = modifier.fillMaxSize()) {
+        // Top UI Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .padding(top = 48.dp, start = 16.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Left Menu Button
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(Color.White, shape = RoundedCornerShape(10.dp))
+                    .clickable { /* TODO: Handle menu click */ },
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.menu_right_square_alt),
+                    contentDescription = "Menu",
+                    modifier = Modifier.size(24.dp),
+                    colorFilter = ColorFilter.tint(Color.Black)
+                )
+            }
 
+            // Center Location Display
+            Box(
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .height(26.dp)
+                    .background(Color.White, shape = RoundedCornerShape(4.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.location_pin),
+                        contentDescription = "Location Pin",
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = locationName,
+                        color = Color.Black,
+                        fontWeight = FontWeight.W600,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+
+            // Right Spacer for balance
+            Spacer(Modifier.size(44.dp))
+        }
+
+        // Bottom Expandable Card
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 16.dp, vertical = 24.dp)
         ) {
-            ExpandableDriverStatusCard(onLogout = onLogout)
+            ExpandableDriverStatusCard(
+                onLogout = onLogout,
+                isOnline = onlineStatus == OnlineStatus.ONLINE,
+                onStateChange = { newStatus ->
+                    driverViewModel.setOnlineStatus(newStatus)
+                }
+            )
         }
     }
 }
 
 @Composable
-private fun ExpandableDriverStatusCard(onLogout: () -> Unit) {
+private fun ExpandableDriverStatusCard(
+    onLogout: () -> Unit,
+    isOnline: Boolean,
+    onStateChange: (Boolean) -> Unit
+) {
     var isExpanded by remember { mutableStateOf(false) }
-    var isOnline by remember { mutableStateOf(false) }
 
     Column {
         Box {
@@ -189,7 +344,7 @@ private fun ExpandableDriverStatusCard(onLogout: () -> Unit) {
         
         OnlineSlider(
             isOnline = isOnline,
-            onStateChange = { isOnline = it }
+            onStateChange = onStateChange
         )
     }
 }

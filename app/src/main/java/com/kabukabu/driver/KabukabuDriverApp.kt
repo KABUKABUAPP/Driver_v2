@@ -2,6 +2,7 @@ package com.kabukabu.driver
 
 import android.app.Application
 import com.kabukabu.driver.data.local.UserPreferences
+import com.kabukabu.driver.data.socket.SocketService
 
 class KabukabuDriverApp : Application() {
     // Lazy initialization of UserPreferences
@@ -20,5 +21,8 @@ class KabukabuDriverApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        
+        // Initialize and connect the socket
+        SocketService.connect()
     }
 } 

@@ -37,16 +37,23 @@ class OtpViewModel : ViewModel() {
                 Log.d("OtpViewModel", "Response: ${response}")
                 
                 if (response.status == "success" && response.data?.loggedInUser != null) {
-                    // Save auth token - use access_tokens from the response
+                    val user = response.data.loggedInUser
+                    // Save auth token
                     response.data.accessTokens?.let { token ->
                         Log.d("OtpViewModel", "Saving token: $token")
                         userPreferences.saveAuthToken(token)
                     }
                     
-                    // Save user email if available
-                    response.data.loggedInUser.email?.let { email ->
+                    // Save user email
+                    user.email?.let { email ->
                         Log.d("OtpViewModel", "Saving email: $email")
                         userPreferences.saveUserEmail(email)
+                    }
+
+                    // Save user ID
+                    user.id.let { id ->
+                        Log.d("OtpViewModel", "Saving user ID: $id")
+                        userPreferences.saveUserId(id)
                     }
                     
                     uiState = OtpUiState.Success(response)

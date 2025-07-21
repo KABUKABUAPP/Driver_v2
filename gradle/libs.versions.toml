@@ -21,6 +21,7 @@ splashscreen = "1.0.1"
 datastore = "1.0.0"
 mapbox = "11.5.1"
 play-services-location = "21.0.1"
+socketIoClient = "2.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -62,6 +63,9 @@ mapbox-maps = { group = "com.mapbox.maps", name = "android", version.ref = "mapb
 
 # Google Play Services Location
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "play-services-location" }
+
+# Socket.IO
+socket-io-client = { group = "io.socket", name = "socket.io-client", version.ref = "socketIoClient" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

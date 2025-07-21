@@ -18,6 +18,7 @@ class UserPreferences(private val context: Context) {
         private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
         private val TOKEN_KEY = stringPreferencesKey("auth_token")
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
+        private val USER_ID_KEY = stringPreferencesKey("user_id")
     }
 
     /**
@@ -35,6 +36,13 @@ class UserPreferences(private val context: Context) {
     }
 
     /**
+     * Get the user ID flow
+     */
+    val userId: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[USER_ID_KEY]
+    }
+
+    /**
      * Save auth token
      */
     suspend fun saveAuthToken(token: String) {
@@ -49,6 +57,15 @@ class UserPreferences(private val context: Context) {
     suspend fun saveUserEmail(email: String) {
         context.dataStore.edit { preferences ->
             preferences[USER_EMAIL_KEY] = email
+        }
+    }
+
+    /**
+     * Save user ID
+     */
+    suspend fun saveUserId(id: String) {
+        context.dataStore.edit { preferences ->
+            preferences[USER_ID_KEY] = id
         }
     }
 
