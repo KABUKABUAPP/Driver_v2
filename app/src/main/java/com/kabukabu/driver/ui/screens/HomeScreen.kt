@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.location.Geocoder
+import android.location.Location
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,6 +21,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -75,7 +77,7 @@ import com.kabukabu.driver.utils.TripUiState
 @Composable
 fun HomeScreen(onLogout: () -> Unit) {
     val context = LocalContext.current
-    val (currentLocation, setCurrentLocation) = remember { mutableStateOf<Point?>(null) }
+    val (currentLocation, setCurrentLocation) = remember { mutableStateOf<Location?>(null) }
     var hasLocationPermission by remember { mutableStateOf(false) }
     val tripViewModel: TripViewModel = viewModel()
     val driverViewModel: DriverViewModel = viewModel()
@@ -88,9 +90,8 @@ fun HomeScreen(onLogout: () -> Unit) {
             permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         ) {
             hasLocationPermission = true
-            getCurrentLocation(context) { lat, lng ->
-                val point = Point.fromLngLat(lng, lat)
-                setCurrentLocation(point)
+            getCurrentLocation(context) { location ->
+                setCurrentLocation(location)
             }
         } else {
             // Handle permission denial if necessary
@@ -117,21 +118,36 @@ fun HomeScreen(onLogout: () -> Unit) {
         val isTripIncoming = tripUiState is TripUiState.TripRequest
         MapComponent(
             currentLocation = currentLocation,
-            modifier = Modifier.blur(if (isTripIncoming) 20.dp else 0.dp)
         )
         UIOverlay(
             currentLocation = currentLocation,
             onLogout = onLogout,
-            modifier = Modifier.blur(if (isTripIncoming) 20.dp else 0.dp)
         )
 
-        if (tripUiState is TripUiState.TripRequest) {
+        val currentTripState = tripUiState
+        if (currentTripState is TripUiState.TripRequest) {
+            // Dimming overlay
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .clickable(
+                        enabled = true,
+                        onClick = {},
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    )
+            )
+
             Box(modifier = Modifier.align(Alignment.BottomCenter)) {
                 TripRequestCard(
                     isVisible = true,
-                    tripDetails = (tripUiState as TripUiState.TripRequest).tripDetails,
+                    tripDetails = currentTripState.tripDetails,
+                    driverLocation = currentLocation,
+                    remainingTime = currentTripState.remainingTime,
                     onAccept = { tripViewModel.acceptTrip() },
-                    onDecline = { tripViewModel.declineTrip() }
+                    onDecline = { tripViewModel.declineTrip() },
+                    onTimeout = { tripViewModel.declineTrip() }
                 )
             }
         }
@@ -139,7 +155,7 @@ fun HomeScreen(onLogout: () -> Unit) {
 }
 
 @Composable
-private fun MapComponent(currentLocation: Point?, modifier: Modifier = Modifier) {
+private fun MapComponent(currentLocation: Location?, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
 
@@ -151,8 +167,9 @@ private fun MapComponent(currentLocation: Point?, modifier: Modifier = Modifier)
     // Animate map to current location
     LaunchedEffect(currentLocation, mapView) {
         if (currentLocation != null) {
+            val point = Point.fromLngLat(currentLocation.longitude, currentLocation.latitude)
             val cameraOptions = cameraOptions {
-                center(currentLocation)
+                center(point)
                 zoom(16.0)
             }
             mapView.getMapboxMap().setCamera(cameraOptions)
@@ -163,7 +180,7 @@ private fun MapComponent(currentLocation: Point?, modifier: Modifier = Modifier)
                 val pointAnnotationManager = annotationApi.createPointAnnotationManager()
                 pointAnnotationManager.deleteAll()
                 val pointAnnotationOptions: PointAnnotationOptions = PointAnnotationOptions()
-                    .withPoint(currentLocation)
+                    .withPoint(point)
                     .withIconImage(bitmap)
                 pointAnnotationManager.create(pointAnnotationOptions)
             }
@@ -183,7 +200,7 @@ private fun MapComponent(currentLocation: Point?, modifier: Modifier = Modifier)
 }
 
 @Composable
-private fun UIOverlay(currentLocation: Point?, onLogout: () -> Unit, modifier: Modifier = Modifier) {
+private fun UIOverlay(currentLocation: Location?, onLogout: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var locationName by remember { mutableStateOf("Loading location...") }
     val driverViewModel: DriverViewModel = viewModel()
@@ -194,7 +211,7 @@ private fun UIOverlay(currentLocation: Point?, onLogout: () -> Unit, modifier: M
             try {
                 val geocoder = Geocoder(context)
                 @Suppress("DEPRECATION")
-                val addresses = geocoder.getFromLocation(currentLocation.latitude(), currentLocation.longitude(), 1)
+                val addresses = geocoder.getFromLocation(currentLocation.latitude, currentLocation.longitude, 1)
                 if (addresses?.isNotEmpty() == true) {
                     val address = addresses[0]
                     val town = address.subLocality
@@ -554,22 +571,18 @@ private fun OnlineSlider(
 }
 
 
-private fun getCurrentLocation(context: Context, onLocation: (Double, Double) -> Unit) {
+private fun getCurrentLocation(context: Context, onLocation: (Location?) -> Unit) {
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     try {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location ->
-                if (location != null) {
-                    onLocation(location.latitude, location.longitude)
-                } else {
-                    onLocation(6.5244, 3.3792)
-                }
+                onLocation(location)
             }
             .addOnFailureListener {
-                onLocation(6.5244, 3.3792)
+                onLocation(null)
             }
     } catch (e: SecurityException) {
-        onLocation(6.5244, 3.3792)
+        onLocation(null)
     }
 }
 

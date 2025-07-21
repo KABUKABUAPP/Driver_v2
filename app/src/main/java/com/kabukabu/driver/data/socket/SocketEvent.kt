@@ -11,6 +11,7 @@ data class TripFoundEvent(
     @Json(name = "user") val user: User,
     @Json(name = "start_address") val pickupLocation: Address,
     @Json(name = "end_address") val destinationLocation: Address,
+    @Json(name = "start_point") val startPoint: List<Double>,
     @Json(name = "price") val fare: Double,
     @Json(name = "distance_in_km") val distance: Double,
     @Json(name = "duration_in_minutes") val duration: Int
@@ -30,5 +31,7 @@ data class Rating(
 
 @JsonClass(generateAdapter = true)
 data class Address(
-    @Json(name = "full_address") val name: String
+    @Json(name = "full_address") val name: String,
+    @Json(name = "city") val city: String,
+    @Json(name = "state") val state: String
 ) 
