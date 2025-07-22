@@ -89,6 +89,7 @@ dependencies {
     // Mapbox Maps
     implementation(libs.mapbox.maps)
     implementation(libs.play.services.location)
+    implementation("com.mapbox.mapboxsdk:mapbox-sdk-services:5.8.0")
 
     // Socket.IO
     implementation(libs.socket.io.client)

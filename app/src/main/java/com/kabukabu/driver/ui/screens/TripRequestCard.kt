@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import kotlin.math.roundToInt
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.CircularProgressIndicator
 
 @Composable
 fun TripRequestCard(
@@ -43,6 +44,8 @@ fun TripRequestCard(
     tripDetails: TripFoundEvent,
     driverLocation: Location?,
     remainingTime: Int,
+    isAccepting: Boolean,
+    isDeclining: Boolean,
     onAccept: () -> Unit,
     onDecline: () -> Unit,
     onTimeout: () -> Unit
@@ -236,14 +239,25 @@ fun TripRequestCard(
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFCD214B) // rgba(205, 33, 75, 1)
-                        )
+                        ),
+                        enabled = !isAccepting && !isDeclining
                     ) {
-                        Text(
-                            text = "Decline",
-                            fontWeight = FontWeight.W500,
-                            fontSize = 14.sp,
-                            color = Color(0xFFFDFDFD) // rgba(253, 253, 253, 1)
-                        )
+                        if (isDeclining) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = "Decline",
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.W600,
+                                    color = Color.White
+                                )
+                            )
+                        }
                     }
                     Button(
                         onClick = onAccept,
@@ -253,14 +267,25 @@ fun TripRequestCard(
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF26AE23) // rgba(38, 174, 35, 1)
-                        )
+                        ),
+                        enabled = !isAccepting && !isDeclining
                     ) {
-                        Text(
-                            text = "Accept",
-                            fontWeight = FontWeight.W500,
-                            fontSize = 14.sp,
-                            color = Color(0xFFFDFDFD) // rgba(253, 253, 253, 1)
-                        )
+                        if (isAccepting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = "Accept",
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.W600,
+                                    color = Color.White
+                                )
+                            )
+                        }
                     }
                 }
             }

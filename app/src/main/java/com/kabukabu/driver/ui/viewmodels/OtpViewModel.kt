@@ -58,6 +58,7 @@ class OtpViewModel : ViewModel() {
                     
                     uiState = OtpUiState.Success(response)
                     Log.d("OtpViewModel", "Success state set")
+
                 } else {
                     Log.e("OtpViewModel", "Error: ${response.message}")
                     uiState = OtpUiState.Error(response.message)

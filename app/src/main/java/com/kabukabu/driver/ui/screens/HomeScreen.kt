@@ -51,6 +51,8 @@ import com.mapbox.maps.plugin.animation.flyTo
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
+import com.mapbox.maps.plugin.gestures.gestures
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
@@ -69,10 +71,28 @@ import com.mapbox.maps.plugin.scalebar.scalebar
 import com.mapbox.maps.plugin.attribution.attribution
 import androidx.compose.ui.draw.blur
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kabukabu.driver.data.model.ActiveTrip
 import com.kabukabu.driver.ui.viewmodels.TripViewModel
 import com.kabukabu.driver.ui.viewmodels.DriverViewModel
 import com.kabukabu.driver.utils.SoundPlayer
 import com.kabukabu.driver.utils.TripUiState
+import com.mapbox.api.directions.v5.DirectionsCriteria
+import com.mapbox.api.directions.v5.MapboxDirections
+import com.mapbox.api.directions.v5.models.DirectionsResponse
+import com.mapbox.api.directions.v5.models.DirectionsRoute
+import com.mapbox.core.constants.Constants
+import com.mapbox.maps.EdgeInsets
+import com.mapbox.maps.plugin.gestures.gestures
+import com.mapbox.geojson.LineString
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
+import kotlin.math.roundToInt
 
 @Composable
 fun HomeScreen(onLogout: () -> Unit) {
@@ -82,6 +102,13 @@ fun HomeScreen(onLogout: () -> Unit) {
     val tripViewModel: TripViewModel = viewModel()
     val driverViewModel: DriverViewModel = viewModel()
     val tripUiState by tripViewModel.uiState.collectAsState()
+    val isAccepting by tripViewModel.isAccepting.collectAsState()
+    val isDeclining by tripViewModel.isDeclining.collectAsState()
+    val isOnline by driverViewModel.isOnline.collectAsState()
+    val activeTrip by driverViewModel.activeTrip.collectAsState()
+
+    Log.d("HomeScreen", "Observed isOnline state: $isOnline")
+    Log.d("HomeScreen", "Observed activeTrip state: $activeTrip")
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -114,14 +141,23 @@ fun HomeScreen(onLogout: () -> Unit) {
         }
     }
 
+    // Fetch user profile on launch
+    LaunchedEffect(Unit) {
+        driverViewModel.fetchUserProfile()
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         val isTripIncoming = tripUiState is TripUiState.TripRequest
         MapComponent(
             currentLocation = currentLocation,
+            activeTrip = activeTrip,
+            modifier = Modifier.blur(if (isTripIncoming) 20.dp else 0.dp)
         )
         UIOverlay(
             currentLocation = currentLocation,
             onLogout = onLogout,
+            isOnline = isOnline,
+            onIsOnlineChange = { driverViewModel.updateOnlineStatus(it) }
         )
 
         val currentTripState = tripUiState
@@ -149,6 +185,8 @@ fun HomeScreen(onLogout: () -> Unit) {
                     tripDetails = currentTripState.tripDetails,
                     driverLocation = currentLocation,
                     remainingTime = currentTripState.remainingTime,
+                    isAccepting = isAccepting,
+                    isDeclining = isDeclining,
                     onAccept = { tripViewModel.acceptTrip() },
                     onDecline = { tripViewModel.declineTrip() },
                     onTimeout = { tripViewModel.declineTrip() }
@@ -156,10 +194,97 @@ fun HomeScreen(onLogout: () -> Unit) {
             }
         }
     }
+
+    // Active Trip Bottom Sheet
+    activeTrip?.let { trip ->
+        DraggableActiveTripSheet(trip = trip)
+    }
 }
 
 @Composable
-private fun MapComponent(currentLocation: Location?, modifier: Modifier = Modifier) {
+fun DraggableActiveTripSheet(trip: ActiveTrip) {
+    val coroutineScope = rememberCoroutineScope()
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
+
+    // Drastically reduced heights
+    val minHeight = screenHeightDp / 2.3f
+    val maxHeight = screenHeightDp / 1.4f
+
+    val minHeightPx = with(LocalDensity.current) { minHeight.toPx() }
+    val maxHeightPx = with(LocalDensity.current) { maxHeight.toPx() }
+
+    val currentHeightPx = remember { Animatable(minHeightPx) }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.BottomCenter // Anchor to the bottom
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(with(LocalDensity.current) { currentHeightPx.value.toDp() })
+                .pointerInput(Unit) {
+                    detectVerticalDragGestures(
+                        onDragEnd = {
+                            coroutineScope.launch {
+                                // Snap to closest state
+                                val midpoint = minHeightPx + (maxHeightPx - minHeightPx) / 2
+                                if (currentHeightPx.value > midpoint) {
+                                    currentHeightPx.animateTo(maxHeightPx, tween(150)) // Animate to expanded
+                                } else {
+                                    currentHeightPx.animateTo(minHeightPx, tween(150)) // Animate to collapsed
+                                }
+                            }
+                        }
+                    ) { change, dragAmount ->
+                        change.consume()
+                        coroutineScope.launch {
+                            val newHeight = (currentHeightPx.value - dragAmount).coerceIn(minHeightPx, maxHeightPx)
+                            currentHeightPx.snapTo(newHeight)
+                        }
+                    }
+                },
+            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Drag handle
+                Box(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(4.dp)
+                        .background(Color.LightGray, shape = CircleShape)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(text = "Active Trip", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "Status: ${trip.status ?: "N/A"}")
+                Text(text = "From: ${trip.startAddress?.fullAddress ?: "N/A"}")
+                Text(text = "To: ${trip.endAddress?.fullAddress ?: "N/A"}")
+                Text(text = "Price: ₦${trip.price ?: 0.0}")
+            }
+        }
+    }
+}
+
+// Linear interpolation
+private fun lerp(start: Float, stop: Float, fraction: Float): Float {
+    return (1 - fraction) * start + fraction * stop
+}
+
+@Composable
+private fun MapComponent(
+    currentLocation: Location?,
+    activeTrip: ActiveTrip? = null,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
 
@@ -168,25 +293,47 @@ private fun MapComponent(currentLocation: Location?, modifier: Modifier = Modifi
         modifier = modifier
     )
 
-    // Animate map to current location
-    LaunchedEffect(currentLocation, mapView) {
+    // Animate map to current location and draw polyline if there's an active trip
+    LaunchedEffect(currentLocation, activeTrip, mapView) {
         if (currentLocation != null) {
-            val point = Point.fromLngLat(currentLocation.longitude, currentLocation.latitude)
+            val driverPoint = Point.fromLngLat(currentLocation.longitude, currentLocation.latitude)
+
+            // Set camera position
             val cameraOptions = cameraOptions {
-                center(point)
-                zoom(16.0)
+                center(driverPoint)
+                zoom(15.0)
             }
             mapView.getMapboxMap().setCamera(cameraOptions)
-            
-            // Add marker
-            bitmapFromDrawable(context, R.drawable._d_cars)?.let { bitmap ->
+
+            // Add rider marker and polyline if there's an active trip
+            activeTrip?.startPoint?.let { startPoint ->
+                if (startPoint.size >= 2) {
+                    val riderPoint = Point.fromLngLat(startPoint[0], startPoint[1])
+                    getRouteAndDrawPolyline(mapView, driverPoint, riderPoint)
+                    
+                    val fixedCameraPosition = CameraOptions.Builder()
+                        .center(driverPoint)
+                        .zoom(15.0)
+                        .build()
+                    mapView.getMapboxMap().flyTo(
+                        cameraOptions = fixedCameraPosition,
+                        animationOptions = MapAnimationOptions.Builder().duration(1000L).build()
+                    )
+
+                    Log.d("MapComponent", "Driver location: ${driverPoint.longitude()}, ${driverPoint.latitude()}")
+                    Log.d("MapComponent", "Rider location: ${riderPoint.longitude()}, ${riderPoint.latitude()}")
+                }
+            } ?: run {
+                // If no active trip, just add the driver marker
                 val annotationApi = mapView.annotations
                 val pointAnnotationManager = annotationApi.createPointAnnotationManager()
                 pointAnnotationManager.deleteAll()
-                val pointAnnotationOptions: PointAnnotationOptions = PointAnnotationOptions()
-                    .withPoint(point)
-                    .withIconImage(bitmap)
-                pointAnnotationManager.create(pointAnnotationOptions)
+                bitmapFromDrawable(context, R.drawable._d_cars)?.let { bitmap ->
+                    val driverAnnotationOptions = PointAnnotationOptions()
+                        .withPoint(driverPoint)
+                        .withIconImage(bitmap)
+                    pointAnnotationManager.create(driverAnnotationOptions)
+                }
             }
         }
     }
@@ -194,7 +341,15 @@ private fun MapComponent(currentLocation: Location?, modifier: Modifier = Modifi
     // Initial map setup
     LaunchedEffect(mapView) {
         mapView.getMapboxMap().loadStyleUri("mapbox://styles/kabukabuapp/cmd1e8u2s009k01s913jc4ywh")
-        
+
+        // Enable map interaction using the gestures plugin
+        mapView.gestures.apply {
+            pinchToZoomEnabled = true
+            rotateEnabled = true
+            scrollEnabled = true
+            doubleTapToZoomInEnabled = true
+        }
+
         // Disable default Mapbox UI components
         mapView.logo.enabled = false
         mapView.attribution.enabled = false
@@ -204,39 +359,39 @@ private fun MapComponent(currentLocation: Location?, modifier: Modifier = Modifi
 }
 
 @Composable
-private fun UIOverlay(currentLocation: Location?, onLogout: () -> Unit, modifier: Modifier = Modifier) {
+private fun UIOverlay(
+    currentLocation: Location?,
+    onLogout: () -> Unit,
+    isOnline: Boolean,
+    onIsOnlineChange: (Boolean) -> Unit
+) {
+    var isCardExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var locationName by remember { mutableStateOf("Loading location...") }
-    val driverViewModel: DriverViewModel = viewModel()
 
-    // Geocoder to get address from location
+    // This effect runs when `currentLocation` changes.
     LaunchedEffect(currentLocation) {
         if (currentLocation != null) {
-            try {
-                val geocoder = Geocoder(context)
-                @Suppress("DEPRECATION")
-                val addresses = geocoder.getFromLocation(currentLocation.latitude, currentLocation.longitude, 1)
-                if (addresses?.isNotEmpty() == true) {
-                    val address = addresses[0]
-                    val town = address.subLocality
-                    val city = address.locality
-                    val state = address.adminArea
-                    locationName = if (town != null && state != null) {
-                        "$town, $state"
-                    } else if (city != null && state != null) {
-                        "$city, $state"
-                    } else {
-                        city ?: "Unknown location"
+            // Use a coroutine to avoid blocking the main thread
+            launch(Dispatchers.IO) {
+                try {
+                    val geocoder = Geocoder(context)
+                    val addresses = geocoder.getFromLocation(
+                        currentLocation.latitude,
+                        currentLocation.longitude,
+                        1
+                    )
+                    if (addresses?.isNotEmpty() == true) {
+                        locationName = addresses[0].thoroughfare ?: "Unknown Location"
                     }
+                } catch (e: Exception) {
+                    locationName = "Location not found"
                 }
-            } catch (e: Exception) {
-                locationName = "Could not find location"
-                Log.e("HomeScreen", "Geocoder failed", e)
             }
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
         // Top UI Bar
         Row(
             modifier = Modifier
@@ -266,7 +421,6 @@ private fun UIOverlay(currentLocation: Location?, onLogout: () -> Unit, modifier
             Box(
                 modifier = Modifier
                     .wrapContentWidth()
-                    .height(26.dp)
                     .background(Color.White, shape = RoundedCornerShape(4.dp)),
                 contentAlignment = Alignment.Center
             ) {
@@ -301,9 +455,8 @@ private fun UIOverlay(currentLocation: Location?, onLogout: () -> Unit, modifier
         ) {
             ExpandableDriverStatusCard(
                 onLogout = onLogout,
-                onOnlineStatusChanged = { isOnline ->
-                    driverViewModel.updateOnlineStatus(isOnline)
-                }
+                onOnlineStatusChanged = onIsOnlineChange,
+                isOnline = isOnline
             )
         }
     }
@@ -312,10 +465,10 @@ private fun UIOverlay(currentLocation: Location?, onLogout: () -> Unit, modifier
 @Composable
 private fun ExpandableDriverStatusCard(
     onLogout: () -> Unit,
-    onOnlineStatusChanged: (Boolean) -> Unit
+    onOnlineStatusChanged: (Boolean) -> Unit,
+    isOnline: Boolean
 ) {
     var isExpanded by remember { mutableStateOf(false) }
-    var isOnline by remember { mutableStateOf(false) }
 
     Column {
         Box {
@@ -364,7 +517,6 @@ private fun ExpandableDriverStatusCard(
         OnlineSlider(
             isOnline = isOnline,
             onStateChange = { newStatus ->
-                isOnline = newStatus
                 onOnlineStatusChanged(newStatus)
             }
         )
@@ -602,4 +754,69 @@ private fun bitmapFromDrawable(context: Context, @DrawableRes resId: Int): Bitma
         drawable.draw(canvas)
         bitmap
     }
+} 
+
+private fun getRouteAndDrawPolyline(mapView: MapView, origin: Point, destination: Point) {
+    Log.d("DirectionsAPI", "Requesting route from ${origin.longitude()},${origin.latitude()} to ${destination.longitude()},${destination.latitude()}")
+
+    val annotationApi = mapView.annotations
+    annotationApi.cleanup()
+
+    // Create managers
+    val polylineAnnotationManager = annotationApi.createPolylineAnnotationManager()
+    val pointAnnotationManager = annotationApi.createPointAnnotationManager()
+    
+    // Add driver marker
+    bitmapFromDrawable(mapView.context, R.drawable._d_cars)?.let {
+        pointAnnotationManager.create(PointAnnotationOptions().withPoint(origin).withIconImage(it))
+    }
+    // Add rider marker
+    bitmapFromDrawable(mapView.context, R.drawable.ic_red_marker)?.let {
+        pointAnnotationManager.create(PointAnnotationOptions().withPoint(destination).withIconImage(it))
+    }
+
+    Log.d("DirectionsAPI", "Built directions client with token: ${mapView.context.getString(R.string.mapbox_access_token).take(10)}...")
+    
+    val client = MapboxDirections.builder()
+        .origin(origin)
+        .destination(destination)
+        .overview(DirectionsCriteria.OVERVIEW_FULL)
+        .profile(DirectionsCriteria.PROFILE_DRIVING)
+        .accessToken(mapView.context.getString(R.string.mapbox_access_token))
+        .build()
+
+    client.enqueueCall(object : retrofit2.Callback<DirectionsResponse> {
+        override fun onResponse(call: retrofit2.Call<DirectionsResponse>, response: retrofit2.Response<DirectionsResponse>) {
+             if (!response.isSuccessful || response.body() == null || response.body()!!.routes().isEmpty()) {
+                Log.e("DirectionsAPI", "No route found, drawing straight line. Code: ${response.code()}")
+                 // Fallback to a straight line
+                 polylineAnnotationManager.create(
+                     PolylineAnnotationOptions()
+                         .withPoints(listOf(origin, destination))
+                         .withLineColor("#FF0000") // Red
+                         .withLineWidth(4.0)
+                 )
+                return
+            }
+
+            val currentRoute = response.body()!!.routes()[0]
+            val routeGeometry = currentRoute.geometry()
+            Log.d("DirectionsAPI", "Route geometry: $routeGeometry")
+            
+            if (routeGeometry != null) {
+                val points = LineString.fromPolyline(routeGeometry, Constants.PRECISION_6).coordinates()
+                polylineAnnotationManager.create(
+                    PolylineAnnotationOptions()
+                        .withPoints(points)
+                        .withLineColor("#FF0000") // Red
+                        .withLineWidth(4.0)
+                )
+                 Log.d("DirectionsAPI", "Successfully drew route with ${points.size} points.")
+            }
+        }
+
+        override fun onFailure(call: retrofit2.Call<DirectionsResponse>, t: Throwable) {
+            Log.e("DirectionsAPI", "Directions API call failed", t)
+        }
+    })
 } 

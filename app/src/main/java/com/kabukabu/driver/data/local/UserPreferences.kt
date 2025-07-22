@@ -19,6 +19,7 @@ class UserPreferences(private val context: Context) {
         private val TOKEN_KEY = stringPreferencesKey("auth_token")
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
         private val USER_ID_KEY = stringPreferencesKey("user_id")
+        private val ACTIVE_ORDER_ID_KEY = stringPreferencesKey("active_order_id")
     }
 
     /**
@@ -40,6 +41,13 @@ class UserPreferences(private val context: Context) {
      */
     val userId: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[USER_ID_KEY]
+    }
+
+    /**
+     * Get the active order ID flow
+     */
+    val activeOrderId: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[ACTIVE_ORDER_ID_KEY]
     }
 
     /**
@@ -66,6 +74,15 @@ class UserPreferences(private val context: Context) {
     suspend fun saveUserId(id: String) {
         context.dataStore.edit { preferences ->
             preferences[USER_ID_KEY] = id
+        }
+    }
+
+    /**
+     * Save active order ID
+     */
+    suspend fun saveActiveOrderId(orderId: String) {
+        context.dataStore.edit { preferences ->
+            preferences[ACTIVE_ORDER_ID_KEY] = orderId
         }
     }
 
