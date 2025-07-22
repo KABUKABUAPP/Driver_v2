@@ -301,7 +301,7 @@ private fun MapComponent(
             // Set camera position
             val cameraOptions = cameraOptions {
                 center(driverPoint)
-                zoom(15.0)
+                zoom(17.0) // Increased from 15.0
             }
             mapView.getMapboxMap().setCamera(cameraOptions)
 
@@ -313,7 +313,7 @@ private fun MapComponent(
                     
                     val fixedCameraPosition = CameraOptions.Builder()
                         .center(driverPoint)
-                        .zoom(15.0)
+                        .zoom(17.0) // Increased from 15.0
                         .build()
                     mapView.getMapboxMap().flyTo(
                         cameraOptions = fixedCameraPosition,
