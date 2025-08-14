@@ -22,7 +22,7 @@ class KabukabuDriverApp : Application() {
         super.onCreate()
         instance = this
         
-        // Initialize and connect the socket
+        // Initialize and connect the socket when app start
         SocketService.connect()
     }
 } 
