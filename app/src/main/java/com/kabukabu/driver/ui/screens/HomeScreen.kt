@@ -17,6 +17,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -26,6 +27,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
@@ -39,6 +42,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.compose.ui.draw.clip
+import coil.compose.AsyncImage
+import com.kabukabu.driver.ui.viewmodels.DriverViewModel
+import com.kabukabu.driver.data.local.UserPreferences
+import kotlinx.coroutines.flow.firstOrNull
 import com.google.android.gms.location.LocationServices
 import com.kabukabu.driver.R
 import com.mapbox.geojson.Point
@@ -73,7 +81,6 @@ import androidx.compose.ui.draw.blur
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.data.model.ActiveTrip
 import com.kabukabu.driver.ui.viewmodels.TripViewModel
-import com.kabukabu.driver.ui.viewmodels.DriverViewModel
 import com.kabukabu.driver.utils.SoundPlayer
 import com.kabukabu.driver.utils.TripUiState
 import com.mapbox.api.directions.v5.DirectionsCriteria
@@ -82,23 +89,34 @@ import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.core.constants.Constants
 import com.mapbox.maps.EdgeInsets
-import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.geojson.LineString
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
-import kotlin.math.roundToInt
+import android.widget.Toast
 
 @Composable
-fun HomeScreen(onLogout: () -> Unit) {
+fun HomeScreen(
+    onLogout: () -> Unit,
+    onNavigateToWallet: () -> Unit,
+    onNavigateToAnalytics: () -> Unit,
+    onNavigateToMyTrips: () -> Unit,
+    onNavigateToPromotions: () -> Unit,
+    onNavigateToSupport: () -> Unit,
+    onNavigateToAbout: () -> Unit,
+    onNavigateToRepairLoan: () -> Unit,
+) {
     val context = LocalContext.current
     val (currentLocation, setCurrentLocation) = remember { mutableStateOf<Location?>(null) }
     var hasLocationPermission by remember { mutableStateOf(false) }
+
     val tripViewModel: TripViewModel = viewModel()
     val driverViewModel: DriverViewModel = viewModel()
     val tripUiState by tripViewModel.uiState.collectAsState()
@@ -124,7 +142,6 @@ fun HomeScreen(onLogout: () -> Unit) {
             // Handle permission denial if necessary
         }
     }
-
     LaunchedEffect(Unit) {
         locationPermissionLauncher.launch(
             arrayOf(
@@ -141,10 +158,9 @@ fun HomeScreen(onLogout: () -> Unit) {
         }
     }
 
-    // Fetch user profile on launch
-    LaunchedEffect(Unit) {
-        driverViewModel.fetchUserProfile()
-    }
+    // Profile is fetched in DriverViewModel.init()
+
+    var isDrawerOpen by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         val isTripIncoming = tripUiState is TripUiState.TripRequest
@@ -157,7 +173,8 @@ fun HomeScreen(onLogout: () -> Unit) {
             currentLocation = currentLocation,
             onLogout = onLogout,
             isOnline = isOnline,
-            onIsOnlineChange = { driverViewModel.updateOnlineStatus(it) }
+            onIsOnlineChange = { driverViewModel.updateOnlineStatus(it) },
+            onMenuClick = { isDrawerOpen = true }
         )
 
         val currentTripState = tripUiState
@@ -192,6 +209,49 @@ fun HomeScreen(onLogout: () -> Unit) {
                     onTimeout = { tripViewModel.declineTrip() }
                 )
             }
+        }
+
+        // Full-screen drawer overlay (render last to be on top)
+        AnimatedVisibility(
+            visible = isDrawerOpen,
+            enter = slideInHorizontally(initialOffsetX = { -it }),
+            exit = slideOutHorizontally(targetOffsetX = { -it })
+        ) {
+            FullScreenDrawer(
+                onClose = { isDrawerOpen = false },
+                onLogout = {
+                    isDrawerOpen = false
+                    onLogout()
+                },
+                onNavigateToWallet = {
+                    isDrawerOpen = false
+                    onNavigateToWallet()
+                },
+                onNavigateToAnalytics = {
+                    isDrawerOpen = false
+                    onNavigateToAnalytics()
+                },
+                onNavigateToMyTrips = {
+                    isDrawerOpen = false
+                    onNavigateToMyTrips()
+                },
+                onNavigateToPromotions = {
+                    isDrawerOpen = false
+                    onNavigateToPromotions()
+                },
+                onNavigateToSupport = {
+                    isDrawerOpen = false
+                    onNavigateToSupport()
+                },
+                onNavigateToAbout = {
+                    isDrawerOpen = false
+                    onNavigateToAbout()
+                },
+                onNavigateToRepairLoan = {
+                    isDrawerOpen = false
+                    onNavigateToRepairLoan()
+                }
+            )
         }
     }
 
@@ -363,7 +423,8 @@ private fun UIOverlay(
     currentLocation: Location?,
     onLogout: () -> Unit,
     isOnline: Boolean,
-    onIsOnlineChange: (Boolean) -> Unit
+    onIsOnlineChange: (Boolean) -> Unit,
+    onMenuClick: () -> Unit
 ) {
     var isCardExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -406,7 +467,7 @@ private fun UIOverlay(
                 modifier = Modifier
                     .size(44.dp)
                     .background(Color.White, shape = RoundedCornerShape(10.dp))
-                    .clickable { /* TODO: Handle menu click */ },
+                    .clickable { onMenuClick() },
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -820,3 +881,275 @@ private fun getRouteAndDrawPolyline(mapView: MapView, origin: Point, destination
         }
     })
 } 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FullScreenDrawer(
+    onClose: () -> Unit,
+    onLogout: () -> Unit,
+    onNavigateToWallet: () -> Unit,
+    onNavigateToAnalytics: () -> Unit,
+    onNavigateToMyTrips: () -> Unit,
+    onNavigateToPromotions: () -> Unit,
+    onNavigateToSupport: () -> Unit,
+    onNavigateToAbout: () -> Unit,
+    onNavigateToRepairLoan: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        color = Color.White
+    ) {
+        val context = LocalContext.current
+        LaunchedEffect(Unit) {
+            try {
+                val userPreferences = UserPreferences(context)
+                val token = userPreferences.authToken.firstOrNull()
+                android.util.Log.d("AuthToken", "FULL TOKEN: $token")
+            } catch (e: Exception) {
+                android.util.Log.e("AuthToken", "Failed to read token: ${e.message}")
+            }
+        }
+
+        // Observe user profile for drawer header
+        val driverViewModel: DriverViewModel = viewModel()
+        val userProfile by driverViewModel.userProfile.collectAsState()
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "My Account",
+                        color = Color.Black,
+                        fontWeight = FontWeight.W600,
+                        fontSize = 18.sp,
+                        // TODO: Replace with actual Sofia Sans font if available in the project assets
+                        // fontFamily = FontFamily(Font(R.font.sofia_sans_semibold))
+                        // Fallback until font is provided:
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif
+                    )
+                },
+                navigationIcon = {
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .size(36.dp)
+                            .border(
+                                width = 1.dp,
+                                color = Color(0xFFE1E1E1),
+                                shape = CircleShape
+                            )
+                            .clickable { onClose() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color(0xFF9A9A9A),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White
+                )
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                // Profile header container
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp)
+                        .background(Color(0xFFF9F9F9), shape = RoundedCornerShape(12.dp))
+                        .padding(horizontal = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Left: Avatar + Name/Link
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            AsyncImage(
+                                model = userProfile?.profileImage,
+                                contentDescription = "Profile image",
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFEFEFEF), shape = CircleShape)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(horizontalAlignment = Alignment.Start) {
+                                Text(
+                                    text = userProfile?.fullName ?: "",
+                                    color = Color(0xFF161616),
+                                    fontWeight = FontWeight.W600,
+                                    fontSize = 18.sp
+                                )
+                                Text(
+                                    text = "view profile",
+                                    color = Color(0xFF3D3D3D),
+                                    fontWeight = FontWeight.W400,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.clickable {
+                                        Toast.makeText(context, "View Profile", Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+                            }
+                        }
+
+                        // Right: rating
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Filled.Star,
+                                contentDescription = "Rating",
+                                tint = Color(0xFFFFBF00),
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = (userProfile?.averageRating?.value ?: 0.0).let { String.format("%.1f", it) },
+                                color = Color(0xFF161616),
+                                fontWeight = FontWeight.W700,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Drawer menu items
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    // General group
+                    Text(
+                        text = "General",
+                        color = Color(0xFF161616),
+                        fontWeight = FontWeight.W700,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Card(
+                        shape = RoundedCornerShape(10.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
+                            DrawerMenuItem(
+                                iconRes = R.drawable.wallet_drawer,
+                                title = "Wallet",
+                                onClick = {
+                                    onNavigateToWallet()
+                                }
+                            )
+                            DrawerMenuItem(
+                                iconRes = R.drawable.solar_stopwatch_linear,
+                                title = "Analytics",
+                                onClick = { onNavigateToAnalytics() }
+                            )
+                            DrawerMenuItem(
+                                iconRes = R.drawable.taxi_drawer,
+                                title = "My Trip",
+                                onClick = { onNavigateToMyTrips() }
+                            )
+                            DrawerMenuItem(
+                                iconRes = R.drawable.receipt_percent,
+                                title = "Promotions",
+                                onClick = { onNavigateToPromotions() }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Support group
+                    Text(
+                        text = "Support",
+                        color = Color(0xFF161616),
+                        fontWeight = FontWeight.W700,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Card(
+                        shape = RoundedCornerShape(10.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
+                            DrawerMenuItem(
+                                iconRes = R.drawable.info_circle,
+                                title = "About",
+                                onClick = { onNavigateToAbout() }
+                            )
+                            DrawerMenuItem(
+                                iconRes = R.drawable.mynaui_shield_solid,
+                                title = "Repair Loan",
+                                onClick = { onNavigateToRepairLoan() }
+                            )
+                            DrawerMenuItem(
+                                iconRes = R.drawable.message_text,
+                                title = "Support",
+                                onClick = { onNavigateToSupport() }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Final unnamed group with only Logout
+                    Card(
+                        shape = RoundedCornerShape(10.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
+                            DrawerMenuItem(
+                                iconRes = R.drawable.log_out,
+                                title = "Logout",
+                                onClick = {
+                                    onLogout()
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DrawerMenuItem(
+    iconRes: Int,
+    title: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(id = iconRes),
+            contentDescription = title,
+            modifier = Modifier
+                .size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = title,
+            color = Color.Black,
+            fontWeight = FontWeight.W600,
+            fontSize = 15.sp
+        )
+    }
+}

@@ -20,7 +20,15 @@ data class UserProfile(
     @Json(name = "_id") val id: String,
     @Json(name = "full_name") val fullName: String?,
     @Json(name = "email") val email: String?,
-    @Json(name = "online_status") val onlineStatus: String?
+    @Json(name = "online_status") val onlineStatus: String?,
+    @Json(name = "profile_image") val profileImage: String?,
+    @Json(name = "average_rating") val averageRating: AverageRating?
+)
+
+@JsonClass(generateAdapter = true)
+data class AverageRating(
+    @Json(name = "value") val value: Double?,
+    @Json(name = "count") val count: Int?
 )
 
 @JsonClass(generateAdapter = true)

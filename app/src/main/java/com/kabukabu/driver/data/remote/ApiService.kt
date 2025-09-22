@@ -15,8 +15,12 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 import okhttp3.ResponseBody
 import retrofit2.Response
+import com.kabukabu.driver.data.model.DuePaymentResponse
+import com.kabukabu.driver.data.model.DriverAnalysisResponse
+import com.kabukabu.driver.data.model.TripHistoryResponse
 
 interface ApiService {
     @POST("auth/otp-login")
@@ -51,4 +55,39 @@ interface ApiService {
         @Path("orderId") orderId: String,
         @Body request: DeclineTripRequest
     ): DeclineTripResponse
-} 
+
+    // Wallet / Payments
+    @GET("payment/my-due-payments")
+    suspend fun getDuePayment(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String
+    ): DuePaymentResponse
+
+    // Analytics (Flutter uses 'driver/analytcs')
+    @GET("driver/analytcs")
+    suspend fun getDriverAnalysis(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Query("time_frame") timeFrame: String? = null,
+        @Query("custom_date") customDate: String? = null
+    ): DriverAnalysisResponse
+
+    // Trips (support pagination like Flutter models)
+    @GET("trip/my-trips")
+    suspend fun getMyTrips(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Query("page") page: Int? = null,
+        @Query("limit") limit: Int? = null
+    ): TripHistoryResponse
+
+    // Promotions
+    @GET("promotions/all-promo")
+    suspend fun getPromotions(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Query("status") status: String,
+        @Query("page") page: Int,
+        @Query("limit") limit: Int
+    ): Response<ResponseBody>
+}

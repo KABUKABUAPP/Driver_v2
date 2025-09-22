@@ -18,10 +18,19 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.kabukabu.driver.navigation.NavArg
 import com.kabukabu.driver.navigation.Screen
+import com.kabukabu.driver.ui.screens.WalletScreen
+import com.kabukabu.driver.ui.screens.PaymentHistoryScreen
+import com.kabukabu.driver.ui.screens.SharpPaymentScreen
 import com.kabukabu.driver.ui.screens.HomeScreen
 import com.kabukabu.driver.ui.screens.LoginScreen
 import com.kabukabu.driver.ui.screens.OtpVerificationScreen
 import com.kabukabu.driver.ui.screens.SplashScreen
+import com.kabukabu.driver.ui.screens.AnalyticsScreen
+import com.kabukabu.driver.ui.screens.MyTripsScreen
+import com.kabukabu.driver.ui.screens.PromotionsScreen
+import com.kabukabu.driver.ui.screens.SupportScreen
+import com.kabukabu.driver.ui.screens.AboutScreen
+import com.kabukabu.driver.ui.screens.RepairLoanScreen
 import com.kabukabu.driver.ui.theme.KabukabuDriverTheme
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
@@ -141,8 +150,51 @@ fun AppNavigation() {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
-                }
+                },
+                onNavigateToWallet = {
+                    navController.navigate(Screen.Wallet.route)
+                },
+                onNavigateToAnalytics = { navController.navigate(Screen.Analytics.route) },
+                onNavigateToMyTrips = { navController.navigate(Screen.MyTrips.route) },
+                onNavigateToPromotions = { navController.navigate(Screen.Promotions.route) },
+                onNavigateToSupport = { navController.navigate(Screen.Support.route) },
+                onNavigateToAbout = { navController.navigate(Screen.About.route) },
+                onNavigateToRepairLoan = { navController.navigate(Screen.RepairLoan.route) }
             )
+        }
+
+        composable(Screen.Wallet.route) {
+            WalletScreen(
+                onBack = { navController.popBackStack() },
+                onNavigatePaymentHistory = { navController.navigate(Screen.PaymentHistory.route) },
+                onNavigateSharpPayment = { navController.navigate(Screen.SharpPayment.route) }
+            )
+        }
+
+        composable(Screen.PaymentHistory.route) {
+            PaymentHistoryScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Screen.SharpPayment.route) {
+            SharpPaymentScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Analytics.route) {
+            AnalyticsScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Screen.MyTrips.route) {
+            MyTripsScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Screen.Promotions.route) {
+            PromotionsScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Screen.Support.route) {
+            SupportScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Screen.About.route) {
+            AboutScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Screen.RepairLoan.route) {
+            RepairLoanScreen(onBack = { navController.popBackStack() })
         }
     }
 } 

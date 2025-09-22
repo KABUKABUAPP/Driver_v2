@@ -7,6 +7,7 @@ import com.kabukabu.driver.data.local.UserPreferences
 import com.kabukabu.driver.data.model.ActiveTrip
 import com.kabukabu.driver.data.model.OnlineStatusRequest
 import com.kabukabu.driver.data.model.ProfileResponse
+import com.kabukabu.driver.data.model.UserProfile
 import com.kabukabu.driver.data.remote.ApiClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +25,14 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
 
     private val _activeTrip = MutableStateFlow<ActiveTrip?>(null)
     val activeTrip = _activeTrip.asStateFlow()
+
+    private val _userProfile = MutableStateFlow<UserProfile?>(null)
+    val userProfile = _userProfile.asStateFlow()
+
+    init {
+        // Fetch early so UI like the drawer can consume cached state immediately
+        fetchUserProfile()
+    }
 
     fun fetchUserProfile() {
         viewModelScope.launch {
@@ -44,13 +53,18 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
                         val moshi = ApiClient.moshi
                         val adapter = moshi.adapter(ProfileResponse::class.java)
                         val parsedResponse = adapter.fromJson(rawResponse)
-                        val onlineStatus = parsedResponse?.data?.user?.onlineStatus
+                        val user = parsedResponse?.data?.user
+                        val onlineStatus = user?.onlineStatus
                         _isOnline.value = onlineStatus == "online"
                         Log.d("DriverViewModel", "Driver online status updated to: ${isOnline.value}")
 
                         // Update active trip
                         _activeTrip.value = parsedResponse?.data?.activeTrip
                         Log.d("DriverViewModel", "Active trip updated: ${_activeTrip.value}")
+
+                        // Update user profile
+                        _userProfile.value = user
+                        Log.d("DriverViewModel", "User profile updated: ${_userProfile.value}")
                     }
                 } else {
                     Log.e("DriverViewModel", "Failed to fetch profile: ${profileResponse.errorBody()?.string()}")

@@ -29,12 +29,18 @@ import androidx.compose.runtime.mutableStateOf
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.ui.res.colorResource
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kabukabu.driver.ui.viewmodels.DriverViewModel
 
 @Composable
 fun SplashScreen(
     onGetStartedClick: () -> Unit
 ) {
     val context = LocalContext.current
+    // Create DriverViewModel at Activity scope so it's shared across Splash and Home
+    val activityOwner = context as ViewModelStoreOwner
+    val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
     var visible by remember { mutableStateOf(true) }
     
     // Get the dark gray color from resources
