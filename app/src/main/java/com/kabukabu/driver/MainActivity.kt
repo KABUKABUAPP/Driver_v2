@@ -63,6 +63,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavigation() {
+
     val navController = rememberNavController()
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val authToken by userPreferences.authToken.collectAsState(initial = null)

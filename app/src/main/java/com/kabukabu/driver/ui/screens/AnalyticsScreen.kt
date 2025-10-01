@@ -22,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Card
@@ -119,7 +120,7 @@ fun AnalyticsScreen(onBack: () -> Unit, vm: AnalyticsViewModel = viewModel()) {
 }
 
 @Composable
-private fun StatTile(title: String, value: String) {
+private fun RowScope.StatTile(title: String, value: String) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF5D8)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
