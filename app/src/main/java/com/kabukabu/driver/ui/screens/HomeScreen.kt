@@ -101,6 +101,14 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import android.widget.Toast
+import androidx.compose.material3.MaterialTheme
+import com.kabukabu.driver.ui.theme.KabukabuYellow
+import com.kabukabu.driver.ui.theme.KabukabuYellowLight
+import com.kabukabu.driver.ui.theme.SurfaceCard
+import com.kabukabu.driver.ui.theme.SurfaceCardAlt
+import com.kabukabu.driver.ui.theme.TextSecondary
+import com.kabukabu.driver.ui.theme.Success
+import com.kabukabu.driver.ui.theme.BorderSubtle
 
 @Composable
 fun HomeScreen(
@@ -112,6 +120,7 @@ fun HomeScreen(
     onNavigateToSupport: () -> Unit,
     onNavigateToAbout: () -> Unit,
     onNavigateToRepairLoan: () -> Unit,
+    onNavigateToProfile: () -> Unit,
 ) {
     val context = LocalContext.current
     val (currentLocation, setCurrentLocation) = remember { mutableStateOf<Location?>(null) }
@@ -250,6 +259,10 @@ fun HomeScreen(
                 onNavigateToRepairLoan = {
                     isDrawerOpen = false
                     onNavigateToRepairLoan()
+                },
+                onNavigateToProfile = {
+                    isDrawerOpen = false
+                    onNavigateToProfile()
                 }
             )
         }
@@ -466,7 +479,7 @@ private fun UIOverlay(
             Box(
                 modifier = Modifier
                     .size(44.dp)
-                    .background(Color.White, shape = RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(10.dp))
                     .clickable { onMenuClick() },
                 contentAlignment = Alignment.Center
             ) {
@@ -474,7 +487,7 @@ private fun UIOverlay(
                     painter = painterResource(id = R.drawable.menu_right_square_alt),
                     contentDescription = "Menu",
                     modifier = Modifier.size(24.dp),
-                    colorFilter = ColorFilter.tint(Color.Black)
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
                 )
             }
 
@@ -482,7 +495,7 @@ private fun UIOverlay(
             Box(
                 modifier = Modifier
                     .wrapContentWidth()
-                    .background(Color.White, shape = RoundedCornerShape(4.dp)),
+                    .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(4.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Row(
@@ -497,7 +510,7 @@ private fun UIOverlay(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = locationName,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.W600,
                         fontSize = 12.sp
                     )
@@ -593,7 +606,7 @@ private fun ViewMoreButton(
     Surface(
         modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(10.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 0.dp
     ) {
         Row(
@@ -610,7 +623,7 @@ private fun ViewMoreButton(
                 text = if (isExpanded) "View Less" else "View More",
                 fontWeight = FontWeight.W600,
                 fontSize = 14.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -619,8 +632,8 @@ private fun ViewMoreButton(
 @Composable
 private fun OfflineStatus(isOnline: Boolean) {
     val statusText = if (isOnline) "You are online" else "You are offline"
-    val dotColor = if (isOnline) Color(0xFF26AE23) else Color.Gray
-    val textColor = if (isOnline) Color.Black else Color.Gray
+    val dotColor = if (isOnline) Success else TextSecondary
+    val textColor = if (isOnline) MaterialTheme.colorScheme.onSurface else TextSecondary
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -672,7 +685,7 @@ private fun DriverStats() {
             modifier = Modifier
                 .height(40.dp)
                 .width(1.dp),
-            color = Color.LightGray
+            color = BorderSubtle
         )
 
         Column(
@@ -683,14 +696,14 @@ private fun DriverStats() {
                 text = "₦0",
                 fontWeight = FontWeight.W700,
                 fontSize = 18.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Earned today",
                 fontWeight = FontWeight.W600,
                 fontSize = 12.sp,
-                color = Color(0xFF9A9A9A)
+                color = TextSecondary
             )
         }
     }
@@ -894,6 +907,7 @@ private fun FullScreenDrawer(
     onNavigateToSupport: () -> Unit,
     onNavigateToAbout: () -> Unit,
     onNavigateToRepairLoan: () -> Unit,
+    onNavigateToProfile: () -> Unit,
 ) {
     Surface(
         modifier = Modifier
@@ -967,7 +981,8 @@ private fun FullScreenDrawer(
                         .fillMaxWidth()
                         .height(80.dp)
                         .background(Color(0xFFF9F9F9), shape = RoundedCornerShape(12.dp))
-                        .padding(horizontal = 12.dp),
+                        .padding(horizontal = 12.dp)
+                        .clickable { onNavigateToProfile() },
                     contentAlignment = Alignment.Center
                 ) {
                     Row(
@@ -998,9 +1013,6 @@ private fun FullScreenDrawer(
                                     color = Color(0xFF3D3D3D),
                                     fontWeight = FontWeight.W400,
                                     fontSize = 12.sp,
-                                    modifier = Modifier.clickable {
-                                        Toast.makeText(context, "View Profile", Toast.LENGTH_SHORT).show()
-                                    }
                                 )
                             }
                         }

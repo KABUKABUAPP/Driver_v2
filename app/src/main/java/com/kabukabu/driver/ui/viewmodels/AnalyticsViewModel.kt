@@ -14,7 +14,7 @@ class AnalyticsViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AnalyticsUiState())
     val uiState: StateFlow<AnalyticsUiState> = _uiState
 
-    init { fetchAnalysis() }
+    init { fetchAnalysis(timeFrame = "this_week") }
 
     fun fetchAnalysis(timeFrame: String? = null, customDate: String? = null) {
         viewModelScope.launch {
@@ -28,10 +28,11 @@ class AnalyticsViewModel : ViewModel() {
                     return@launch
                 }
                 val bearer = "Bearer $token"
+                val tf = timeFrame ?: "this_week"
                 val res = ApiClient.rideService.getDriverAnalysis(
                     bearerToken = bearer,
                     userId = userId,
-                    timeFrame = timeFrame,
+                    timeFrame = tf,
                     customDate = customDate
                 )
                 _uiState.value = _uiState.value.copy(isLoading = false, data = res.data)

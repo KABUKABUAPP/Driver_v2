@@ -16,22 +16,23 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+// Dark and light color schemes based on brand tokens
 private val DarkColorScheme = darkColorScheme(
-    primary = Color.White,
-    onPrimary = Color.Black,
-    background = Color.Black,
-    onBackground = Color.White,
-    surface = Color.Black,
-    onSurface = Color.White
+    primary = KabukabuYellow,
+    onPrimary = TextPrimary,
+    background = DarkBackground,
+    onBackground = DarkTextPrimary,
+    surface = DarkSurface,
+    onSurface = DarkTextPrimary
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color.White,
-    onPrimary = Color.Black,
-    background = Color.Black,
-    onBackground = Color.White,
-    surface = Color.Black,
-    onSurface = Color.White
+    primary = KabukabuYellow,
+    onPrimary = TextPrimary,
+    background = Color.White,
+    onBackground = TextPrimary,
+    surface = Color.White,
+    onSurface = TextPrimary
 )
 
 @Composable
@@ -52,13 +53,17 @@ fun KabukabuDriverTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
+            // Make status bar harmonize with background
+            window.statusBarColor = colorScheme.background.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
+        typography = KabukabuTypography,
+        shapes = KabukabuShapes,
         content = content
     )
-} 
+}
+ 

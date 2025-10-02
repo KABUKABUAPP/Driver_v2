@@ -12,10 +12,14 @@ sealed class Screen(val route: String) {
     object MyTrips : Screen("my_trips")
     object Promotions : Screen("promotions")
     object Support : Screen("support")
+    object SupportDetail : Screen("support_detail")
+    object SupportNew : Screen("support_new")
     object About : Screen("about")
     object RepairLoan : Screen("repair_loan")
+    object Profile : Screen("profile")
 }
 
 sealed class NavArg(val key: String) {
     object Email : NavArg("email")
+    object SupportId : NavArg("supportId")
 } 

@@ -54,6 +54,11 @@ import android.net.Uri
 import com.kabukabu.driver.ui.viewmodels.WalletViewModel
 import java.text.NumberFormat
 import java.util.Locale
+import com.kabukabu.driver.ui.theme.KabukabuYellowLight
+import com.kabukabu.driver.ui.theme.SurfaceCard
+import com.kabukabu.driver.ui.theme.SurfaceCardAlt
+import com.kabukabu.driver.ui.theme.TextSecondary
+import com.kabukabu.driver.ui.theme.Error
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,20 +76,20 @@ fun WalletScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(text = "", color = Color.Black) },
+                title = { Text(text = "", color = MaterialTheme.colorScheme.onSurface) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Box(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFF0F0F0)),
+                                .background(SurfaceCardAlt),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.angle_right),
                                 contentDescription = "Back",
-                                tint = Color(0xFF9A9A9A)
+                                tint = TextSecondary
                             )
                         }
                     }
@@ -101,7 +106,7 @@ fun WalletScreen(
         ) {
             // Header yellow container with balance and actions
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFBF00)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -122,7 +127,7 @@ fun WalletScreen(
                     .padding(horizontal = 48.dp)
                     .height(10.dp)
                     .clip(RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp))
-                    .background(Color(0xFFFFF5D8))
+                    .background(KabukabuYellowLight)
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -192,7 +197,7 @@ fun WalletScreen(
                     }
                     uiState.errorMessage?.let { err ->
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = err, color = Color(0xFFB00020))
+                        Text(text = err, color = Error)
                     }
                     // When URL is available, open it and clear state
                     uiState.topupUrl?.let { url ->
@@ -307,7 +312,7 @@ fun WalletScreen(
                     }
                     uiState.withdrawError?.let { err ->
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = err, color = Color(0xFFB00020))
+                        Text(text = err, color = Error)
                     }
                     uiState.withdrawSuccess?.let { success ->
                         if (success) {
@@ -385,11 +390,11 @@ fun WalletScreen(
                     }
                     uiState.pinError?.let { err ->
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = err, color = Color(0xFFB00020))
+                        Text(text = err, color = MaterialTheme.colorScheme.error)
                     }
                     uiState.pinSuccess?.let { msg ->
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = msg, color = Color(0xFF2E7D32))
+                        Text(text = msg, color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -421,7 +426,7 @@ private fun WalletHeaderSection(
         // Balance text
         Text(
             text = balanceText,
-            color = Color(0xFF161616),
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.W700,
             fontSize = 28.sp
         )
@@ -429,7 +434,7 @@ private fun WalletHeaderSection(
         Text(
             text = "Wallet balance",
             style = MaterialTheme.typography.bodyMedium.copy(
-                color = Color(0xFF161616),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.W500
             )
@@ -442,21 +447,21 @@ private fun WalletHeaderSection(
         ) {
             SmallAction(
                 text = "Add money",
-                background = Color(0xFFF2F2F2),
+                background = SurfaceCard,
                 iconRes = R.drawable.wallet_grey,
                 onClick = onAddMoney
             )
             Spacer(modifier = Modifier.width(10.dp))
             SmallAction(
                 text = "Withdraw",
-                background = Color(0xFFF2F2F2),
+                background = SurfaceCard,
                 iconRes = R.drawable.wallet_grey,
                 onClick = onWithdraw
             )
             Spacer(modifier = Modifier.width(10.dp))
             Card(
                 onClick = onMore,
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFBF00)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Box(
@@ -467,7 +472,7 @@ private fun WalletHeaderSection(
                 ) {
                     Text(
                         text = "More",
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.W600
                     )
@@ -510,7 +515,7 @@ private fun SmallAction(text: String, background: Color, iconRes: Int, onClick: 
 @Composable
 private fun InfoTile(leading: Int, text: String) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF2F2F2)),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         shape = RoundedCornerShape(10.dp)
     ) {
@@ -529,7 +534,7 @@ private fun InfoTile(leading: Int, text: String) {
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = text,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.W400
             )
@@ -542,7 +547,7 @@ private fun RowScope.ActionBlock(title: String, iconRes: Int, onClick: () -> Uni
     Card(
         modifier = Modifier.weight(1f),
         onClick = onClick,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF5D8)),
+        colors = CardDefaults.cardColors(containerColor = KabukabuYellowLight),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         shape = RoundedCornerShape(10.dp)
     ) {
@@ -561,7 +566,7 @@ private fun RowScope.ActionBlock(title: String, iconRes: Int, onClick: () -> Uni
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = title,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.W600
             )

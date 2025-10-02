@@ -32,6 +32,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import com.kabukabu.driver.ui.viewmodels.TripsViewModel
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.res.painterResource
+import androidx.compose.material3.TextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +54,9 @@ fun MyTripsScreen(onBack: () -> Unit, vm: TripsViewModel = viewModel()) {
                         )
                     }
                 },
+                actions = {
+                    TextButton(onClick = { vm.refresh() }) { Text("Refresh", color = Color(0xFF9A9A9A)) }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
@@ -64,6 +70,7 @@ fun MyTripsScreen(onBack: () -> Unit, vm: TripsViewModel = viewModel()) {
             when {
                 ui.isLoading && ui.items.isEmpty() -> Text("Loading…")
                 ui.error != null && ui.items.isEmpty() -> Text("Error: ${ui.error}", color = Color(0xFFB00020))
+                !ui.isLoading && ui.items.isEmpty() -> Text("No trips yet")
                 else -> {
                     if (ui.error != null) {
                         Text("Error: ${ui.error}", color = Color(0xFFB00020))

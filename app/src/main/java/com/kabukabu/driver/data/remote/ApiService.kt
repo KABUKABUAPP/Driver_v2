@@ -16,6 +16,8 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import okhttp3.ResponseBody
 import retrofit2.Response
 import com.kabukabu.driver.data.model.DuePaymentResponse
@@ -89,5 +91,75 @@ interface ApiService {
         @Query("status") status: String,
         @Query("page") page: Int,
         @Query("limit") limit: Int
+    ): Response<ResponseBody>
+
+    // Repair Loan
+    @GET("repair-loan/get-all")
+    suspend fun getRepairLoans(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 10
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("repair-loan/request-new")
+    suspend fun requestRepairLoan(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Field("amount") amount: Int,
+        @Field("reason") reason: String
+    ): Response<ResponseBody>
+
+    @GET("repair-loan/view")
+    suspend fun viewRepairLoan(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Query("id") id: String
+    ): Response<ResponseBody>
+
+    // Support
+    @GET("support/all")
+    suspend fun getSupportTickets(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Query("status") status: String,
+        @Query("page") page: Int,
+        @Query("limit") limit: Int
+    ): Response<ResponseBody>
+
+    @GET("support/view")
+    suspend fun viewSupportTicket(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Query("support_id") supportId: String
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("support/send_reply")
+    suspend fun replySupportTicket(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Field("support_id") supportId: String,
+        @Field("message") message: String
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("support/open_new_ticket")
+    suspend fun openNewSupportTicket(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Field("subject") subject: String,
+        @Field("message") message: String
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("support/open_ticket_by_trip")
+    suspend fun openSupportTicketByTrip(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Field("trip_id") tripId: String,
+        @Field("subject") subject: String,
+        @Field("message") message: String
     ): Response<ResponseBody>
 }

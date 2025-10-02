@@ -32,6 +32,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.kabukabu.driver.ui.viewmodels.PromotionsViewModel
+import androidx.compose.material3.TextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +51,9 @@ fun PromotionsScreen(onBack: () -> Unit, vm: PromotionsViewModel = viewModel()) 
                             tint = Color(0xFF9A9A9A)
                         )
                     }
+                },
+                actions = {
+                    TextButton(onClick = { vm.refresh() }) { Text("Refresh", color = Color(0xFF9A9A9A)) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
@@ -75,6 +79,7 @@ fun PromotionsScreen(onBack: () -> Unit, vm: PromotionsViewModel = viewModel()) 
                 when {
                     ui.isLoadingOngoing && ui.ongoing.isEmpty() -> Text("Loading…")
                     ui.errorOngoing != null && ui.ongoing.isEmpty() -> Text("Error: ${ui.errorOngoing}", color = Color(0xFFB00020))
+                    !ui.isLoadingOngoing && ui.ongoing.isEmpty() -> Text("No ongoing promotions")
                     else -> {
                         LazyColumn {
                             itemsIndexed(ui.ongoing) { index, item ->
@@ -98,6 +103,7 @@ fun PromotionsScreen(onBack: () -> Unit, vm: PromotionsViewModel = viewModel()) 
                 when {
                     ui.isLoadingCompleted && ui.completed.isEmpty() -> Text("Loading…")
                     ui.errorCompleted != null && ui.completed.isEmpty() -> Text("Error: ${ui.errorCompleted}", color = Color(0xFFB00020))
+                    !ui.isLoadingCompleted && ui.completed.isEmpty() -> Text("No completed promotions")
                     else -> {
                         LazyColumn {
                             itemsIndexed(ui.completed) { index, item ->

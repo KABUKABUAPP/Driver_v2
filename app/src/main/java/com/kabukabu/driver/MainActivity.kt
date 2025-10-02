@@ -31,6 +31,9 @@ import com.kabukabu.driver.ui.screens.PromotionsScreen
 import com.kabukabu.driver.ui.screens.SupportScreen
 import com.kabukabu.driver.ui.screens.AboutScreen
 import com.kabukabu.driver.ui.screens.RepairLoanScreen
+import com.kabukabu.driver.ui.screens.SupportDetailScreen
+import com.kabukabu.driver.ui.screens.SupportNewTicketScreen
+import com.kabukabu.driver.ui.screens.ProfileScreen
 import com.kabukabu.driver.ui.theme.KabukabuDriverTheme
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
@@ -160,7 +163,8 @@ fun AppNavigation() {
                 onNavigateToPromotions = { navController.navigate(Screen.Promotions.route) },
                 onNavigateToSupport = { navController.navigate(Screen.Support.route) },
                 onNavigateToAbout = { navController.navigate(Screen.About.route) },
-                onNavigateToRepairLoan = { navController.navigate(Screen.RepairLoan.route) }
+                onNavigateToRepairLoan = { navController.navigate(Screen.RepairLoan.route) },
+                onNavigateToProfile = { navController.navigate(Screen.Profile.route) }
             )
         }
 
@@ -189,13 +193,38 @@ fun AppNavigation() {
             PromotionsScreen(onBack = { navController.popBackStack() })
         }
         composable(Screen.Support.route) {
-            SupportScreen(onBack = { navController.popBackStack() })
+            SupportScreen(
+                onBack = { navController.popBackStack() },
+                onOpenTicket = { sid ->
+                    navController.navigate("${Screen.SupportDetail.route}/$sid")
+                },
+                onCreateNew = { navController.navigate(Screen.SupportNew.route) }
+            )
+        }
+        composable(
+            route = "${Screen.SupportDetail.route}/{${NavArg.SupportId.key}}",
+            arguments = listOf(navArgument(NavArg.SupportId.key) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val sid = backStackEntry.arguments?.getString(NavArg.SupportId.key) ?: ""
+            SupportDetailScreen(
+                supportId = sid,
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.SupportNew.route) {
+            SupportNewTicketScreen(
+                onBack = { navController.popBackStack() },
+                onCreated = { navController.popBackStack() }
+            )
         }
         composable(Screen.About.route) {
             AboutScreen(onBack = { navController.popBackStack() })
         }
         composable(Screen.RepairLoan.route) {
             RepairLoanScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Screen.Profile.route) {
+            ProfileScreen(onBack = { navController.popBackStack() })
         }
     }
 } 
