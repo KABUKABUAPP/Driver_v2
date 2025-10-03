@@ -9,6 +9,7 @@ import com.kabukabu.driver.features.home.data.OnlineStatusRequest
 import com.kabukabu.driver.features.profile.data.ProfileResponse
 import com.kabukabu.driver.features.profile.data.UserProfile
 import com.kabukabu.driver.core.data.remote.ApiClient
+import org.json.JSONObject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -96,14 +97,21 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
                     request = OnlineStatusRequest(onlineStatus = status)
                 )
 
-                if (response.status == "success") {
-                    _isOnline.value = isOnline
-                    _errorMessage.value = null // Clear any previous errors
-                    Log.d("DriverViewModel", "Successfully updated online status to $status")
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    if (body?.status == "success") {
+                        _isOnline.value = isOnline
+                        _errorMessage.value = null // Clear any previous errors
+                        Log.d("DriverViewModel", "Successfully updated online status to $status")
+                    } else {
+                        val message = body?.message ?: "Failed to update online status"
+                        _errorMessage.value = message
+                        Log.e("DriverViewModel", "Failed to update online status: $message")
+                    }
                 } else {
-                    // Show API error message in snackbar
-                    _errorMessage.value = response.message ?: "Failed to update online status"
-                    Log.e("DriverViewModel", "Failed to update online status: ${response.message}")
+                    val errorMessage = parseErrorMessage(response.errorBody()?.string())
+                    _errorMessage.value = errorMessage
+                    Log.e("DriverViewModel", "Failed to update online status: $errorMessage")
                 }
             } catch (e: Exception) {
                 // Show network/exception error in snackbar
@@ -116,4 +124,16 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
     fun clearErrorMessage() {
         _errorMessage.value = null
     }
-} 
+
+    private fun parseErrorMessage(rawError: String?): String {
+        if (rawError.isNullOrBlank()) return "Failed to update online status"
+        return try {
+            val json = JSONObject(rawError)
+            json.optString("message", rawError)
+        } catch (e: Exception) {
+            Log.e("DriverViewModel", "Error parsing error message: ${e.message}")
+            rawError
+        }
+    }
+}
+ 

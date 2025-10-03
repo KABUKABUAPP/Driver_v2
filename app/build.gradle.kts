@@ -1,7 +1,16 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose.compiler)
+}
+
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
 }
 
 android {
@@ -21,6 +30,24 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            val storeFilePath = keystoreProperties["storeFile"] as? String
+                ?: error("Missing 'storeFile' entry in keystore.properties")
+            val storePasswordValue = keystoreProperties["storePassword"] as? String
+                ?: error("Missing 'storePassword' entry in keystore.properties")
+            val keyAliasValue = keystoreProperties["keyAlias"] as? String
+                ?: error("Missing 'keyAlias' entry in keystore.properties")
+            val keyPasswordValue = keystoreProperties["keyPassword"] as? String
+                ?: error("Missing 'keyPassword' entry in keystore.properties")
+
+            storeFile = file(storeFilePath)
+            storePassword = storePasswordValue
+            keyAlias = keyAliasValue
+            keyPassword = keyPasswordValue
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -28,6 +55,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

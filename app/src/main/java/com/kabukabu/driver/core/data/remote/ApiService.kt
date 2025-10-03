@@ -39,7 +39,7 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Header("authid") userId: String,
         @Body request: OnlineStatusRequest
-    ): OnlineStatusResponse
+    ): Response<OnlineStatusResponse>
 
     @PUT("order/match-order/{orderId}")
     suspend fun acceptTrip(
