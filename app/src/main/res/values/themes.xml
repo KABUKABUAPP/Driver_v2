@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base application theme -->
-    <style name="Theme.KabukabuDriver" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- Base application theme - Force Light Mode -->
+    <style name="Theme.KabukabuDriver" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>

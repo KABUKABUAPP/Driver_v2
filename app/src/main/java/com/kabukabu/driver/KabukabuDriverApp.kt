@@ -1,8 +1,8 @@
 package com.kabukabu.driver
 
 import android.app.Application
-import com.kabukabu.driver.data.local.UserPreferences
-import com.kabukabu.driver.data.socket.SocketService
+import com.kabukabu.driver.core.data.local.UserPreferences
+import com.kabukabu.driver.core.data.socket.SocketService
 
 class KabukabuDriverApp : Application() {
     // Lazy initialization of UserPreferences
