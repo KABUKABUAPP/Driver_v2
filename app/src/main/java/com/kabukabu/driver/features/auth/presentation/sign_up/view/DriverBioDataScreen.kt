@@ -1,2 +1,73 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.kabukabu.driver.components.ui.KabuDivider
+import com.kabukabu.driver.components.ui.KabuOutlinedTextField
+import com.kabukabu.driver.components.ui.TitleText
+
+@Composable
+fun DriverBioDataScreen() {
+    Scaffold { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            KabuDivider(height = 24.0)
+            TitleText(
+                text = "Welcome",
+                fontSize = 20,
+                fontWeight = FontWeight.W600,
+                bottomPadding = 8,
+            )
+            TitleText(
+                text = "Tell us about you",
+                fontSize = 15,
+                bottomPadding = 12,
+            )
+
+            Box(
+                modifier = Modifier
+                    .background(color = Color(0x2DF1F1F1))
+                    .padding(vertical = 12.dp)
+                    .fillMaxWidth()
+            ) {
+                AnnotatedTextfieldTitle(title = "Full name")
+                KabuOutlinedTextField(
+                    value = "",
+                    onTextChanged = {},
+                    placeholderText = "John Doe"
+                )
+            }
+
+        }
+    }
+}
+
+
+@Composable
+fun AnnotatedTextfieldTitle(title: String) {
+    Row(
+        modifier = Modifier.padding()
+    ) {
+        TitleText(title, endPadding = 3)
+        TitleText(
+            "*",
+            color = MaterialTheme.colorScheme.error
+        )
+
+    }
+}

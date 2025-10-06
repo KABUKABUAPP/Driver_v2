@@ -48,6 +48,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.view.WindowCompat
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.DriverBioDataScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,7 +63,8 @@ class MainActivity : ComponentActivity() {
                         .navigationBarsPadding(), // Respect bottom safe area only
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation()
+                    DriverBioDataScreen()
+//                    AppNavigation()
                 }
             }
         }
