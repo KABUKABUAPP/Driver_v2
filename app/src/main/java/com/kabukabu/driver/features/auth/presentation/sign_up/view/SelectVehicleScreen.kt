@@ -42,6 +42,7 @@ import com.kabukabu.driver.components.ui.getThirtyPercentOfScreenWidth
 fun SelectVehicleScreen() {
 
     var hasVehicle by remember { mutableStateOf<Boolean?>(null) }
+    var selectedCar by remember { mutableStateOf<Boolean?>(null) }
 
     Scaffold { paddingValues ->
         Column(
@@ -76,7 +77,7 @@ fun SelectVehicleScreen() {
                 TitleText(
                     text = "This will enable us know the kind of service to offer",
                     fontSize = 14,
-                    bottomPadding = 8,
+                    bottomPadding = 16,
                     maxLines = 2
                 )
 
@@ -85,6 +86,13 @@ fun SelectVehicleScreen() {
                         hasVehicle = it
                     },
                     hasTaxi = hasVehicle
+                )
+
+                VehicleTypeSelector(
+                    isSelectedCar = selectedCar,
+                    onSelectionChanged = {
+                        selectedCar = it
+                    },
                 )
 
             }
@@ -98,8 +106,92 @@ fun SelectVehicleScreen() {
 }
 
 @Composable
-fun VehicleTypeSelector(){
+fun VehicleTypeSelector(
+    isSelectedCar: Boolean?,
+    onSelectionChanged: (Boolean) -> Unit
+){
+    Column(
+//        modifier = Modifier,
+//            .fillMaxSize(),
+//        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        TitleText(
+            text = "Do you have a vehicle",
+            fontSize = 20,
+            fontWeight = FontWeight.W500,
+            topPadding = 50,
+            bottomPadding = 16,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            VehicleTypeSelectionCard(
+                text = "Yes, I do",
+                isSelected = isSelectedCar == true,
+                icon = R.drawable.taxi,
+//                userHasTaxi = hasTaxi == true,
+                onClick = { onSelectionChanged(true) }
+            )
 
+            VehicleTypeSelectionCard(
+                text = "No, I don’t",
+                isSelected = isSelectedCar == false,
+                icon = R.drawable.keke_napep,
+//                userHasTaxi = hasTaxi == true,
+                onClick = { onSelectionChanged(false) }
+            )
+        }
+    }
+}
+
+
+@Composable
+fun RowScope.VehicleTypeSelectionCard(
+    text: String,
+    icon: Int,
+    isSelected: Boolean,
+//    userHasTaxi: Boolean,
+    onClick: () -> Unit
+) {
+    val backgroundColor =
+        if (isSelected) MaterialTheme.colorScheme.primary else Color(0xFFF9F9F9)
+    val borderColor =
+        if (isSelected) Color.Black else Color.Transparent
+
+
+
+    Box(
+        modifier = Modifier
+            .weight(1f)
+            .height(120.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(backgroundColor)
+            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(12.dp)
+        ) {
+            Image(
+                painter = painterResource(icon),
+                contentDescription = "vehicle icon",
+                modifier = Modifier.size(22.dp)
+            )
+
+            KabuDivider(height = 12.dp)
+            TitleText(
+                text = text,
+                color = Color.Black,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14
+            )
+        }
+    }
 }
 
 @Composable
@@ -112,7 +204,7 @@ fun TaxiOwnershipSelector(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        SelectionCard(
+        HasCarSelectionCard(
             text = "Yes, I do",
             isSelected = hasTaxi == true,
             icon = R.drawable.taxi_outlined,
@@ -120,7 +212,7 @@ fun TaxiOwnershipSelector(
             onClick = { onSelectionChanged(true) }
         )
 
-        SelectionCard(
+        HasCarSelectionCard(
             text = "No, I don’t",
             isSelected = hasTaxi == false,
             icon = R.drawable.taxi_outlined,
@@ -132,7 +224,7 @@ fun TaxiOwnershipSelector(
 
 
 @Composable
-fun RowScope.SelectionCard(
+fun RowScope.HasCarSelectionCard(
     text: String,
     icon: Int,
     isSelected: Boolean,
@@ -144,7 +236,7 @@ fun RowScope.SelectionCard(
     val borderColor =
         if (isSelected) Color.Black else Color.Transparent
 
-    val targetHeight = if (userHasTaxi) 120.dp else 160.dp
+    val targetHeight = if (userHasTaxi) 90.dp else 130.dp
     val animatedHeight by animateDpAsState(
         targetValue = targetHeight,
         animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
