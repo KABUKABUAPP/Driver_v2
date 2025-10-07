@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuBottomButton
@@ -88,12 +89,23 @@ fun SelectVehicleScreen() {
                     hasTaxi = hasVehicle
                 )
 
-                VehicleTypeSelector(
-                    isSelectedCar = selectedCar,
-                    onSelectionChanged = {
-                        selectedCar = it
-                    },
-                )
+                if (hasVehicle == true) {
+                    VehicleTypeSelector(
+                        isSelectedCar = selectedCar,
+                        onSelectionChanged = {
+                            selectedCar = it
+                        },
+                    )
+                } else if (hasVehicle == false) {
+                    TitleText(
+                        "You will be enrolled in the Sharp application, once \n you qualify, a car will be preented to you",
+                        maxLines = 2,
+                        textAlign = TextAlign.Center,
+                        fontSize = 15,
+                        fontWeight = FontWeight.W500,
+                        topPadding = 30
+                    )
+                }
 
             }
 
@@ -109,16 +121,13 @@ fun SelectVehicleScreen() {
 fun VehicleTypeSelector(
     isSelectedCar: Boolean?,
     onSelectionChanged: (Boolean) -> Unit
-){
+) {
     Column(
-//        modifier = Modifier,
-//            .fillMaxSize(),
-//        verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         TitleText(
-            text = "Do you have a vehicle",
-            fontSize = 20,
+            text = "Vehicle type",
+            fontSize = 18,
             fontWeight = FontWeight.W500,
             topPadding = 50,
             bottomPadding = 16,
@@ -128,18 +137,16 @@ fun VehicleTypeSelector(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             VehicleTypeSelectionCard(
-                text = "Yes, I do",
+                text = "A car",
                 isSelected = isSelectedCar == true,
                 icon = R.drawable.taxi,
-//                userHasTaxi = hasTaxi == true,
                 onClick = { onSelectionChanged(true) }
             )
 
             VehicleTypeSelectionCard(
-                text = "No, I don’t",
+                text = "A Keke",
                 isSelected = isSelectedCar == false,
                 icon = R.drawable.keke_napep,
-//                userHasTaxi = hasTaxi == true,
                 onClick = { onSelectionChanged(false) }
             )
         }
@@ -188,7 +195,7 @@ fun RowScope.VehicleTypeSelectionCard(
                 text = text,
                 color = Color.Black,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 14
+                fontSize = 15
             )
         }
     }
