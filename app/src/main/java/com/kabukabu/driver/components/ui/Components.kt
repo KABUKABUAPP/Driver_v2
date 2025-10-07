@@ -30,12 +30,14 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kabukabu.driver.R
@@ -72,13 +74,29 @@ fun TitleText(
 }
 
 @Composable
-fun KabuDivider(modifier: Modifier = Modifier, height: Double, color: Color = Color.Transparent) {
-    HorizontalDivider(
-        modifier
-            .height(height.dp),
-        DividerDefaults.Thickness, color = color
+fun KabuDivider(
+    modifier: Modifier = Modifier,
+    height: Dp = 2.dp,
+    width: Dp = Dp.Unspecified,
+    color: Color = Color.Transparent,
+    cornerRadius: Dp = 12.dp
+) {
+    Box(
+        modifier = modifier
+            .then(
+                if (width != Dp.Unspecified)
+                    Modifier.width(width)
+                else Modifier.fillMaxWidth()
+            )
+            .height(height)
+            .background(
+                color = color,
+                shape = RoundedCornerShape(cornerRadius)
+            )
     )
 }
+
+
 
 @Composable
 fun KabuOutlinedTextField(
@@ -240,7 +258,7 @@ fun KabuOutlinedTextFieldWithTrailingIconButton(
         errorIndicatorColor = Color.Transparent,
         disabledContainerColor = Color(0xFFF1F1F1),
 
-    )
+        )
 
     Box(
         modifier = Modifier
@@ -299,7 +317,7 @@ fun KabuBottomButton(
             .height(53.dp),
         onClick = { onClick() },
         enabled = enabled,
-        shape = RoundedCornerShape(6.dp), 
+        shape = RoundedCornerShape(6.dp),
         colors = ButtonDefaults.buttonColors().copy(
             disabledContainerColor = Color(0xFFB2D5C7),
             disabledContentColor = Color(0xFFE6E6E6),
@@ -319,4 +337,11 @@ fun KabuBottomButton(
             )
         }
     }
+}
+
+@Composable
+fun getThirtyPercentOfScreenWidth(): Dp {
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp.dp
+    return screenWidthDp * 0.3f
 }

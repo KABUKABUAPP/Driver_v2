@@ -49,6 +49,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.view.WindowCompat
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.DriverBioDataScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectVehicleScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,8 +64,8 @@ class MainActivity : ComponentActivity() {
                         .navigationBarsPadding(), // Respect bottom safe area only
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    DriverBioDataScreen()
-//                    AppNavigation()
+                    SelectVehicleScreen()
+                    //                    AppNavigation()
                 }
             }
         }
@@ -78,11 +79,14 @@ fun AppNavigation() {
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val authToken by userPreferences.authToken.collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-    
+
     // Check for auth token and navigate accordingly
     LaunchedEffect(authToken) {
         if (!authToken.isNullOrBlank()) {
-            Log.d("AppNavigation", "Auth token found: ${authToken?.take(10)}..., navigating to home")
+            Log.d(
+                "AppNavigation",
+                "Auth token found: ${authToken?.take(10)}..., navigating to home"
+            )
             // Add a delay to ensure the NavHost is fully set up
             delay(500)
             // User is logged in, navigate to home screen

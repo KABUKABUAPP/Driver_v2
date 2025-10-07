@@ -32,10 +32,10 @@ fun DriverBioDataScreen() {
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.SpaceBetween // 👈 push button to bottom
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                KabuDivider(height = 24.0)
+                KabuDivider(height = 24.0.dp)
                 TitleText(
                     text = "Welcome",
                     fontSize = 20,
