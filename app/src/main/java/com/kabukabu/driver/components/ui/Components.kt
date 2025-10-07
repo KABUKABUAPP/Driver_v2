@@ -9,15 +9,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
@@ -278,4 +283,40 @@ fun KabuOutlinedTextFieldWithTrailingIconButton(
 @Composable
 fun KabuSpacer(width: Int) {
     Spacer(modifier = Modifier.width(width.dp))
+}
+
+@Composable
+fun KabuBottomButton(
+    text: String,
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
+    onClick: () -> Unit = {},
+    enabled: Boolean = true,
+) {
+    Button(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(53.dp),
+        onClick = { onClick() },
+        enabled = enabled,
+        shape = RoundedCornerShape(6.dp), 
+        colors = ButtonDefaults.buttonColors().copy(
+            disabledContainerColor = Color(0xFFB2D5C7),
+            disabledContentColor = Color(0xFFE6E6E6),
+            containerColor = MaterialTheme.colorScheme.primary
+        )
+
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = MaterialTheme.colorScheme.onPrimary,
+            )
+        } else {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+    }
 }
