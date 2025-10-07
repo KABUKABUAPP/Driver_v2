@@ -98,11 +98,31 @@ fun SelectVehicleScreen() {
                     )
                 } else if (hasVehicle == false) {
                     TitleText(
-                        "You will be enrolled in the Sharp application, once \n you qualify, a car will be preented to you",
+                        "You will be enrolled in the Sharp application, once \n you qualify, a car will be presented to you",
                         maxLines = 2,
                         textAlign = TextAlign.Center,
                         fontSize = 15,
-                        fontWeight = FontWeight.W500,
+                        fontWeight = FontWeight.W400,
+                        topPadding = 30
+                    )
+                }
+
+                if (selectedCar == true) {
+                    TitleText(
+                        "Driving your car on Kabukabu enrols you \n to the KabuDrive family",
+                        maxLines = 2,
+                        textAlign = TextAlign.Center,
+                        fontSize = 15,
+                        fontWeight = FontWeight.W400,
+                        topPadding = 30
+                    )
+                } else if (selectedCar == false) {
+                    TitleText(
+                        "Driving your keke on Kabukabu enrols you \n to the KabuKeke family",
+                        maxLines = 2,
+                        textAlign = TextAlign.Center,
+                        fontSize = 15,
+                        fontWeight = FontWeight.W400,
                         topPadding = 30
                     )
                 }

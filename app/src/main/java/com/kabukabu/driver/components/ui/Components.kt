@@ -307,6 +307,7 @@ fun KabuSpacer(width: Int) {
 fun KabuBottomButton(
     text: String,
     modifier: Modifier = Modifier,
+    topPadding: Int = 0,
     isLoading: Boolean = false,
     onClick: () -> Unit = {},
     enabled: Boolean = true,
@@ -314,6 +315,7 @@ fun KabuBottomButton(
     Button(
         modifier = modifier
             .fillMaxWidth()
+            .padding(top = topPadding.dp)
             .height(53.dp),
         onClick = { onClick() },
         enabled = enabled,
