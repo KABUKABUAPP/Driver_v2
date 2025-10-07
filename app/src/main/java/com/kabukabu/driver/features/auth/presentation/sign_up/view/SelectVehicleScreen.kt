@@ -1,5 +1,9 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,13 +12,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -29,14 +32,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuDivider
-import com.kabukabu.driver.components.ui.KabuSpacer
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.getThirtyPercentOfScreenWidth
 
 @Composable
 fun SelectVehicleScreen() {
+
+    var hasVehicle by remember { mutableStateOf<Boolean?>(null) }
+
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -64,7 +70,7 @@ fun SelectVehicleScreen() {
                     fontSize = 24,
                     fontWeight = FontWeight.W600,
                     topPadding = 60,
-                    bottomPadding = 8,
+                    bottomPadding = 30,
                 )
 
                 TitleText(
@@ -74,6 +80,12 @@ fun SelectVehicleScreen() {
                     maxLines = 2
                 )
 
+                TaxiOwnershipSelector(
+                    onSelectionChanged = {
+                        hasVehicle = it
+                    },
+                    hasTaxi = hasVehicle
+                )
 
             }
 
@@ -83,59 +95,66 @@ fun SelectVehicleScreen() {
             )
         }
     }
-
 }
 
+@Composable
+fun VehicleTypeSelector(){
+
+}
 
 @Composable
 fun TaxiOwnershipSelector(
     modifier: Modifier = Modifier,
-    onSelectionChanged: (Boolean) -> Unit = {}
+    hasTaxi: Boolean?,
+    onSelectionChanged: (Boolean) -> Unit
 ) {
-    var hasTaxi by remember { mutableStateOf<Boolean?>(null) }
-
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         SelectionCard(
-            text = "Yes, i do",
+            text = "Yes, I do",
             isSelected = hasTaxi == true,
-            icon = ,
-            onClick = {
-                hasTaxi = true
-                onSelectionChanged(true)
-            }
+            icon = R.drawable.taxi_outlined,
+            userHasTaxi = hasTaxi == true,
+            onClick = { onSelectionChanged(true) }
         )
 
         SelectionCard(
-            text = "No, i don’t",
+            text = "No, I don’t",
             isSelected = hasTaxi == false,
-            icon = painterResource(id = R.drawable.ic_taxi),
-            onClick = {
-                hasTaxi = false
-                onSelectionChanged(false)
-            }
+            icon = R.drawable.taxi_outlined,
+            userHasTaxi = hasTaxi == true,
+            onClick = { onSelectionChanged(false) }
         )
     }
 }
+
 
 @Composable
 fun RowScope.SelectionCard(
     text: String,
     icon: Int,
     isSelected: Boolean,
+    userHasTaxi: Boolean,
     onClick: () -> Unit
 ) {
     val backgroundColor =
-        if (isSelected) Color(0xFFF9C543) else Color(0xFFF9F9F9)
+        if (isSelected) MaterialTheme.colorScheme.primary else Color(0xFFF9F9F9)
     val borderColor =
-        if (isSelected) Color.Transparent else Color(0xFFE6E6E6)
+        if (isSelected) Color.Black else Color.Transparent
+
+    val targetHeight = if (userHasTaxi) 120.dp else 160.dp
+    val animatedHeight by animateDpAsState(
+        targetValue = targetHeight,
+        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+        label = "cardHeightAnimation"
+    )
 
     Box(
         modifier = Modifier
             .weight(1f)
-            .aspectRatio(1.2f)
+            .height(animatedHeight)
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
             .border(1.dp, borderColor, RoundedCornerShape(16.dp))
@@ -147,13 +166,13 @@ fun RowScope.SelectionCard(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(12.dp)
         ) {
-            Icon(
+            Image(
                 painter = painterResource(icon),
                 contentDescription = "vehicle icon",
-                tint = Color.Black,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(22.dp)
             )
-            KabuDivider(height = 8.dp)
+
+            KabuDivider(height = 12.dp)
             TitleText(
                 text = text,
                 color = Color.Black,
