@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.utils_functions.priceFilter
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.AnnotatedTextfieldTitle
 
 
 @Composable
@@ -367,18 +368,43 @@ fun CustomLinearProgressIndicator(progress: Float, modifier: Modifier = Modifier
 
 
 @Composable
-internal fun ScreenTitleText(title: String, subtitle: String) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+internal fun ScreenTitleText(
+    title: String,
+    subtitle: String,
+    titleFontSize: Int = 20,
+    subtitleFontSize: Int = 15,
+    bottomPadding: Int = 0
+) {
+    Column(modifier = Modifier.fillMaxWidth()
+        .padding(bottom = bottomPadding.dp)) {
         TitleText(
             text = title,
-            fontSize = 20,
+            fontSize = titleFontSize,
             fontWeight = FontWeight.W600,
-            bottomPadding = 8,
+            bottomPadding = 5,
         )
         TitleText(
             text = subtitle,
-            fontSize = 15,
+            fontSize = subtitleFontSize,
             bottomPadding = 12,
         )
+    }
+}
+
+
+@Composable
+internal fun GreyBackgroundContainer(
+    content: @Composable () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .background(color = Color(0x4DF1F1F1),
+                shape = RoundedCornerShape(12.dp))
+            .padding(12.dp)
+            .fillMaxWidth()
+    ) {
+        Column {
+            content()
+        }
     }
 }
