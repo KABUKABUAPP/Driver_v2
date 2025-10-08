@@ -437,7 +437,7 @@ fun RowScope.KabuTransparentBottomButtonRowScope(
                     fontSize = 14,
                     fontWeight = FontWeight.W500,
                     bottomPadding = 0,
-                    endPadding = 14
+                    startPadding = 14
                 )
 
             }

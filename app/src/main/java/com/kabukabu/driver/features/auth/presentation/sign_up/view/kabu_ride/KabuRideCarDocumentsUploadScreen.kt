@@ -144,23 +144,34 @@ fun KabuRideCarDocumentsUploadScreen() {
                     onClick = {}
                 )
 
+                TitleText(
+                    "Tap to reupload",
+                    color = Color.Gray,
+                    fontWeight = FontWeight.W500
+                )
+
                 FormTextfield(
                     title = "Hackney Permit Number",
                     text = "",
-                    hintText = "ABC1234567",
+                    hintText = "Doc-IMHG-0088",
                     isCompulsory = false,
                     onTextChanged = {}
                 )
             }
 
-            Row(modifier = Modifier.padding(top = 24.dp)) {
+            Row(
+                modifier = Modifier.padding(top = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
 
-                KabuBottomButtonRowScope("Next",
-                    icon = R.drawable.arrow_right
-                )
                 KabuTransparentBottomButtonRowScope(
                     "Previous",
                     icon = R.drawable.arrow_left
+                )
+
+                KabuBottomButtonRowScope(
+                    "Next",
+                    icon = R.drawable.arrow_right
                 )
             }
 
