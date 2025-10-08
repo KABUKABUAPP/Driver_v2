@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -37,20 +36,15 @@ import com.kabukabu.driver.features.support.presentation.SupportDetailScreen
 import com.kabukabu.driver.features.support.presentation.SupportNewTicketScreen
 import com.kabukabu.driver.features.profile.presentation.ProfileScreen
 import com.kabukabu.driver.core.theme.KabukabuDriverTheme
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import android.util.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.view.WindowCompat
-import com.kabukabu.driver.features.auth.presentation.sign_up.view.DriverBioDataScreen
-import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectVehicleScreen
-import com.kabukabu.driver.features.auth.presentation.sign_up.view.TermsAndConditionsScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideCarDetailsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,7 +59,7 @@ class MainActivity : ComponentActivity() {
                         .navigationBarsPadding(), // Respect bottom safe area only
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    TermsAndConditionsScreen()
+                    KabuRideCarDetailsScreen()
                     //                    AppNavigation()
                 }
             }

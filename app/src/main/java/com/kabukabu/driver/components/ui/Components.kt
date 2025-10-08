@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +23,7 @@ import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -29,7 +31,9 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -95,7 +99,6 @@ fun KabuDivider(
             )
     )
 }
-
 
 
 @Composable
@@ -250,7 +253,6 @@ fun KabuOutlinedTextFieldWithTrailingIconButton(
     onTextChanged: (text: String) -> Unit = {},
     textFieldColors: TextFieldColors = TextFieldDefaults.colors()
 ) {
-    // Use base theme but make only the border invisible
     val noBorderColors = textFieldColors.copy(
         focusedIndicatorColor = Color.Transparent,
         unfocusedIndicatorColor = Color.Transparent,
@@ -346,4 +348,37 @@ fun getThirtyPercentOfScreenWidth(): Dp {
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
     return screenWidthDp * 0.3f
+}
+
+
+@Composable
+fun CustomLinearProgressIndicator(progress: Float, modifier: Modifier = Modifier) {
+    LinearProgressIndicator(
+        progress = { progress },
+        modifier = modifier
+            .width(getThirtyPercentOfScreenWidth())
+            .height(6.dp)
+            .clip(RoundedCornerShape(6.dp)), // for rounded edges
+        color = MaterialTheme.colorScheme.primary, // progress color
+        trackColor = MaterialTheme.colorScheme.surfaceVariant // background track
+    )
+
+}
+
+
+@Composable
+internal fun ScreenTitleText(title: String, subtitle: String) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        TitleText(
+            text = title,
+            fontSize = 20,
+            fontWeight = FontWeight.W600,
+            bottomPadding = 8,
+        )
+        TitleText(
+            text = subtitle,
+            fontSize = 15,
+            bottomPadding = 12,
+        )
+    }
 }

@@ -22,6 +22,7 @@ import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.KabuOutlinedTextField
 import com.kabukabu.driver.components.ui.KabuOutlinedTextFieldWithTrailingIconButton
 import com.kabukabu.driver.components.ui.KabuSpacer
+import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
 
 @Composable
@@ -35,18 +36,25 @@ fun DriverBioDataScreen() {
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
+
                 KabuDivider(height = 24.0.dp)
-                TitleText(
-                    text = "Welcome",
-                    fontSize = 20,
-                    fontWeight = FontWeight.W600,
-                    bottomPadding = 8,
+
+                ScreenTitleText(
+                    title = "Welcome",
+                    subtitle = "Tell us about you"
                 )
-                TitleText(
-                    text = "Tell us about you",
-                    fontSize = 15,
-                    bottomPadding = 12,
-                )
+//
+//                TitleText(
+//                    text = "Welcome",
+//                    fontSize = 20,
+//                    fontWeight = FontWeight.W600,
+//                    bottomPadding = 8,
+//                )
+//                TitleText(
+//                    text = "Tell us about you",
+//                    fontSize = 15,
+//                    bottomPadding = 12,
+//                )
 
                 FormTextfield(
                     title = "Full Name",

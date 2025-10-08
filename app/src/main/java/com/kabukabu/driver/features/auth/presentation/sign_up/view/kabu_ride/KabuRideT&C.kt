@@ -1,4 +1,4 @@
-package com.kabukabu.driver.features.auth.presentation.sign_up.view
+package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
