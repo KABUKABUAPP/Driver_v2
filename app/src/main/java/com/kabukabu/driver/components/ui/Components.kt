@@ -539,7 +539,7 @@ internal fun RowScope.RowScopeFormTextfield(
 @Composable
 internal fun AnnotatedTextfieldTitle(title: String, isCompulsory: Boolean = true) {
     Row(
-        modifier = Modifier.padding()
+//        modifier = Modifier.padding()
     ) {
         TitleText(title, endPadding = 3, fontSize = 15)
         if(isCompulsory)

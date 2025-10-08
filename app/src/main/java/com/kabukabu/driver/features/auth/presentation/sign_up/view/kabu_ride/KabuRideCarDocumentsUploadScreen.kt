@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -67,20 +68,14 @@ fun KabuRideCarDocumentsUploadScreen() {
 
             GrayBackgroundContainer {
 
-                ScreenTitleText(
-                    title = "Car Images",
-                    subtitle = "Upload at least 3 images of your car",
-                    titleFontSize = 16,
-                    subtitleFontSize = 13,
-                    bottomPadding = 20
-                )
-
                 UploadDocumentItem(
                     title = "Vehicle License",
                     label = "Tap here to capture",
                     isCompulsoryField = true,
                     onClick = {}
                 )
+
+
 
             }
 
@@ -103,7 +98,7 @@ fun UploadDocumentItem(
     isCompulsoryField: Boolean,
     onClick: () -> Unit
 ) {
-    GrayBackgroundContainer {
+    Column {
         AnnotatedTextfieldTitle(title, isCompulsoryField)
         UploadDocumentBox(
             label = label,
@@ -119,17 +114,22 @@ fun UploadDocumentBox(
 ) {
     Box(
         modifier = Modifier
-            .height(75.dp)
+            .fillMaxWidth()
+//            .height(100.dp)
             .clip(RoundedCornerShape(6.dp))
             .background(Color(0xFFF1F1F1))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Column {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Icon(
                 painter = painterResource(R.drawable.doc_upload),
                 contentDescription = "image placeholder icon",
                 modifier = Modifier.size(22.dp),
+                tint = Color.Gray
             )
             TitleText(
                 label,
