@@ -1,7 +1,6 @@
 package com.kabukabu.driver.components.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
@@ -20,11 +19,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -36,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.utils_functions.priceFilter
-import com.kabukabu.driver.features.auth.presentation.sign_up.view.AnnotatedTextfieldTitle
 
 
 @Composable
@@ -452,7 +445,7 @@ internal fun ScreenTitleText(
 
 
 @Composable
-internal fun GreyBackgroundContainer(
+internal fun GrayBackgroundContainer(
     content: @Composable () -> Unit
 ) {
     Box(
@@ -469,3 +462,93 @@ internal fun GreyBackgroundContainer(
         }
     }
 }
+
+
+@Composable
+fun FormTextfield(
+    title: String,
+    text: String,
+    hintText: String,
+    onTextChanged: (String) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .background(color = Color(0x4DF1F1F1))
+            .padding(vertical = 12.dp)
+            .fillMaxWidth()
+    ) {
+        Column {
+            AnnotatedTextfieldTitle(title = title)
+            KabuOutlinedTextField(
+                value = text,
+                onTextChanged = onTextChanged,
+                placeholderText = hintText,
+                textFieldColors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color(0xFFF1F1F1),
+                    focusedContainerColor = Color(0xFFF1F1F1),
+                )
+            )
+        }
+    }
+}
+
+@Composable
+internal fun RowScope.RowScopeFormTextfield(
+    title: String,
+    text: String,
+    hintText: String,
+    isDropdown: Boolean,
+    onTextChanged: (String) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .background(color = Color(0x4DF1F1F1))
+            .padding(vertical = 12.dp)
+            .weight(1f),
+//            .fillMaxWidth()
+    ) {
+        Column {
+            AnnotatedTextfieldTitle(title = title)
+            if (isDropdown) {
+                KabuOutlinedTextFieldWithTrailingIconButton(
+                    value = text,
+                    onTextChanged = onTextChanged,
+                    placeholderText = hintText,
+                    textFieldColors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color(0xFFF1F1F1),
+                        focusedContainerColor = Color(0xFFF1F1F1),
+                    )
+                )
+            } else {
+                KabuOutlinedTextField(
+                    value = text,
+                    onTextChanged = onTextChanged,
+                    placeholderText = hintText,
+                    textFieldColors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color(0xFFF1F1F1),
+                        focusedContainerColor = Color(0xFFF1F1F1),
+                    )
+                )
+            }
+
+        }
+    }
+}
+
+
+@Composable
+internal fun AnnotatedTextfieldTitle(title: String, isCompulsory: Boolean = true) {
+    Row(
+        modifier = Modifier.padding()
+    ) {
+        TitleText(title, endPadding = 3, fontSize = 15)
+        if(isCompulsory)
+            TitleText(
+                "*",
+                fontSize = 15,
+                color = MaterialTheme.colorScheme.error
+            )
+
+    }
+}
+

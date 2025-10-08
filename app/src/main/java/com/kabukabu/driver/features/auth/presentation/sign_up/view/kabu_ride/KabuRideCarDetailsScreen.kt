@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
-import com.kabukabu.driver.components.ui.GreyBackgroundContainer
+import com.kabukabu.driver.components.ui.GrayBackgroundContainer
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
@@ -59,7 +59,7 @@ fun KabuRideCarDetailsScreen() {
                 bottomPadding = 16
             )
 
-            GreyBackgroundContainer {
+            GrayBackgroundContainer {
 
                 ScreenTitleText(
                     title = "Car Images",
@@ -83,7 +83,7 @@ fun KabuRideCarDetailsScreen() {
 
             KabuDivider(height = 16.dp)
 
-            GreyBackgroundContainer {
+            GrayBackgroundContainer {
 
                 ScreenTitleText(
                     title = "Car Details",

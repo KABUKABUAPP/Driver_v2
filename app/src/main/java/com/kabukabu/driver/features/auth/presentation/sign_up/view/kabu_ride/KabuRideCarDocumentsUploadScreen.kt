@@ -1,30 +1,47 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kabukabu.driver.R
+import com.kabukabu.driver.components.ui.AnnotatedTextfieldTitle
 import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
-import com.kabukabu.driver.components.ui.GreyBackgroundContainer
+import com.kabukabu.driver.components.ui.GrayBackgroundContainer
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.ScreenTitleText
-import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.UploadCarImageBox
+import com.kabukabu.driver.components.ui.TitleText
 
 @Composable
-fun KabuRideCarDocumentsUploadScreen(){
+fun KabuRideCarDocumentsUploadScreen() {
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -38,17 +55,17 @@ fun KabuRideCarDocumentsUploadScreen(){
         ) {
 
             CustomLinearProgressIndicator(
-                progress = 0.34f,
+                progress = 0.67f,
                 modifier = Modifier.padding(bottom = 50.dp)
             )
 
             ScreenTitleText(
-                title = "Car Details",
-                subtitle = "Give us more information about your car",
+                title = "Documents",
+                subtitle = "Upload your car documents",
                 bottomPadding = 16
             )
 
-            GreyBackgroundContainer {
+            GrayBackgroundContainer {
 
                 ScreenTitleText(
                     title = "Car Images",
@@ -58,37 +75,16 @@ fun KabuRideCarDocumentsUploadScreen(){
                     bottomPadding = 20
                 )
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                        .background(Color.White)
-                ) {
-                    UploadCarImageBox(onClick = {})
-                    UploadCarImageBox(onClick = {})
-                    UploadCarImageBox(onClick = {})
-                    UploadCarImageBox(onClick = {})
-                }
-            }
-
-            KabuDivider(height = 16.dp)
-
-            GreyBackgroundContainer {
-
-                ScreenTitleText(
-                    title = "Car Details",
-                    subtitle = "Give us more information about your car",
-                    titleFontSize = 16,
-                    subtitleFontSize = 13,
-                    bottomPadding = 16
+                UploadDocumentItem(
+                    title = "Vehicle License",
+                    label = "Tap here to capture",
+                    isCompulsoryField = true,
+                    onClick = {}
                 )
 
-                TextfieldSelectionDropdown("Car Brand", onClick = {})
-                TextfieldSelectionDropdown("Car Model", onClick = {})
-                TextfieldSelectionDropdown("Car Year", onClick = {})
-                TextfieldSelectionDropdown("Car Colour", onClick = {})
-                TextfieldSelection(title = "Plate Number", placeholderText = "ABC 123 CVGG")
-
             }
+
+
 
             Row {
                 KabuBottomButtonRowScope("Next", icon = R.drawable.arrow_right)
@@ -99,3 +95,50 @@ fun KabuRideCarDocumentsUploadScreen(){
     }
 
 }
+
+@Composable
+fun UploadDocumentItem(
+    title: String,
+    label: String,
+    isCompulsoryField: Boolean,
+    onClick: () -> Unit
+) {
+    GrayBackgroundContainer {
+        AnnotatedTextfieldTitle(title, isCompulsoryField)
+        UploadDocumentBox(
+            label = label,
+            onClick = onClick
+        )
+    }
+}
+
+@Composable
+fun UploadDocumentBox(
+    label: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .height(75.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(Color(0xFFF1F1F1))
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Column {
+            Icon(
+                painter = painterResource(R.drawable.doc_upload),
+                contentDescription = "image placeholder icon",
+                modifier = Modifier.size(22.dp),
+            )
+            TitleText(
+                label,
+                topPadding = 12
+            )
+
+
+        }
+    }
+
+}
+
