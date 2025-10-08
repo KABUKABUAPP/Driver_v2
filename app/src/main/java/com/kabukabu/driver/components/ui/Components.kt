@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -246,7 +249,7 @@ fun KabuOutlinedTextField(
 @Composable
 fun KabuOutlinedTextFieldWithTrailingIconButton(
     value: String? = "",
-    placeholderText: String,
+    placeholderText: String = "",
     iconTint: Color = Color.Gray,
     bottomPadding: Int = 15,
     onClick: () -> Unit = {},
@@ -344,6 +347,59 @@ fun KabuBottomButton(
     }
 }
 
+
+@Composable
+fun RowScope.KabuBottomButtonRowScope(
+    text: String,
+    icon: Int,
+    modifier: Modifier = Modifier,
+    topPadding: Int = 0,
+    isLoading: Boolean = false,
+    onClick: () -> Unit = {},
+    enabled: Boolean = true,
+) {
+    Button(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = topPadding.dp)
+            .weight(1f)
+            .height(53.dp),
+        onClick = { onClick() },
+        enabled = enabled,
+        shape = RoundedCornerShape(6.dp),
+        colors = ButtonDefaults.buttonColors().copy(
+            disabledContainerColor = Color(0xFFB2D5C7),
+            disabledContentColor = Color(0xFFE6E6E6),
+            containerColor = MaterialTheme.colorScheme.primary
+        )
+
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = MaterialTheme.colorScheme.onPrimary,
+            )
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TitleText(
+                    text = text,
+                    fontSize = 14,
+                    fontWeight = FontWeight.W500,
+                    bottomPadding = 0,
+                    endPadding = 14
+                )
+
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = "arrow-right icon"
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun getThirtyPercentOfScreenWidth(): Dp {
     val configuration = LocalConfiguration.current
@@ -375,8 +431,11 @@ internal fun ScreenTitleText(
     subtitleFontSize: Int = 15,
     bottomPadding: Int = 0
 ) {
-    Column(modifier = Modifier.fillMaxWidth()
-        .padding(bottom = bottomPadding.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = bottomPadding.dp)
+    ) {
         TitleText(
             text = title,
             fontSize = titleFontSize,
@@ -398,9 +457,11 @@ internal fun GreyBackgroundContainer(
 ) {
     Box(
         modifier = Modifier
-            .background(color = Color(0x4DF1F1F1),
-                shape = RoundedCornerShape(12.dp))
-            .padding(12.dp)
+            .background(
+                color = Color(0x5DF1F1F1),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp)
             .fillMaxWidth()
     ) {
         Column {
