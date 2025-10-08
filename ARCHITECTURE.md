@@ -16,6 +16,9 @@ com.kabukabu.driver/
 │       ├── remote/                 # API services and network layer
 │       └── socket/                 # WebSocket services
 │
+├── components/                     
+     ├── ui/                        # Components( reusabale ui components)
+│    ├── utils_functions/  
 ├── features/                       # Feature modules
 │   ├── auth/
 │   │   ├── presentation/          # LoginScreen, OtpScreen, SplashScreen, ViewModels

@@ -394,6 +394,58 @@ fun RowScope.KabuBottomButtonRowScope(
 }
 
 @Composable
+fun RowScope.KabuTransparentBottomButtonRowScope(
+    text: String,
+    icon: Int,
+    modifier: Modifier = Modifier,
+    topPadding: Int = 0,
+    isLoading: Boolean = false,
+    onClick: () -> Unit = {},
+    enabled: Boolean = true,
+) {
+    Button(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = topPadding.dp)
+            .weight(1f)
+            .height(53.dp),
+        onClick = { onClick() },
+        enabled = enabled,
+        shape = RoundedCornerShape(6.dp),
+        colors = ButtonDefaults.buttonColors().copy(
+            disabledContainerColor = Color(0xFFB2D5C7),
+            disabledContentColor = Color(0xFFE6E6E6),
+            containerColor = Color(0xFFF1F1F1)
+        )
+
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = MaterialTheme.colorScheme.onPrimary,
+            )
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = "arrow-right icon"
+                )
+                TitleText(
+                    text = text,
+                    fontSize = 14,
+                    fontWeight = FontWeight.W500,
+                    bottomPadding = 0,
+                    endPadding = 14
+                )
+
+            }
+        }
+    }
+}
+
+@Composable
 fun getThirtyPercentOfScreenWidth(): Dp {
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
@@ -469,6 +521,7 @@ fun FormTextfield(
     title: String,
     text: String,
     hintText: String,
+    isCompulsory: Boolean = true,
     onTextChanged: (String) -> Unit
 ) {
     Box(
@@ -478,7 +531,7 @@ fun FormTextfield(
             .fillMaxWidth()
     ) {
         Column {
-            AnnotatedTextfieldTitle(title = title)
+            AnnotatedTextfieldTitle(title = title, isCompulsory = isCompulsory)
             KabuOutlinedTextField(
                 value = text,
                 onTextChanged = onTextChanged,
@@ -542,7 +595,7 @@ internal fun AnnotatedTextfieldTitle(title: String, isCompulsory: Boolean = true
 //        modifier = Modifier.padding()
     ) {
         TitleText(title, endPadding = 3, fontSize = 15)
-        if(isCompulsory)
+        if (isCompulsory)
             TitleText(
                 "*",
                 fontSize = 15,

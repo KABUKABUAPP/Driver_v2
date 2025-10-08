@@ -35,9 +35,11 @@ import androidx.compose.ui.unit.dp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.AnnotatedTextfieldTitle
 import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
+import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.GrayBackgroundContainer
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuDivider
+import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
 
@@ -51,7 +53,6 @@ fun KabuRideCarDocumentsUploadScreen() {
                 .padding(top = 30.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
-//            verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
 
@@ -71,18 +72,96 @@ fun KabuRideCarDocumentsUploadScreen() {
                 UploadDocumentItem(
                     title = "Vehicle License",
                     label = "Tap here to capture",
-                    isCompulsoryField = true,
                     onClick = {}
                 )
 
+                FormTextfield(
+                    title = "Vehicle License Number",
+                    text = "",
+                    hintText = "ABC1234567",
+                    onTextChanged = {}
+                )
+
+                UploadDocumentItem(
+                    title = "Driver’s License",
+                    label = "Tap here to capture",
+                    onClick = {}
+                )
+
+                FormTextfield(
+                    title = "Driver's License Number",
+                    text = "",
+                    hintText = "ABC1234567",
+                    onTextChanged = {}
+                )
+
+                UploadDocumentItem(
+                    title = "Issuance Certificate",
+                    label = "Tap here to capture",
+                    onClick = {}
+                )
+
+                FormTextfield(
+                    title = "Issuance Certificate Number",
+                    text = "",
+                    hintText = "ABC1234567",
+                    onTextChanged = {}
+                )
+
+                UploadDocumentItem(
+                    title = "Proof of Ownership",
+                    label = "Tap here to capture",
+                    onClick = {}
+                )
+
+                FormTextfield(
+                    title = "Proof of Ownership Number",
+                    text = "",
+                    hintText = "ABC1234567",
+                    isCompulsory = false,
+                    onTextChanged = {}
+                )
+
+                UploadDocumentItem(
+                    title = "Road Worthiness Certificate",
+                    label = "Tap here to capture",
+                    onClick = {}
+                )
+
+                FormTextfield(
+                    title = "Road Worthiness Certificate",
+                    text = "",
+                    hintText = "ABC1234567",
+                    isCompulsory = false,
+                    onTextChanged = {}
+                )
 
 
+                UploadDocumentItem(
+                    title = "Hackney Permit",
+                    label = "Tap here to capture",
+                    isCompulsoryField = false,
+                    onClick = {}
+                )
+
+                FormTextfield(
+                    title = "Hackney Permit Number",
+                    text = "",
+                    hintText = "ABC1234567",
+                    isCompulsory = false,
+                    onTextChanged = {}
+                )
             }
 
+            Row(modifier = Modifier.padding(top = 24.dp)) {
 
-
-            Row {
-                KabuBottomButtonRowScope("Next", icon = R.drawable.arrow_right)
+                KabuBottomButtonRowScope("Next",
+                    icon = R.drawable.arrow_right
+                )
+                KabuTransparentBottomButtonRowScope(
+                    "Previous",
+                    icon = R.drawable.arrow_left
+                )
             }
 
         }
@@ -95,7 +174,7 @@ fun KabuRideCarDocumentsUploadScreen() {
 fun UploadDocumentItem(
     title: String,
     label: String,
-    isCompulsoryField: Boolean,
+    isCompulsoryField: Boolean = true,
     onClick: () -> Unit
 ) {
     Column {
