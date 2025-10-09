@@ -9,9 +9,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.kabukabu.driver.components.ui.GrayBackgroundContainer
-import com.kabukabu.driver.components.ui.ScreenTitleText
+import com.kabukabu.driver.components.ui.TitleText
 
 @Composable
 fun PendingAccountApprovalScreen() {
@@ -23,24 +23,23 @@ fun PendingAccountApprovalScreen() {
                 .padding(top = 30.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
 
-            GrayBackgroundContainer {
+            TitleText(
+                text = "Your account is pending \n approval",
+                fontSize = 25,
+                fontWeight = FontWeight.W500,
+                bottomPadding = 12,
+                topPadding = 24
+            )
 
-                ScreenTitleText(
-                    title = "Your account is pending \n" +
-                            "approval",
-                    subtitle = "We are doing background check. We will notify \n" +
-                            "you immediately afterwards",
-                    bottomPadding = 16,
-                    topPadding = 30
-
-                )
-
-            }
-
-
+            TitleText(
+                text = "We are doing background check. We will notify you immediately afterwards",
+                bottomPadding = 16,
+                topPadding = 8,
+                fontWeight = FontWeight.W500,
+                lineHeight = 20
+            )
         }
     }
 }
