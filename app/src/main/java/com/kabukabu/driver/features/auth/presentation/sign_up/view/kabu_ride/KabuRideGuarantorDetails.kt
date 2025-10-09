@@ -1,6 +1,7 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -117,9 +118,6 @@ fun KabuRideGuarantorDetail() {
 
             }
 
-
-
-
             Row(
                 modifier = Modifier.padding(top = 30.dp),
                 horizontalArrangement = Arrangement.spacedBy(24.dp)
@@ -139,14 +137,15 @@ fun KabuRideGuarantorDetail() {
         }
 
     }
-
 }
+
 
 @Composable
 fun ProfileCard(onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(bottom = 16.dp)
+            .clickable{ onClick() }
     ) {
         Box(
             modifier = Modifier

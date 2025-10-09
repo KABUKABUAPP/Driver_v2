@@ -1,13 +1,25 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -15,13 +27,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kabukabu.driver.R
-import com.kabukabu.driver.components.ui.GrayBackgroundContainer
+import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
+import com.kabukabu.driver.core.data.local.InspectionHubData
+import com.kabukabu.driver.core.data.local.LocalDataSource
 
 @Composable
 fun InspectionScreen() {
@@ -33,31 +48,52 @@ fun InspectionScreen() {
                 .padding(top = 30.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
 
-            ScreenTitleText(
-                title = "Inspection",
-                titleFontSize = 22,
-                subtitle = "Please take your car to our nearest \n" +
-                        "inspection hub",
-                bottomPadding = 20
-            )
+            Column {
+                ScreenTitleText(
+                    title = "Inspection",
+                    titleFontSize = 22,
+                    subtitle = "Please take your car to our nearest \n" +
+                            "inspection hub",
+                    bottomPadding = 20
+                )
 
-            ScreenTitleText(
-                title = "KAB-1234",
-                subtitle = "Driver code",
-                bottomPadding = 16
-            )
+                ScreenTitleText(
+                    title = "KAB-1234",
+                    subtitle = "Driver code",
+                    titleFontSize = 24,
+                    bottomPadding = 16
+                )
 
-            InspectionInstruction(
-                text = "The inspection agent will require your driver code to verify your account."
-            )
-            InspectionInstruction(
-                text = "Visit the nearest Hub in the next 72 hours to validate and verify your car."
-            )
-            InspectionInstruction(
-                text = "Ensure you go to the inspection hubs with ALL your car documents"
+                InspectionInstruction(
+                    text = "The inspection agent will require your driver code to verify your account."
+                )
+
+                InspectionInstruction(
+                    text = "Visit the nearest Hub in the next 72 hours to validate and verify your car."
+                )
+
+                InspectionInstruction(
+                    text = "Ensure you go to the inspection hubs with ALL your car documents"
+                )
+
+                KabuDivider(height = 30.dp)
+
+                TitleText(
+                    text = "Kabu Inspection Hub closest to you",
+                    fontSize = 16,
+                    fontWeight = FontWeight.W500,
+                    bottomPadding = 16
+                )
+                InspectionHubsList()
+            }
+
+            TitleText(
+                "This screen will proceed when agent approves your inspection",
+                fontSize = 13,
+                color = Color.Gray
             )
 
         }
@@ -66,7 +102,80 @@ fun InspectionScreen() {
 }
 
 @Composable
-fun InspectionInstruction(text: String) {
+fun InspectionHubsList() {
+
+    val dataList = LocalDataSource().loadInspectionHubItems()
+
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp)
+    ) {
+        itemsIndexed(dataList) { index, data ->
+            InspectionHubsListItem(hubData = data)
+        }
+    }
+}
+
+
+@Composable
+private fun InspectionHubsListItem(hubData: InspectionHubData?) {
+    Box(
+        modifier = Modifier
+            .background(
+                color = Color(0xFFFFF5D8),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp)
+            .fillMaxWidth()
+    ) {
+        Column {
+            HubInspectionLazyRowItem(
+                hubData?.name ?: "",
+                icon = Icons.Default.Person
+            )
+            HubInspectionLazyRowItem(
+                hubData?.address ?: "",
+                icon = Icons.Default.Home
+            )
+            HubInspectionLazyRowItem(
+                hubData?.closingHour ?: "",
+                icon = Icons.Default.DateRange
+            )
+            HubInspectionLazyRowItem(
+                hubData?.phoneNumber ?: "",
+                icon = Icons.Default.Call
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun HubInspectionLazyRowItem(text: String?, icon: ImageVector) {
+    Row(
+        modifier = Modifier.padding(bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+
+        Icon(
+            imageVector = icon,
+            contentDescription = "Icon",
+            modifier = Modifier.size(18.dp)
+        )
+        TitleText(
+            text = text ?: "",
+            fontSize = 15,
+            fontWeight = FontWeight.W500,
+            lineHeight = 20,
+            bottomPadding = 0
+        )
+    }
+}
+
+
+@Composable
+private fun InspectionInstruction(text: String) {
     Row(
         modifier = Modifier.padding(bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
