@@ -38,7 +38,7 @@ fun PendingAccountApprovalScreen() {
                 bottomPadding = 16,
                 topPadding = 8,
                 fontWeight = FontWeight.W500,
-                lineHeight = 20
+//                lineHeight = 20
             )
         }
     }

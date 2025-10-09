@@ -33,18 +33,6 @@ fun DriverBioDataScreen() {
                     title = "Welcome",
                     subtitle = "Tell us about you"
                 )
-//
-//                TitleText(
-//                    text = "Welcome",
-//                    fontSize = 20,
-//                    fontWeight = FontWeight.W600,
-//                    bottomPadding = 8,
-//                )
-//                TitleText(
-//                    text = "Tell us about you",
-//                    fontSize = 15,
-//                    bottomPadding = 12,
-//                )
 
                 FormTextfield(
                     title = "Full Name",

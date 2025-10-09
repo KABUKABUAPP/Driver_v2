@@ -52,7 +52,7 @@ fun TitleText(
     fontSize: Int = 14, bottomPadding: Int = 8,
     color: Color = Color.Black, fontWeight: FontWeight = FontWeight.Normal,
     startPadding: Int = 0, textAlign: TextAlign = TextAlign.Start,
-    topPadding: Int = 0, endPadding: Int = 0, letterSpacing: Int = 0, lineHeight: Int = 25,
+    topPadding: Int = 0, endPadding: Int = 0, letterSpacing: Int = 0, lineHeight: Int = 22,
     isVisible: Boolean = true,
     maxLines: Int = 2,
     overflow: TextOverflow = TextOverflow.Visible
