@@ -17,7 +17,7 @@ com.kabukabu.driver/
 │       └── socket/                 # WebSocket services
 │
 ├── components/                     
-     ├── ui/                        # Components( reusabale ui components)
+     ├── ui/                        # Components( reusabale ui components, ui logic)
 │    ├── utils_functions/  
 ├── features/                       # Feature modules
 │   ├── auth/

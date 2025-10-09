@@ -17,6 +17,7 @@ sealed class Screen(val route: String) {
     object About : Screen("about")
     object RepairLoan : Screen("repair_loan")
     object Profile : Screen("profile")
+    object DriverBioDataScreen : Screen("/driver-biodata-screen")
 }
 
 sealed class NavArg(val key: String) {
