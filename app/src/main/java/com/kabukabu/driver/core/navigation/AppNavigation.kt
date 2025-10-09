@@ -50,7 +50,7 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val authToken by userPreferences.authToken.collectAsState(initial = null)
-    val coroutineScope = rememberCoroutineScope()
+//    val coroutineScope = rememberCoroutineScope()
     val navigation = Navigator(navController)
 
     // Check for auth token and navigate accordingly
@@ -172,11 +172,11 @@ fun AppNavigation() {
         }
 
         composable(Screen.KabuRidePendingApproval.route) {
-            KabuRidePendingAccountApprovalScreen(navigation)
+            KabuRidePendingAccountApprovalScreen()
         }
 
         composable(Screen.KabuRideAccountDeclined.route) {
-            KabuRideAccountDeclinedScreen(navigation)
+            KabuRideAccountDeclinedScreen()
         }
 
         composable(Screen.KabuRideDocumentsReUpload.route) {

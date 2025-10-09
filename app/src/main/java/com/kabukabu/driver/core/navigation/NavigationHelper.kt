@@ -5,6 +5,11 @@ import androidx.navigation.NavHostController
 
 class Navigator(private val navController: NavHostController) {
 
+    fun navigateUp() {
+        navController.navigateUp()
+    }
+
+
     fun navToKabuRideCarDetails() {
         navController.navigate(Screen.KabuRideCarDetails.route)
     }

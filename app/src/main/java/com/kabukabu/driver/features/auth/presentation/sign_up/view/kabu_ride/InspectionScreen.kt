@@ -37,9 +37,10 @@ import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.core.data.local.InspectionHubData
 import com.kabukabu.driver.core.data.local.LocalDataSource
+import com.kabukabu.driver.core.navigation.Navigator
 
 @Composable
-fun KabuRideInspectionScreen() {
+fun KabuRideInspectionScreen(navigator: Navigator) {
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier

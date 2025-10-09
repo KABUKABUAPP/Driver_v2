@@ -19,9 +19,10 @@ import com.kabukabu.driver.components.ui.GrayBackgroundContainer
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
 import com.kabukabu.driver.components.ui.ScreenTitleText
+import com.kabukabu.driver.core.navigation.Navigator
 
 @Composable
-fun KabuRideDocumentsReUploadScreen() {
+fun KabuRideDocumentsReUploadScreen(navigator: Navigator) {
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -81,7 +82,8 @@ fun KabuRideDocumentsReUploadScreen() {
 
                 KabuTransparentBottomButtonRowScope(
                     "Previous",
-                    icon = R.drawable.arrow_left
+                    icon = R.drawable.arrow_left,
+                    onClick = { navigator.navigateUp() }
                 )
 
                 KabuBottomButtonRowScope(
