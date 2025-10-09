@@ -491,6 +491,7 @@ internal fun ScreenTitleText(
             text = subtitle,
             fontSize = subtitleFontSize,
             bottomPadding = 12,
+            lineHeight = 22
         )
     }
 }
