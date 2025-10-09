@@ -18,7 +18,21 @@ sealed class Screen(val route: String) {
     object RepairLoan : Screen("repair_loan")
     object Profile : Screen("profile")
     object DriverBioDataScreen : Screen("/driver-biodata-screen")
+    object SelectVehicleScreen : Screen("/select-vehicle-screen")
+    object KabuRideTAndC : Screen("/kabu-ride-terms-and-condition")
+    object KabuRideCarDetails : Screen("/kabu-ride-car-details")
+    object KabuRideDocumentUpload : Screen("/kabu-ride-document-upload")
+    object KabuRideGuarantorDetails : Screen("/kabu-ride-guarantor-details")
+    object KabuRidePendingApproval : Screen("/kabu-ride-pending-approval")
+    object KabuRideAccountDeclined : Screen("/kabu-ride-account-declined")
+    object KabuRideDocumentsReUpload : Screen("/kabu-ride-document-re-upload")
+    object KabuRideInspection : Screen("/kabu-ride-inspection")
+//    object KabuRideGuarantorDetails : Screen("/kabu-ride-document-upload")
 }
+
+
+
+
 
 sealed class NavArg(val key: String) {
     object Email : NavArg("email")
