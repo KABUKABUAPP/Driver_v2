@@ -20,6 +20,16 @@ import com.kabukabu.driver.features.analytics.presentation.AnalyticsScreen
 import com.kabukabu.driver.features.auth.presentation.LoginScreen
 import com.kabukabu.driver.features.auth.presentation.OtpVerificationScreen
 import com.kabukabu.driver.features.auth.presentation.SplashScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.DriverBioDataScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectVehicleScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideAccountDeclinedScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideCarDetailsScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideCarDocumentsUploadScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideDocumentsReUploadScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideGuarantorDetail
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideInspectionScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRidePendingAccountApprovalScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideTermsAndConditionsScreen
 import com.kabukabu.driver.features.home.presentation.HomeScreen
 import com.kabukabu.driver.features.profile.presentation.ProfileScreen
 import com.kabukabu.driver.features.promotions.presentation.PromotionsScreen
@@ -103,14 +113,17 @@ fun AppNavigation() {
             val email = backStackEntry.arguments?.getString(NavArg.Email.key) ?: ""
             OtpVerificationScreen(
                 email = email,
-                onNavigateToHome = {
-                    Log.d("AppNavigation", "Navigating to home from OTP screen")
-                    coroutineScope.launch {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }
+                onNavigateToDriverDetailsScreen = {
+
                 },
+//                onNavigateToHome = {
+//                    Log.d("AppNavigation", "Navigating to home from OTP screen")
+//                    coroutineScope.launch {
+//                        navController.navigate(Screen.Home.route) {
+//                            popUpTo(0) { inclusive = true }
+//                        }
+//                    }
+//                },
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.OtpVerification.route) { inclusive = true }
@@ -119,8 +132,44 @@ fun AppNavigation() {
             )
         }
 
-        composable(Screen.Promotions.route) {
-            PromotionsScreen(onBack = { navController.popBackStack() })
+        composable(Screen.DriverBioDataScreen.route) {
+            DriverBioDataScreen()
+        }
+
+        composable(Screen.SelectVehicleScreen.route) {
+            SelectVehicleScreen()
+        }
+
+        composable(Screen.KabuRideTAndC.route) {
+            KabuRideTermsAndConditionsScreen()
+        }
+
+        composable(Screen.KabuRideCarDetails.route) {
+            KabuRideCarDetailsScreen()
+        }
+
+        composable(Screen.KabuRideDocumentUpload.route) {
+            KabuRideCarDocumentsUploadScreen()
+        }
+
+        composable(Screen.KabuRideGuarantorDetails.route) {
+            KabuRideGuarantorDetail()
+        }
+
+        composable(Screen.KabuRidePendingApproval.route) {
+            KabuRidePendingAccountApprovalScreen()
+        }
+
+        composable(Screen.KabuRideAccountDeclined.route) {
+            KabuRideAccountDeclinedScreen()
+        }
+
+        composable(Screen.KabuRideDocumentsReUpload.route) {
+            KabuRideDocumentsReUploadScreen()
+        }
+
+        composable(Screen.KabuRideInspection.route) {
+            KabuRideInspectionScreen()
         }
 
 

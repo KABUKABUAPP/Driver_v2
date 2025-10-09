@@ -15,6 +15,7 @@ import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.RowScopeFormTextfield
 import com.kabukabu.driver.components.ui.ScreenTitleText
 
+
 @Composable
 fun DriverBioDataScreen() {
     Scaffold { paddingValues ->

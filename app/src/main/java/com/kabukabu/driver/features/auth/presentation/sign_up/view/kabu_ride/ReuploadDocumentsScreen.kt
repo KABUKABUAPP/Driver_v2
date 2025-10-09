@@ -21,7 +21,7 @@ import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
 import com.kabukabu.driver.components.ui.ScreenTitleText
 
 @Composable
-fun KabuRideReuploadDocumentsUploadScreen() {
+fun KabuRideDocumentsReUploadScreen() {
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier

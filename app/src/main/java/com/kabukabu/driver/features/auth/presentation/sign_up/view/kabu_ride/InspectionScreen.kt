@@ -39,7 +39,7 @@ import com.kabukabu.driver.core.data.local.InspectionHubData
 import com.kabukabu.driver.core.data.local.LocalDataSource
 
 @Composable
-fun InspectionScreen() {
+fun KabuRideInspectionScreen() {
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier

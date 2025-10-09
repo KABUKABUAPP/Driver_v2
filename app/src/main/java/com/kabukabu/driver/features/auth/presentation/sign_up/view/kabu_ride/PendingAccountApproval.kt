@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.kabukabu.driver.components.ui.TitleText
 
 @Composable
-fun PendingAccountApprovalScreen() {
+fun KabuRidePendingAccountApprovalScreen() {
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier

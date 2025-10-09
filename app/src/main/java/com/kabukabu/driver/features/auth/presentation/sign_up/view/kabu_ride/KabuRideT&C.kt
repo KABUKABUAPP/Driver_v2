@@ -16,7 +16,7 @@ import com.kabukabu.driver.components.ui.KabuBottomButton
 
 
 @Composable
-fun TermsAndConditionsScreen() {
+fun KabuRideTermsAndConditionsScreen() {
     Scaffold(
     ) { paddingValues ->
         Column(

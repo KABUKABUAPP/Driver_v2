@@ -48,7 +48,8 @@ import android.util.Log
 @Composable
 fun OtpVerificationScreen(
     email: String,
-    onNavigateToHome: () -> Unit,
+    onNavigateToDriverDetailsScreen: () -> Unit,
+//    onNavigateToHome: () -> Unit,
     onNavigateToLogin: () -> Unit, // Added navigation back to login
     viewModel: OtpViewModel = viewModel(),
     loginViewModel: LoginViewModel = viewModel() // Add login view model for resending OTP
@@ -114,7 +115,8 @@ fun OtpVerificationScreen(
                 delay(500)
                 
                 // Navigate to home
-                onNavigateToHome()
+                onNavigateToDriverDetailsScreen()
+//                onNavigateToHome()
                 
                 // Add a longer delay before resetting state
                 delay(1000)

@@ -26,7 +26,7 @@ import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.TitleText
 
 @Composable
-fun AccountDeclinedScreen() {
+fun KabuRideAccountDeclinedScreen() {
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
