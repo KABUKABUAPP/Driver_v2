@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuDivider
-import com.kabukabu.driver.components.ui.KabuSpacer
 import com.kabukabu.driver.components.ui.RowScopeFormTextfield
 import com.kabukabu.driver.components.ui.ScreenTitleText
 
@@ -49,37 +48,38 @@ fun DriverBioDataScreen() {
 
                 FormTextfield(
                     title = "Full Name",
-                    text = "",
+                    value = "",
                     hintText = "John Doe",
                     onTextChanged = {}
                 )
 
                 FormTextfield(
                     title = "Email Address",
-                    text = "",
+                    value = "",
                     hintText = "example@gmail.com",
                     onTextChanged = {}
                 )
 
                 FormTextfield(
                     title = "House Address",
-                    text = "",
+                    value = "",
                     hintText = "House address here",
                     onTextChanged = {}
                 )
 
-                Row {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
                     RowScopeFormTextfield(
                         title = "City",
-                        text = "",
+                        value = "",
                         hintText = "City here",
                         isDropdown = false,
                         onTextChanged = {}
                     )
-                    KabuSpacer(16)
                     RowScopeFormTextfield(
                         title = "State",
-                        text = "",
+                        value = "",
                         hintText = "Abia State",
                         isDropdown = true,
                         onTextChanged = {}

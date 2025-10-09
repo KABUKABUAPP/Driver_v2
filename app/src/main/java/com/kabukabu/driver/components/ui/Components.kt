@@ -408,7 +408,7 @@ fun RowScope.KabuTransparentBottomButtonRowScope(
             .fillMaxWidth()
             .padding(top = topPadding.dp)
             .weight(1f)
-            .height(53.dp),
+            .height(55.dp),
         onClick = { onClick() },
         enabled = enabled,
         shape = RoundedCornerShape(6.dp),
@@ -518,7 +518,7 @@ internal fun GrayBackgroundContainer(
 @Composable
 fun FormTextfield(
     title: String,
-    text: String,
+    value: String,
     hintText: String,
     isCompulsory: Boolean = true,
     onTextChanged: (String) -> Unit
@@ -532,7 +532,7 @@ fun FormTextfield(
         Column {
             AnnotatedTextfieldTitle(title = title, isCompulsory = isCompulsory)
             KabuOutlinedTextField(
-                value = text,
+                value = value,
                 onTextChanged = onTextChanged,
                 placeholderText = hintText,
                 textFieldColors = TextFieldDefaults.colors(
@@ -547,7 +547,7 @@ fun FormTextfield(
 @Composable
 internal fun RowScope.RowScopeFormTextfield(
     title: String,
-    text: String,
+    value: String,
     hintText: String,
     isDropdown: Boolean,
     onTextChanged: (String) -> Unit
@@ -563,7 +563,7 @@ internal fun RowScope.RowScopeFormTextfield(
             AnnotatedTextfieldTitle(title = title)
             if (isDropdown) {
                 KabuOutlinedTextFieldWithTrailingIconButton(
-                    value = text,
+                    value = value,
                     onTextChanged = onTextChanged,
                     placeholderText = hintText,
                     textFieldColors = TextFieldDefaults.colors(
@@ -573,7 +573,7 @@ internal fun RowScope.RowScopeFormTextfield(
                 )
             } else {
                 KabuOutlinedTextField(
-                    value = text,
+                    value = value,
                     onTextChanged = onTextChanged,
                     placeholderText = hintText,
                     textFieldColors = TextFieldDefaults.colors(
@@ -597,10 +597,25 @@ internal fun AnnotatedTextfieldTitle(title: String, isCompulsory: Boolean = true
         if (isCompulsory)
             TitleText(
                 "*",
-                fontSize = 15,
+                fontSize = 14,
+                fontWeight = FontWeight.W500,
                 color = MaterialTheme.colorScheme.error
             )
 
     }
 }
 
+@Composable
+fun FormTextfieldDropdown(title: String,
+                          isCompulsory: Boolean = true,
+                          onClick: () -> Unit) {
+    Column(
+        modifier = Modifier.padding(bottom = 8.dp)
+    ) {
+        AnnotatedTextfieldTitle(title = title, isCompulsory = isCompulsory)
+        KabuOutlinedTextFieldWithTrailingIconButton(
+            placeholderText = title,
+            onClick = onClick
+        )
+    }
+}

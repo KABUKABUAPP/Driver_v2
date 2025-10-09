@@ -1,30 +1,21 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,7 +29,6 @@ import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
 import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.GrayBackgroundContainer
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
-import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
@@ -77,7 +67,7 @@ fun KabuRideCarDocumentsUploadScreen() {
 
                 FormTextfield(
                     title = "Vehicle License Number",
-                    text = "",
+                    value = "",
                     hintText = "ABC1234567",
                     onTextChanged = {}
                 )
@@ -90,7 +80,7 @@ fun KabuRideCarDocumentsUploadScreen() {
 
                 FormTextfield(
                     title = "Driver's License Number",
-                    text = "",
+                    value = "",
                     hintText = "ABC1234567",
                     onTextChanged = {}
                 )
@@ -103,7 +93,7 @@ fun KabuRideCarDocumentsUploadScreen() {
 
                 FormTextfield(
                     title = "Issuance Certificate Number",
-                    text = "",
+                    value = "",
                     hintText = "ABC1234567",
                     onTextChanged = {}
                 )
@@ -116,7 +106,7 @@ fun KabuRideCarDocumentsUploadScreen() {
 
                 FormTextfield(
                     title = "Proof of Ownership Number",
-                    text = "",
+                    value = "",
                     hintText = "ABC1234567",
                     isCompulsory = false,
                     onTextChanged = {}
@@ -130,7 +120,7 @@ fun KabuRideCarDocumentsUploadScreen() {
 
                 FormTextfield(
                     title = "Road Worthiness Certificate",
-                    text = "",
+                    value = "",
                     hintText = "ABC1234567",
                     isCompulsory = false,
                     onTextChanged = {}
@@ -151,7 +141,7 @@ fun KabuRideCarDocumentsUploadScreen() {
 
                 FormTextfield(
                     title = "Hackney Permit Number",
-                    text = "",
+                    value = "",
                     hintText = "Doc-IMHG-0088",
                     isCompulsory = false,
                     onTextChanged = {}
@@ -160,7 +150,7 @@ fun KabuRideCarDocumentsUploadScreen() {
 
             Row(
                 modifier = Modifier.padding(top = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
             ) {
 
                 KabuTransparentBottomButtonRowScope(

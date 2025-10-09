@@ -28,6 +28,7 @@ import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
 import com.kabukabu.driver.components.ui.GrayBackgroundContainer
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.R
+import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.KabuOutlinedTextField
@@ -93,10 +94,10 @@ fun KabuRideCarDetailsScreen() {
                     bottomPadding = 16
                 )
 
-                TextfieldSelectionDropdown("Car Brand", onClick = {})
-                TextfieldSelectionDropdown("Car Model", onClick = {})
-                TextfieldSelectionDropdown("Car Year", onClick = {})
-                TextfieldSelectionDropdown("Car Colour", onClick = {})
+                FormTextfieldDropdown("Car Brand", onClick = {})
+                FormTextfieldDropdown("Car Model", onClick = {})
+                FormTextfieldDropdown("Car Year", onClick = {})
+                FormTextfieldDropdown("Car Colour", onClick = {})
                 TextfieldSelection(title = "Plate Number", placeholderText = "ABC 123 CVGG")
 
             }
@@ -110,15 +111,7 @@ fun KabuRideCarDetailsScreen() {
     }
 }
 
-@Composable
-internal fun TextfieldSelectionDropdown(title: String, onClick: () -> Unit) {
-    Column(modifier = Modifier.padding(bottom = 8.dp)) {
-        TitleText(title)
-        KabuOutlinedTextFieldWithTrailingIconButton(
-            placeholderText = title
-        )
-    }
-}
+
 
 
 @Composable
