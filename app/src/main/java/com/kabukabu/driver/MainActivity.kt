@@ -44,6 +44,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.view.WindowCompat
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.AccountDeclinedScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideCarDetailsScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideCarDocumentsUploadScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideGuarantorDetail
@@ -62,7 +63,7 @@ class MainActivity : ComponentActivity() {
                         .navigationBarsPadding(), // Respect bottom safe area only
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PendingAccountApprovalScreen()
+                    AccountDeclinedScreen()
 //                                        AppNavigation()
                 }
             }
