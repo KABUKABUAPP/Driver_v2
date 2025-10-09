@@ -40,7 +40,9 @@ import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.getThirtyPercentOfScreenWidth
 
 @Composable
-fun SelectVehicleScreen() {
+fun SelectVehicleScreen(
+    onNavToTermsAndCondition: () -> Unit
+) {
 
     var hasVehicle by remember { mutableStateOf<Boolean?>(null) }
     var selectedCar by remember { mutableStateOf<Boolean?>(null) }
@@ -131,7 +133,7 @@ fun SelectVehicleScreen() {
 
             KabuBottomButton(
                 text = "Continue",
-                onClick = {}
+                onClick = onNavToTermsAndCondition
             )
         }
     }

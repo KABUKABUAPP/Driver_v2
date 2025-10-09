@@ -19,6 +19,7 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile")
     object DriverBioDataScreen : Screen("/driver-biodata-screen")
     object SelectVehicleScreen : Screen("/select-vehicle-screen")
+    object KabuRideSelfieVerificationScreen : Screen("/kabu-ride-selfie-verification-screen")
     object KabuRideTAndC : Screen("/kabu-ride-terms-and-condition")
     object KabuRideCarDetails : Screen("/kabu-ride-car-details")
     object KabuRideDocumentUpload : Screen("/kabu-ride-document-upload")
@@ -27,7 +28,7 @@ sealed class Screen(val route: String) {
     object KabuRideAccountDeclined : Screen("/kabu-ride-account-declined")
     object KabuRideDocumentsReUpload : Screen("/kabu-ride-document-re-upload")
     object KabuRideInspection : Screen("/kabu-ride-inspection")
-//    object KabuRideGuarantorDetails : Screen("/kabu-ride-document-upload")
+
 }
 
 

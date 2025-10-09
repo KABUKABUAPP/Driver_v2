@@ -17,7 +17,7 @@ import com.kabukabu.driver.components.ui.ScreenTitleText
 
 
 @Composable
-fun DriverBioDataScreen() {
+fun DriverBioDataScreen(onSelectVehicleScreen: () -> Unit) {
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier

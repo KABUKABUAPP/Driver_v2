@@ -32,9 +32,10 @@ import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
+import com.kabukabu.driver.core.navigation.Navigator
 
 @Composable
-fun KabuRideCarDocumentsUploadScreen() {
+fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -160,7 +161,8 @@ fun KabuRideCarDocumentsUploadScreen() {
 
                 KabuBottomButtonRowScope(
                     "Next",
-                    icon = R.drawable.arrow_right
+                    icon = R.drawable.arrow_right,
+                    onClick = { navigation.navToKabuRideGuarantorDetailsScreen() }
                 )
             }
 

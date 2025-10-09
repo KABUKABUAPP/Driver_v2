@@ -16,7 +16,7 @@ import com.kabukabu.driver.components.ui.KabuBottomButton
 
 
 @Composable
-fun KabuRideTermsAndConditionsScreen() {
+fun KabuRideTermsAndConditionsScreen(onNavToSelfieVerification: () -> Unit) {
     Scaffold(
     ) { paddingValues ->
         Column(
@@ -62,7 +62,9 @@ fun KabuRideTermsAndConditionsScreen() {
             SectionBody("If you are asked to deliver a parcel:\n1. Ask the sender to show you exactly what you will be transporting.\n2. Ask them to seal the parcel in your presence.")
             SectionBody("Do not accept a parcel if:\n1. The sender refuses to show you the contents.\n2. The contents strike you as illegal or suspicious.")
             SectionBody("If you suspect that the sender is breaking the law or the rules of our service, please contact support@kabukabu.com.ng.")
-            KabuBottomButton("Agree and Continue", topPadding = 20)
+            KabuBottomButton("Agree and Continue", topPadding = 20,
+                onClick = onNavToSelfieVerification
+            )
         }
     }
 }

@@ -34,9 +34,10 @@ import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.KabuOutlinedTextField
 import com.kabukabu.driver.components.ui.KabuOutlinedTextFieldWithTrailingIconButton
 import com.kabukabu.driver.components.ui.TitleText
+import com.kabukabu.driver.core.navigation.Navigator
 
 @Composable
-fun KabuRideCarDetailsScreen() {
+fun KabuRideCarDetailsScreen(navigator: Navigator) {
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -102,7 +103,11 @@ fun KabuRideCarDetailsScreen() {
             }
 
            Row {
-               KabuBottomButtonRowScope("Next", icon = R.drawable.arrow_right)
+               KabuBottomButtonRowScope("Next", icon = R.drawable.arrow_right,
+                   onClick = {
+                       navigator.navToKabuDocumentsUpload()
+                   }
+               )
            }
 
         }

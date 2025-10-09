@@ -29,6 +29,7 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.Kab
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideGuarantorDetail
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideInspectionScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRidePendingAccountApprovalScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideSelfieVerificationScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideTermsAndConditionsScreen
 import com.kabukabu.driver.features.home.presentation.HomeScreen
 import com.kabukabu.driver.features.profile.presentation.ProfileScreen
@@ -51,6 +52,7 @@ fun AppNavigation() {
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val authToken by userPreferences.authToken.collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
+    val navigation = Navigator(navController)
 
     // Check for auth token and navigate accordingly
     LaunchedEffect(authToken) {
@@ -114,7 +116,7 @@ fun AppNavigation() {
             OtpVerificationScreen(
                 email = email,
                 onNavigateToDriverDetailsScreen = {
-
+                    navController.navigate(Screen.DriverBioDataScreen.route)
                 },
 //                onNavigateToHome = {
 //                    Log.d("AppNavigation", "Navigating to home from OTP screen")
@@ -133,44 +135,58 @@ fun AppNavigation() {
         }
 
         composable(Screen.DriverBioDataScreen.route) {
-            DriverBioDataScreen()
+            DriverBioDataScreen(
+                onSelectVehicleScreen = {
+                    navController.navigate(Screen.SelectVehicleScreen.route)
+                }
+            )
         }
 
         composable(Screen.SelectVehicleScreen.route) {
-            SelectVehicleScreen()
+            SelectVehicleScreen(
+                onNavToTermsAndCondition = { navController.navigate(Screen.KabuRideTAndC.route) }
+            )
         }
 
         composable(Screen.KabuRideTAndC.route) {
-            KabuRideTermsAndConditionsScreen()
+            KabuRideTermsAndConditionsScreen(
+                onNavToSelfieVerification = {  navController.navigate(Screen.KabuRideSelfieVerificationScreen.route) }
+            )
+        }
+
+        composable(Screen.KabuRideSelfieVerificationScreen.route) {
+            KabuRideSelfieVerificationScreen(
+                onNavToTermsAndCondition = { navController.navigate(Screen.KabuRideTAndC.route) }
+            )
         }
 
         composable(Screen.KabuRideCarDetails.route) {
-            KabuRideCarDetailsScreen()
+            KabuRideCarDetailsScreen(navigation)
         }
 
         composable(Screen.KabuRideDocumentUpload.route) {
-            KabuRideCarDocumentsUploadScreen()
+            KabuRideCarDocumentsUploadScreen(navigation)
         }
 
-        composable(Screen.KabuRideGuarantorDetails.route) {
-            KabuRideGuarantorDetail()
-        }
-
-        composable(Screen.KabuRidePendingApproval.route) {
-            KabuRidePendingAccountApprovalScreen()
-        }
-
-        composable(Screen.KabuRideAccountDeclined.route) {
-            KabuRideAccountDeclinedScreen()
-        }
-
-        composable(Screen.KabuRideDocumentsReUpload.route) {
-            KabuRideDocumentsReUploadScreen()
-        }
-
-        composable(Screen.KabuRideInspection.route) {
-            KabuRideInspectionScreen()
-        }
+//        composable(Screen.KabuRideGuarantorDetails.route) {
+//            KabuRideGuarantorDetail(navigation)
+//        }
+//
+//        composable(Screen.KabuRidePendingApproval.route) {
+//            KabuRidePendingAccountApprovalScreen(navigation)
+//        }
+//
+//        composable(Screen.KabuRideAccountDeclined.route) {
+//            KabuRideAccountDeclinedScreen(navigation)
+//        }
+//
+//        composable(Screen.KabuRideDocumentsReUpload.route) {
+//            KabuRideDocumentsReUploadScreen(navigation)
+//        }
+//
+//        composable(Screen.KabuRideInspection.route) {
+//            KabuRideInspectionScreen(navigation)
+//        }
 
 
 
