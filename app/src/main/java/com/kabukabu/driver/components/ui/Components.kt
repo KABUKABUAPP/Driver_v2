@@ -54,7 +54,7 @@ fun TitleText(
     startPadding: Int = 0, textAlign: TextAlign = TextAlign.Start,
     topPadding: Int = 0, endPadding: Int = 0, letterSpacing: Int = 0, lineHeight: Int = 25,
     isVisible: Boolean = true,
-    maxLines: Int = 1,
+    maxLines: Int = 2,
     overflow: TextOverflow = TextOverflow.Visible
 ) {
     if (isVisible) {
@@ -473,12 +473,13 @@ internal fun ScreenTitleText(
     subtitle: String,
     titleFontSize: Int = 20,
     subtitleFontSize: Int = 15,
-    bottomPadding: Int = 0
+    bottomPadding: Int = 0,
+    topPadding: Int = 0
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = bottomPadding.dp)
+            .padding( top = topPadding.dp, bottom = bottomPadding.dp)
     ) {
         TitleText(
             text = title,
