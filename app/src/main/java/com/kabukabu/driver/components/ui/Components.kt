@@ -417,7 +417,6 @@ fun RowScope.KabuTransparentBottomButtonRowScope(
             disabledContentColor = Color(0xFFE6E6E6),
             containerColor = Color(0xFFF1F1F1)
         )
-
     ) {
         if (isLoading) {
             CircularProgressIndicator(

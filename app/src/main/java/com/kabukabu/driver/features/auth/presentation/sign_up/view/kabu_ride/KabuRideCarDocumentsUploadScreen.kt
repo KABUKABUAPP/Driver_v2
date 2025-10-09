@@ -136,7 +136,6 @@ fun KabuRideCarDocumentsUploadScreen() {
                     onTextChanged = {}
                 )
 
-
                 UploadDocumentItem(
                     title = "Hackney Permit",
                     label = "Tap here to capture",
