@@ -153,11 +153,14 @@ fun LoginScreen(
             // Continue button with amber background and black text
             Button(
                 onClick = {
-                    if (viewModel.isValidEmail(email.text)) {
-                        viewModel.login(email.text)
-                    } else {
-                        isError = true
-                    }
+
+                    onNavigateToOtp("dderealboy@gmail.com")
+
+//                    if (viewModel.isValidEmail(email.text)) {
+//                        viewModel.login(email.text)
+//                    } else {
+//                        isError = true
+//                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()

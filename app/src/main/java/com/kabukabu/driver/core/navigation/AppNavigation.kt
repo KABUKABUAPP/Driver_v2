@@ -43,7 +43,6 @@ import com.kabukabu.driver.features.wallet.presentation.PaymentHistoryScreen
 import com.kabukabu.driver.features.wallet.presentation.SharpPaymentScreen
 import com.kabukabu.driver.features.wallet.presentation.WalletScreen
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavigation() {
@@ -156,7 +155,7 @@ fun AppNavigation() {
 
         composable(Screen.KabuRideSelfieVerificationScreen.route) {
             KabuRideSelfieVerificationScreen(
-                onNavToTermsAndCondition = { navController.navigate(Screen.KabuRideTAndC.route) }
+                onNavToTermsAndCondition = { navController.navigate(Screen.KabuRideCarDetails.route) }
             )
         }
 
@@ -168,25 +167,25 @@ fun AppNavigation() {
             KabuRideCarDocumentsUploadScreen(navigation)
         }
 
-//        composable(Screen.KabuRideGuarantorDetails.route) {
-//            KabuRideGuarantorDetail(navigation)
-//        }
-//
-//        composable(Screen.KabuRidePendingApproval.route) {
-//            KabuRidePendingAccountApprovalScreen(navigation)
-//        }
-//
-//        composable(Screen.KabuRideAccountDeclined.route) {
-//            KabuRideAccountDeclinedScreen(navigation)
-//        }
-//
-//        composable(Screen.KabuRideDocumentsReUpload.route) {
-//            KabuRideDocumentsReUploadScreen(navigation)
-//        }
-//
-//        composable(Screen.KabuRideInspection.route) {
-//            KabuRideInspectionScreen(navigation)
-//        }
+        composable(Screen.KabuRideGuarantorDetails.route) {
+            KabuRideGuarantorDetail(navigation)
+        }
+
+        composable(Screen.KabuRidePendingApproval.route) {
+            KabuRidePendingAccountApprovalScreen(navigation)
+        }
+
+        composable(Screen.KabuRideAccountDeclined.route) {
+            KabuRideAccountDeclinedScreen(navigation)
+        }
+
+        composable(Screen.KabuRideDocumentsReUpload.route) {
+            KabuRideDocumentsReUploadScreen(navigation)
+        }
+
+        composable(Screen.KabuRideInspection.route) {
+            KabuRideInspectionScreen(navigation)
+        }
 
 
 

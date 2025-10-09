@@ -78,7 +78,7 @@ fun DriverBioDataScreen(onSelectVehicleScreen: () -> Unit) {
 
             KabuBottomButton(
                 text = "Continue",
-                onClick = {}
+                onClick = onSelectVehicleScreen
             )
         }
     }

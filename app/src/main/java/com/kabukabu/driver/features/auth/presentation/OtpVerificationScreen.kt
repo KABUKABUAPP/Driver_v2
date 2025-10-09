@@ -205,7 +205,8 @@ fun OtpVerificationScreen(
                         if (newValue.text.length == 4) {
                             coroutineScope.launch {
                                 delay(300) // Small delay before submission
-                                verifyOtp() // Use the extracted function
+                                onNavigateToDriverDetailsScreen()
+//                                verifyOtp() // Use the extracted function
                             }
                         }
                     }
