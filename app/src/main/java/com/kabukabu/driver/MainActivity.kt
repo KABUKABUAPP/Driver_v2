@@ -48,6 +48,7 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.Acc
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideCarDetailsScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideCarDocumentsUploadScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideGuarantorDetail
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideReuploadDocumentsUploadScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.PendingAccountApprovalScreen
 
 class MainActivity : ComponentActivity() {
@@ -63,7 +64,7 @@ class MainActivity : ComponentActivity() {
                         .navigationBarsPadding(), // Respect bottom safe area only
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AccountDeclinedScreen()
+                    KabuRideReuploadDocumentsUploadScreen()
 //                                        AppNavigation()
                 }
             }
