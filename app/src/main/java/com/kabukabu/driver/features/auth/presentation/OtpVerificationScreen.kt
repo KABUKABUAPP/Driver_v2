@@ -25,21 +25,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.kabukabu.driver.features.auth.presentation.OtpViewModel
 import com.kabukabu.driver.core.utils.OtpUiState
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Email
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.withStyle
 import com.kabukabu.driver.R
-import com.kabukabu.driver.features.auth.presentation.LoginViewModel
 import com.kabukabu.driver.core.utils.LoginUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -48,8 +39,8 @@ import android.util.Log
 @Composable
 fun OtpVerificationScreen(
     email: String,
-    onNavigateToDriverDetailsScreen: () -> Unit,
-//    onNavigateToHome: () -> Unit,
+    navigateToDriverDetailsScreen: () -> Unit,
+    onNavigateToHome: () -> Unit,
     onNavigateToLogin: () -> Unit, // Added navigation back to login
     viewModel: OtpViewModel = viewModel(),
     loginViewModel: LoginViewModel = viewModel() // Add login view model for resending OTP
@@ -110,14 +101,17 @@ fun OtpVerificationScreen(
             is OtpUiState.Success -> {
                 Log.d("OtpVerificationScreen", "Success state detected, navigating to home")
                 Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
-                
+
                 // Add a delay before navigation to ensure token is saved
                 delay(500)
-                
+
+                if (uiState.response.data?.loggedInUser?.isOnboardingComplete == true) {
+                    onNavigateToHome()
+                }else {
+                    navigateToDriverDetailsScreen()
+                }
                 // Navigate to home
-                onNavigateToDriverDetailsScreen()
-//                onNavigateToHome()
-                
+
                 // Add a longer delay before resetting state
                 delay(1000)
                 viewModel.resetState()
@@ -125,6 +119,9 @@ fun OtpVerificationScreen(
             is OtpUiState.Error -> {
                 Log.e("OtpVerificationScreen", "Error state: ${uiState.message}")
                 Toast.makeText(context, uiState.message, Toast.LENGTH_SHORT).show()
+                if (uiState.message.contains("Proceed to Complete driver  Registration", ignoreCase = true)) {
+                    navigateToDriverDetailsScreen()
+                }
                 viewModel.resetState()
             }
             else -> {
@@ -205,8 +202,8 @@ fun OtpVerificationScreen(
                         if (newValue.text.length == 4) {
                             coroutineScope.launch {
                                 delay(300) // Small delay before submission
-                                onNavigateToDriverDetailsScreen()
-//                                verifyOtp() // Use the extracted function
+//                                onNavigateToDriverDetailsScreen()
+                                verifyOtp() // Use the extracted function
                             }
                         }
                     }

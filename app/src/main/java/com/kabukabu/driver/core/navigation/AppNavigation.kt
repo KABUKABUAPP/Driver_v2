@@ -113,17 +113,17 @@ fun AppNavigation() {
             val email = backStackEntry.arguments?.getString(NavArg.Email.key) ?: ""
             OtpVerificationScreen(
                 email = email,
-                onNavigateToDriverDetailsScreen = {
+                navigateToDriverDetailsScreen = {
                     navController.navigate(Screen.DriverBioDataScreen.route)
                 },
-//                onNavigateToHome = {
-//                    Log.d("AppNavigation", "Navigating to home from OTP screen")
+                onNavigateToHome = {
+                    Log.d("AppNavigation", "Navigating to home from OTP screen")
 //                    coroutineScope.launch {
-//                        navController.navigate(Screen.Home.route) {
-//                            popUpTo(0) { inclusive = true }
-//                        }
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
 //                    }
-//                },
+                },
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.OtpVerification.route) { inclusive = true }

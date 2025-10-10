@@ -575,10 +575,9 @@ internal fun RowScope.RowScopeFormTextfield(
 ) {
     Box(
         modifier = Modifier
-            .background(color = Color(0x4DF1F1F1))
+//            .background(color = Color(0x4DF1F1F1))
             .padding(vertical = 12.dp)
             .weight(1f),
-//            .fillMaxWidth()
     ) {
         Column {
             AnnotatedTextfieldTitle(title = title)

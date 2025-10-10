@@ -154,13 +154,11 @@ fun LoginScreen(
             Button(
                 onClick = {
 
-                    onNavigateToOtp("derealboy@gmail.com")
-
-//                    if (viewModel.isValidEmail(email.text)) {
-//                        viewModel.login(email.text)
-//                    } else {
-//                        isError = true
-//                    }
+                    if (viewModel.isValidEmail(email.text)) {
+                        viewModel.login(email.text)
+                    } else {
+                        isError = true
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()

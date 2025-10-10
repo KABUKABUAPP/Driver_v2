@@ -1,19 +1,28 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel
 
+import android.app.Application
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
+import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.data.remote.ApiClient
 import com.kabukabu.driver.core.utils.LoginUiState
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDetailsReqBody
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import okhttp3.Dispatcher
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val userPreferences = UserPreferences(application)
 
     private val _carBrands = MutableStateFlow<List<String>>(emptyList())
     val carBrands: StateFlow<List<String>> = _carBrands
@@ -46,21 +55,64 @@ class AuthViewModel : ViewModel() {
     }
 
 
+//    fun sendDriverBioData(driverPersonalDetailsReqBody: DriverPersonalDetailsReqBody) {
+//
+//        viewModelScope.launch(Dispatchers.IO) {
+//            val token = userPreferences.authToken.firstOrNull()
+//            if (token.isNullOrBlank()) {
+//                Log.e("DriverViewModel", "Cannot fetch profile, token is missing.")
+//                return@launch
+//            }
+//            try {
+//            onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Loading
+//                val response = ApiClient.authService.onboardDriverPersonalDetails(token, driverPersonalDetailsReqBody, )
+//                if (response.status == "success") {
+//                    onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Success(response)
+//                } else {
+//                    onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(response.status)
+//                }
+//            } catch (e: Exception) {
+//                onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(e.message ?: "An unknown error occurred")
+//            }
+//        }
+//    }
+
     fun sendDriverBioData(driverPersonalDetailsReqBody: DriverPersonalDetailsReqBody) {
-        viewModelScope.launch {
-            onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Loading
+        viewModelScope.launch(Dispatchers.IO) {
+            val token = userPreferences.authToken.firstOrNull()
+            if (token.isNullOrBlank()) {
+                Log.e("DriverViewModel", "Cannot fetch profile, token is missing.")
+                return@launch
+            }
+
             try {
-                val response = ApiClient.authService.onboardDriverPersonalDetails(driverPersonalDetailsReqBody)
+                onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Loading
+
+                // ✅ Ensure proper Bearer token format
+                val bearerToken = "Bearer $token"
+
+                // ✅ Call API correctly
+                val response = ApiClient.authService.onboardDriverPersonalDetails(
+                    bearerToken = bearerToken,
+                    request = driverPersonalDetailsReqBody
+                )
+
+                // ✅ Handle response
                 if (response.status == "success") {
                     onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Success(response)
                 } else {
                     onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(response.message)
                 }
+
             } catch (e: Exception) {
-                onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(e.message ?: "An unknown error occurred")
+                onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(
+                    e.message ?: "An unknown error occurred"
+                )
+                Log.e("DriverViewModel", "Error sending biodata", e)
             }
         }
     }
+
 
 
     fun resetState() {

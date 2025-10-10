@@ -25,6 +25,10 @@ import com.kabukabu.driver.features.analytics.data.DriverAnalysisResponse
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.response.DriverPersonalDetailsResponse
 import com.kabukabu.driver.features.trips.data.TripHistoryResponse
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import retrofit2.http.Multipart
+import retrofit2.http.Part
 
 interface ApiService {
     @POST("auth/otp-login")
@@ -33,8 +37,29 @@ interface ApiService {
     @POST("auth/confrim-otp")
     suspend fun confirmOtp(@Body request: ConfirmOtpRequest): ConfirmOtpResponse
 
+
+//    @Multipart
+//    @POST("auth/driver-onboard-one")
+//    suspend fun onboardDriverPersonalDetails(
+//        @Header("Authorization") bearerToken: String,
+//        @Header("x-api-key") apiKey: String = "3yBrArNb838bdyIPpLith6dpr0NHCcc66J4AR313",
+//        @Part("full_name") fullName: RequestBody,
+//        @Part("phone_number") phoneNumber: RequestBody,
+//        @Part("email") email: RequestBody,
+//        @Part("house_address") houseAddress: RequestBody,
+//        @Part("city") city: RequestBody,
+//        @Part("state") state: RequestBody,
+//        @Part("car_owner") carOwner: RequestBody,
+//        @Part live_picture: MultipartBody.Part,
+//        @Part drivers_licence: MultipartBody.Part
+//    ): DriverPersonalDetailsResponse
+
+
     @POST("auth/driver-onboard-one")
-    suspend fun onboardDriverPersonalDetails(@Body request: DriverPersonalDetailsReqBody): DriverPersonalDetailsResponse
+    suspend fun onboardDriverPersonalDetails(
+        @Header("Authorization") bearerToken: String,
+        @Body request: DriverPersonalDetailsReqBody
+    ): DriverPersonalDetailsResponse
 
 
     @GET("user/profile")
