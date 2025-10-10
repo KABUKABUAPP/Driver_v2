@@ -154,7 +154,7 @@ fun LoginScreen(
             Button(
                 onClick = {
 
-                    onNavigateToOtp("dderealboy@gmail.com")
+                    onNavigateToOtp("derealboy@gmail.com")
 
 //                    if (viewModel.isValidEmail(email.text)) {
 //                        viewModel.login(email.text)

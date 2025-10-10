@@ -538,6 +538,7 @@ fun FormTextfield(
     value: String,
     hintText: String,
     isCompulsory: Boolean = true,
+    keyboardType: String = "",
     onTextChanged: (String) -> Unit
 ) {
     Box(
@@ -552,6 +553,7 @@ fun FormTextfield(
                 value = value,
                 onTextChanged = onTextChanged,
                 placeholderText = hintText,
+                keyboardType = keyboardType,
                 textFieldColors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color(0xFFF1F1F1),
                     focusedContainerColor = Color(0xFFF1F1F1),
@@ -567,7 +569,9 @@ internal fun RowScope.RowScopeFormTextfield(
     value: String,
     hintText: String,
     isDropdown: Boolean,
-    onTextChanged: (String) -> Unit
+    imeAction: ImeAction = ImeAction.Next,
+    onTextChanged: (String) -> Unit,
+    onClick: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -582,6 +586,7 @@ internal fun RowScope.RowScopeFormTextfield(
                 KabuOutlinedTextFieldWithTrailingIconButton(
                     value = value,
                     onTextChanged = onTextChanged,
+                    onClick = onClick,
                     placeholderText = hintText,
                     textFieldColors = TextFieldDefaults.colors(
                         unfocusedContainerColor = Color(0xFFF1F1F1),
@@ -593,6 +598,7 @@ internal fun RowScope.RowScopeFormTextfield(
                     value = value,
                     onTextChanged = onTextChanged,
                     placeholderText = hintText,
+                    imeAction = imeAction,
                     textFieldColors = TextFieldDefaults.colors(
                         unfocusedContainerColor = Color(0xFFF1F1F1),
                         focusedContainerColor = Color(0xFFF1F1F1),
