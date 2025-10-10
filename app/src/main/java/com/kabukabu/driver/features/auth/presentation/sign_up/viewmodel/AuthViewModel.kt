@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kabukabu.driver.core.data.remote.ApiClient
+import com.kabukabu.driver.core.utils.LoginUiState
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDetailsReqBody
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -60,5 +61,11 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
+
+
+    fun resetState() {
+        onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Idle
+    }
+
 
 }

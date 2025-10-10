@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -135,7 +134,7 @@ fun AppNavigation() {
 
         composable(Screen.DriverBioDataScreen.route) {
             DriverBioDataScreen(
-                onSelectVehicleScreen = {
+                navToSelectVehicleScreen = {
                     navController.navigate(Screen.SelectVehicleScreen.route)
                 }
             )
