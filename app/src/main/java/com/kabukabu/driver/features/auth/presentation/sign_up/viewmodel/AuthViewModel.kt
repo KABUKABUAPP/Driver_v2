@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import okhttp3.Dispatcher
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -54,6 +56,38 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
+//    fun sendDriverBioData(driverPersonalDetailsReqBody: DriverPersonalDetailsReqBody) {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            val token = userPreferences.authToken.firstOrNull()
+//            if (token.isNullOrBlank()) {
+//                Log.e("DriverViewModel", "Cannot fetch profile, token is missing.")
+//                return@launch
+//            }
+//
+//            try {
+//                onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Loading
+//                val bearerToken = "Bearer $token"
+//
+//                val response = ApiClient.authService.onboardDriverPersonalDetails(
+//                    bearerToken = bearerToken,
+//                    request = driverPersonalDetailsReqBody
+//                )
+//                if (response.status == "success") {
+//                    onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Success(response)
+//                } else {
+//                    onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(response.message)
+//                }
+//
+//            } catch (e: Exception) {
+//                onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(
+//                    e.message ?: "An unknown error occurred"
+//                )
+//                Log.e("DriverViewModel", "Error sending biodata", e)
+//            }
+//        }
+//    }
+
+
     fun sendDriverBioData(driverPersonalDetailsReqBody: DriverPersonalDetailsReqBody) {
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
@@ -66,10 +100,20 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Loading
                 val bearerToken = "Bearer $token"
 
+                val textPlain = "text/plain".toMediaTypeOrNull()
+
                 val response = ApiClient.authService.onboardDriverPersonalDetails(
                     bearerToken = bearerToken,
-                    request = driverPersonalDetailsReqBody
+                    fullName = driverPersonalDetailsReqBody.fullName.toRequestBody(textPlain),
+                    phoneNumber = driverPersonalDetailsReqBody.phoneNumber.toRequestBody(textPlain),
+                    email = driverPersonalDetailsReqBody.email.toRequestBody(textPlain),
+                    houseAddress = driverPersonalDetailsReqBody.houseAddress.toRequestBody(textPlain),
+                    city = driverPersonalDetailsReqBody.city.toRequestBody(textPlain),
+                    state = driverPersonalDetailsReqBody.state.toRequestBody(textPlain),
+                    carOwner = driverPersonalDetailsReqBody.carOwner.toString().toRequestBody(textPlain),
+                    carCategory = driverPersonalDetailsReqBody.carCategory.toRequestBody(textPlain)
                 )
+
                 if (response.status == "success") {
                     onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Success(response)
                 } else {

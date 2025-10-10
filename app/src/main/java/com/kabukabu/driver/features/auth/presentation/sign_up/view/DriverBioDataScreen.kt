@@ -176,9 +176,7 @@ fun DriverBioDataScreen(
                     title = "Car Category",
                     onClick = { showCarCategorySheet = true}
                 )
-
             }
-
 
 
             KabuBottomButton(
@@ -196,7 +194,9 @@ fun DriverBioDataScreen(
                         carOwner = false,
                         carCategory = carCategory
                     )
-                    authViewModel.sendDriverBioData(driverPersonalDetailsReqBody = driverBiodata)
+//                    authViewModel.sendDriverBioData(driverPersonalDetailsReqBody = driverBiodata)
+                    navToSelectVehicleScreen()
+
                 }
             )
         }

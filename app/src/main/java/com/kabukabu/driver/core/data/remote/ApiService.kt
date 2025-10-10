@@ -38,28 +38,26 @@ interface ApiService {
     suspend fun confirmOtp(@Body request: ConfirmOtpRequest): ConfirmOtpResponse
 
 
-//    @Multipart
-//    @POST("auth/driver-onboard-one")
-//    suspend fun onboardDriverPersonalDetails(
-//        @Header("Authorization") bearerToken: String,
-//        @Header("x-api-key") apiKey: String = "3yBrArNb838bdyIPpLith6dpr0NHCcc66J4AR313",
-//        @Part("full_name") fullName: RequestBody,
-//        @Part("phone_number") phoneNumber: RequestBody,
-//        @Part("email") email: RequestBody,
-//        @Part("house_address") houseAddress: RequestBody,
-//        @Part("city") city: RequestBody,
-//        @Part("state") state: RequestBody,
-//        @Part("car_owner") carOwner: RequestBody,
-//        @Part live_picture: MultipartBody.Part,
-//        @Part drivers_licence: MultipartBody.Part
-//    ): DriverPersonalDetailsResponse
-
-
+    @Multipart
     @POST("auth/driver-onboard-one")
     suspend fun onboardDriverPersonalDetails(
         @Header("Authorization") bearerToken: String,
-        @Body request: DriverPersonalDetailsReqBody
+        @Part("full_name") fullName: RequestBody,
+        @Part("phone_number") phoneNumber: RequestBody,
+        @Part("email") email: RequestBody,
+        @Part("house_address") houseAddress: RequestBody,
+        @Part("city") city: RequestBody,
+        @Part("state") state: RequestBody,
+        @Part("car_owner") carOwner: RequestBody,
+        @Part("car_category") carCategory: RequestBody
     ): DriverPersonalDetailsResponse
+
+
+//    @POST("auth/driver-onboard-one")
+//    suspend fun onboardDriverPersonalDetails(
+//        @Header("Authorization") bearerToken: String,
+//        @Body request: DriverPersonalDetailsReqBody
+//    ): DriverPersonalDetailsResponse
 
 
     @GET("user/profile")

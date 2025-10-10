@@ -47,6 +47,7 @@ fun SelectVehicleScreen(
     var hasVehicle by remember { mutableStateOf<Boolean?>(null) }
     var selectedCar by remember { mutableStateOf<Boolean?>(null) }
 
+
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier

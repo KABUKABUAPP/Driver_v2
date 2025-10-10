@@ -40,7 +40,9 @@ import java.util.Locale
 @Composable
 fun CameraXCaptureImage(
     onImageCaptured: (Uri?) -> Unit,
-    onError: (String) -> Unit = {}
+    onError: (String) -> Unit = {},
+    cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA // 👈 added this line
+
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -87,7 +89,7 @@ fun CameraXCaptureImage(
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                         .build()
 
-                    val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+//                    val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
                     try {
                         cameraProvider.unbindAll()
