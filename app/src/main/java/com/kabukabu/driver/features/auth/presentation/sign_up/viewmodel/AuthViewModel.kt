@@ -6,20 +6,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.data.remote.ApiClient
-import com.kabukabu.driver.core.utils.LoginUiState
+import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDetailsReqBody
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import okhttp3.Dispatcher
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
@@ -30,6 +30,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     val carBrands: StateFlow<List<String>> = _carBrands
 
     var onboardDriverBiodataUiState: OnboardDriverPersonalDetailsUiState by mutableStateOf(OnboardDriverPersonalDetailsUiState.Idle)
+        private set
+
+  var uploadCarDetailsUiState: UploadCarDetailsUiState by mutableStateOf(UploadCarDetailsUiState.Idle)
         private set
 
     init {
@@ -125,6 +128,63 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     e.message ?: "An unknown error occurred"
                 )
                 Log.e("DriverViewModel", "Error sending biodata", e)
+            }
+        }
+    }
+
+
+    fun uploadCarDetails(uploadCarDetailsReqBody: UploadCarDetailsReqBody) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val token = userPreferences.authToken.firstOrNull()
+            if (token.isNullOrBlank()) {
+                Log.e("DriverViewModel", "Cannot upload car details, token is missing.")
+                return@launch
+            }
+
+            try {
+                uploadCarDetailsUiState = UploadCarDetailsUiState.Loading
+                val bearerToken = "Bearer $token"
+                val textPlain = "text/plain".toMediaTypeOrNull()
+
+                // Prepare text parts
+                val carBrand = uploadCarDetailsReqBody.carBrand.toRequestBody(textPlain)
+                val carModel = uploadCarDetailsReqBody.carModel.toRequestBody(textPlain)
+                val carYear = uploadCarDetailsReqBody.carYear.toRequestBody(textPlain)
+                val carColor = uploadCarDetailsReqBody.carColor.toRequestBody(textPlain)
+                val carPlateNumber = uploadCarDetailsReqBody.carPlateNumber.toRequestBody(textPlain)
+
+                // Prepare image parts
+                val carImages = uploadCarDetailsReqBody.carImages.mapIndexed { index, file ->
+                    val imageRequestBody = file.asRequestBody("image/*".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData(
+                        name = "car_images",
+                        filename = file.name,
+                        body = imageRequestBody
+                    )
+                }
+
+                // Make network call
+                val response = ApiClient.authService.uploadCarDetails(
+                    bearerToken = bearerToken,
+                    carBrand = carBrand,
+                    carModel = carModel,
+                    carYear = carYear,
+                    carColor = carColor,
+                    carPlateNumber = carPlateNumber,
+                    carImages = carImages
+                )
+
+                if (response.status == "success") {
+                    uploadCarDetailsUiState = UploadCarDetailsUiState.Success(response)
+                } else {
+                    uploadCarDetailsUiState = UploadCarDetailsUiState.Error(response.message)
+                }
+
+            } catch (e: Exception) {
+                uploadCarDetailsUiState = UploadCarDetailsUiState.Error(
+                    e.message ?: "An unknown error occurred"
+                )
+                Log.e("DriverViewModel", "Error uploading car details", e)
             }
         }
     }

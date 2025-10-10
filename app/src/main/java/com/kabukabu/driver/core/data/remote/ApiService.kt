@@ -57,12 +57,13 @@ interface ApiService {
     @Multipart
     @POST("auth/driver-onboard-two")
     suspend fun uploadCarDetails(
+        @Header("Authorization") bearerToken: String,
         @Part("car_brand") carBrand: RequestBody,
         @Part("car_model") carModel: RequestBody,
         @Part("car_year") carYear: RequestBody,
         @Part("car_color") carColor: RequestBody,
         @Part("car_plate_number") carPlateNumber: RequestBody,
-        @Part carImages: MultipartBody.Part
+        @Part carImages: List<MultipartBody.Part>
     ): UploadCarDetailsResponse
 
 
