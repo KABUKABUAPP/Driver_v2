@@ -24,6 +24,7 @@ import com.kabukabu.driver.features.wallet.data.DuePaymentResponse
 import com.kabukabu.driver.features.analytics.data.DriverAnalysisResponse
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.response.DriverPersonalDetailsResponse
+import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDetailsResponse
 import com.kabukabu.driver.features.trips.data.TripHistoryResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -51,6 +52,18 @@ interface ApiService {
         @Part("car_owner") carOwner: RequestBody,
         @Part("car_category") carCategory: RequestBody
     ): DriverPersonalDetailsResponse
+
+
+    @Multipart
+    @POST("auth/driver-onboard-two")
+    suspend fun uploadCarDetails(
+        @Part("car_brand") carBrand: RequestBody,
+        @Part("car_model") carModel: RequestBody,
+        @Part("car_year") carYear: RequestBody,
+        @Part("car_color") carColor: RequestBody,
+        @Part("car_plate_number") carPlateNumber: RequestBody,
+        @Part carImages: MultipartBody.Part
+    ): UploadCarDetailsResponse
 
 
 //    @POST("auth/driver-onboard-one")
