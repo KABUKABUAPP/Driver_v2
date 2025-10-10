@@ -22,6 +22,8 @@ import okhttp3.ResponseBody
 import retrofit2.Response
 import com.kabukabu.driver.features.wallet.data.DuePaymentResponse
 import com.kabukabu.driver.features.analytics.data.DriverAnalysisResponse
+import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDetailsReqBody
+import com.kabukabu.driver.features.auth.data.entity.response.DriverPersonalDetailsResponse
 import com.kabukabu.driver.features.trips.data.TripHistoryResponse
 
 interface ApiService {
@@ -30,6 +32,10 @@ interface ApiService {
 
     @POST("auth/confrim-otp")
     suspend fun confirmOtp(@Body request: ConfirmOtpRequest): ConfirmOtpResponse
+
+    @POST("auth/driver-onboard-one")
+    suspend fun onboardDriverPersonalDetails(@Body request: DriverPersonalDetailsReqBody): DriverPersonalDetailsResponse
+
 
     @GET("user/profile")
     suspend fun getProfile(@Header("Authorization") token: String): Response<ResponseBody>
