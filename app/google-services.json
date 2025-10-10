@@ -1,0 +1,226 @@
+{
+  "project_info": {
+    "project_number": "733392194866",
+    "project_id": "kabukabu-375702",
+    "storage_bucket": "kabukabu-375702.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733392194866:android:50b034c9beff9be4a89b2b",
+        "android_client_info": {
+          "package_name": "com.example.kabukabu_driver"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "733392194866-vcg79tbdl24h2a9b4rb5ihdaru1h648j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2b3JCgAwfndjG_mj6pq94TLSgKzFRUxw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733392194866-vcg79tbdl24h2a9b4rb5ihdaru1h648j.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "733392194866-644ob10uqtnk9lg8n6k823dg752sudl1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kabu.driverapp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733392194866:android:7e441c64104a4a5fa89b2b",
+        "android_client_info": {
+          "package_name": "com.example.kabukabu_rider"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "733392194866-vcg79tbdl24h2a9b4rb5ihdaru1h648j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2b3JCgAwfndjG_mj6pq94TLSgKzFRUxw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733392194866-vcg79tbdl24h2a9b4rb5ihdaru1h648j.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "733392194866-644ob10uqtnk9lg8n6k823dg752sudl1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kabu.driverapp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733392194866:android:afec526a81787344a89b2b",
+        "android_client_info": {
+          "package_name": "com.kabu.inspector_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "733392194866-vcg79tbdl24h2a9b4rb5ihdaru1h648j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2b3JCgAwfndjG_mj6pq94TLSgKzFRUxw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733392194866-vcg79tbdl24h2a9b4rb5ihdaru1h648j.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "733392194866-644ob10uqtnk9lg8n6k823dg752sudl1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kabu.driverapp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733392194866:android:52cc030321304a0fa89b2b",
+        "android_client_info": {
+          "package_name": "com.kabu.kabukabu_driver"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "733392194866-vcg79tbdl24h2a9b4rb5ihdaru1h648j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2b3JCgAwfndjG_mj6pq94TLSgKzFRUxw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733392194866-vcg79tbdl24h2a9b4rb5ihdaru1h648j.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "733392194866-644ob10uqtnk9lg8n6k823dg752sudl1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kabu.driverapp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733392194866:android:f529f943ab4f0127a89b2b",
+        "android_client_info": {
+          "package_name": "com.kabu.kabukabu_rider"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "733392194866-vcg79tbdl24h2a9b4rb5ihdaru1h648j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2b3JCgAwfndjG_mj6pq94TLSgKzFRUxw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733392194866-vcg79tbdl24h2a9b4rb5ihdaru1h648j.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "733392194866-644ob10uqtnk9lg8n6k823dg752sudl1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kabu.driverapp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733392194866:android:0beea2bd2b0dbbc1a89b2b",
+        "android_client_info": {
+          "package_name": "com.kabukabu.driver"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "733392194866-vcg79tbdl24h2a9b4rb5ihdaru1h648j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2b3JCgAwfndjG_mj6pq94TLSgKzFRUxw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733392194866-vcg79tbdl24h2a9b4rb5ihdaru1h648j.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "733392194866-644ob10uqtnk9lg8n6k823dg752sudl1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kabu.driverapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
