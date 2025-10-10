@@ -629,6 +629,7 @@ internal fun AnnotatedTextfieldTitle(title: String, isCompulsory: Boolean = true
 
 @Composable
 fun FormTextfieldDropdown(title: String,
+                          value: String = "",
                           isCompulsory: Boolean = true,
                           onClick: () -> Unit) {
     Column(
@@ -636,6 +637,7 @@ fun FormTextfieldDropdown(title: String,
     ) {
         AnnotatedTextfieldTitle(title = title, isCompulsory = isCompulsory)
         KabuOutlinedTextFieldWithTrailingIconButton(
+            value = value,
             placeholderText = title,
             onClick = onClick
         )

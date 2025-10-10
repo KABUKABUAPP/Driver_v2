@@ -3,7 +3,6 @@ package com.kabukabu.driver.features.auth.presentation.sign_up.view
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,14 +29,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.decode.DataSource
 import com.kabukabu.driver.components.ui.FormTextfield
+import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.RowScopeFormTextfield
@@ -59,6 +57,7 @@ fun DriverBioDataScreen(
     val context = LocalContext.current
 
     var showStateSheet by remember { mutableStateOf(false) }
+    var showCarCategorySheet by remember { mutableStateOf(false) }
 
     var fullName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
@@ -66,6 +65,7 @@ fun DriverBioDataScreen(
     var houseAddress by remember { mutableStateOf("") }
     var city by remember { mutableStateOf("") }
     var state by remember { mutableStateOf("") }
+    var carCategory by remember { mutableStateOf("") }
 
     LaunchedEffect(driverUiState) {
         when (driverUiState) {
@@ -90,6 +90,16 @@ fun DriverBioDataScreen(
             onSelectState = { selectedState ->
                 state = selectedState
                 showStateSheet = false
+            }
+        )
+    }
+
+    if (showCarCategorySheet) {
+        SelectCarCategorySheet(
+            onDismiss = { showCarCategorySheet = false },
+            onSelectCategory = { carCat ->
+                carCategory = carCat
+                showCarCategorySheet = false
             }
         )
     }
@@ -160,7 +170,16 @@ fun DriverBioDataScreen(
                         onTextChanged = {}
                     )
                 }
+
+                FormTextfieldDropdown(
+                    value = carCategory,
+                    title = "Car Category",
+                    onClick = { showCarCategorySheet = true}
+                )
+
             }
+
+
 
             KabuBottomButton(
                 text = "Continue",
@@ -175,6 +194,7 @@ fun DriverBioDataScreen(
                         city = city,
                         state = state,
                         carOwner = false,
+                        carCategory = carCategory
                     )
                     authViewModel.sendDriverBioData(driverPersonalDetailsReqBody = driverBiodata)
                 }
@@ -186,7 +206,7 @@ fun DriverBioDataScreen(
 
 @OptIn( ExperimentalMaterial3Api::class)
 @Composable
-fun SelectStateSheet(
+private fun SelectStateSheet(
     onDismiss: () -> Unit,
     onSelectState: (String) -> Unit
 ) {
@@ -207,7 +227,7 @@ fun SelectStateSheet(
                 text = "Select State",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier.padding(vertical = 12.dp)
             )
 
             LazyColumn(
@@ -228,7 +248,62 @@ fun SelectStateSheet(
                                     onSelectState(state)
                                     onDismiss()
                                 }
-                                .background(color = Color(0x2DD3D3D3))
+//                                .background(color = Color(0x2DD3D3D3))
+                                .padding(vertical = 12.dp, horizontal = 16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@OptIn( ExperimentalMaterial3Api::class)
+@Composable
+private fun SelectCarCategorySheet(
+    onDismiss: () -> Unit,
+    onSelectCategory: (String) -> Unit
+) {
+
+    val carCategories = LocalDataSource().carCategories
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 16.dp)
+        ) {
+            Text(
+                text = "Select Car Category",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 12.dp)
+            )
+
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                items(carCategories) { state ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
+                    ) {
+                        Text(
+                            text = state,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    onSelectCategory(state)
+                                    onDismiss()
+                                }
+//                                .background(color = Color(0x2DD3D3D3))
                                 .padding(vertical = 12.dp, horizontal = 16.dp)
                         )
                     }

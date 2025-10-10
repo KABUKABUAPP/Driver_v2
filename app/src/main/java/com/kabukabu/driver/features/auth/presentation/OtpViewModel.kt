@@ -37,6 +37,7 @@ class OtpViewModel : ViewModel() {
                 Log.d("OtpViewModel", "Response: ${response}")
                 
                 if (response.status == "success" && response.data?.loggedInUser != null) {
+                    println("got to 1......")
                     val user = response.data.loggedInUser
                     // Save auth token
                     response.data.accessTokens?.let { token ->
@@ -59,10 +60,23 @@ class OtpViewModel : ViewModel() {
                     uiState = OtpUiState.Success(response)
                     Log.d("OtpViewModel", "Success state set")
 
+                }
+                else if (response.status == "success" && response.data?.loggedInUser == null){
+                    println("got to 2......")
+
+                    // Save auth token
+                    response.data?.accessTokens?.let { token ->
+                        Log.d("OtpViewModel", "Saving token: $token")
+                        userPreferences.saveAuthToken(token)
+                    }
+                    uiState = OtpUiState.Success(response)
+                    Log.d("OtpViewModel", "Unregistered user")
+
                 } else {
                     Log.e("OtpViewModel", "Error: ${response.message}")
                     uiState = OtpUiState.Error(response.message)
                 }
+
             } catch (e: Exception) {
                 Log.e("OtpViewModel", "Exception: ${e.message}", e)
                 uiState = OtpUiState.Error(e.message ?: "An unknown error occurred")

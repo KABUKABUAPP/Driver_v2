@@ -11,7 +11,9 @@ data class DriverPersonalDetailsReqBody(
     @Json(name = "house_address") val houseAddress: String,
     @Json(name = "city") val city: String,
     @Json(name = "state") val state: String,
-    @Json(name = "car_owner") val carOwner: Boolean,
-    @Json(name = "live_picture") val livePicture: String = "",
-    @Json(name = "drivers_licence") val driversLicence: String = ""
+    @Json(name = "car_owner") val carOwner: Boolean = false,
+    @Json(name = "car_category") val carCategory: String,
+
+//    @Json(name = "live_picture") val livePicture: String = "",
+//    @Json(name = "drivers_licence") val driversLicence: String = ""
 )
