@@ -125,14 +125,18 @@ dependencies {
     implementation(libs.socket.io.client)
 
     //firebase
-    // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
-
-    // Add the dependency for the Firebase SDK for Google Analytics
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore")
 //    implementation("com.google.firebase:firebase-storage")
 //    implementation("com.google.firebase:firebase-auth")
+
+
+    //cameraX extension
+    implementation(libs.camera.core)
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.lifecycle)
+    implementation(libs.camera.view)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

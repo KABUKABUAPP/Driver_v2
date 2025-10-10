@@ -31,6 +31,8 @@ fun KabuRideDocumentsReUploadScreen(navigator: Navigator) {
 
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val photoError = remember { mutableStateOf("") }
+    var vehicleLicenseUri by remember { mutableStateOf<Uri?>(null) }
+    var launchCamera by remember { mutableStateOf(false) }
 
     Scaffold { paddingValues ->
         Column(
@@ -59,11 +61,8 @@ fun KabuRideDocumentsReUploadScreen(navigator: Navigator) {
                 CaptureDocumentItem(
                     title = "Vehicle License",
                     label = "Tap here to capture",
-                    selectedImageUri = selectedImageUri,
-                    onImageSelected = { uri ->
-                        selectedImageUri = uri
-                    },
-                    photoBoxError = photoError
+                    imageUri = vehicleLicenseUri,
+                    onClick = { launchCamera = true }
                 )
 
                 FormTextfield(
@@ -76,11 +75,8 @@ fun KabuRideDocumentsReUploadScreen(navigator: Navigator) {
                 CaptureDocumentItem(
                     title = "Driver’s License",
                     label = "Tap here to capture",
-                    selectedImageUri = selectedImageUri,
-                    onImageSelected = { uri ->
-                        selectedImageUri = uri
-                    },
-                    photoBoxError = photoError
+                    imageUri = vehicleLicenseUri,
+                    onClick = { launchCamera = true }
                 )
 
                 FormTextfield(
