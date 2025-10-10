@@ -32,4 +32,9 @@ class AuthViewModel : ViewModel() {
                 e.printStackTrace()
             }
     }
+
+    fun sendDriverBioData() {
+
+    }
+
 }
