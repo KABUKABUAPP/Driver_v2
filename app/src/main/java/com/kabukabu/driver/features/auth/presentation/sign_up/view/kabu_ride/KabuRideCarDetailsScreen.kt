@@ -44,7 +44,6 @@ import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.KabuOutlinedTextField
-import com.kabukabu.driver.components.ui.KabuOutlinedTextFieldWithTrailingIconButton
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.navigation.Navigator
@@ -52,7 +51,10 @@ import com.kabukabu.driver.core.navigation.Navigator
 @Composable
 fun KabuRideCarDetailsScreen(navigator: Navigator) {
 
-    var selectedCarImageUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedCarImageUriOne by remember { mutableStateOf<Uri?>(null) }
+    var selectedCarImageUriTwo by remember { mutableStateOf<Uri?>(null) }
+    var selectedCarImageUriThree by remember { mutableStateOf<Uri?>(null) }
+    var selectedCarImageUriFour by remember { mutableStateOf<Uri?>(null) }
 
 
     Scaffold { paddingValues ->
@@ -93,14 +95,16 @@ fun KabuRideCarDetailsScreen(navigator: Navigator) {
                         .background(Color.White)
                 ) {
                     UploadCarImageBox(
-                        selectedImageUri = selectedCarImageUri,
+                        selectedImageUri = selectedCarImageUriOne,
                         onImageSelected = { uri ->
-                            selectedCarImageUri = uri
+                            selectedCarImageUriOne = uri
                         }
                     )
                     UploadCarImageBox(
-                        selectedImageUri = null,
-                        onImageSelected = {}
+                        selectedImageUri = selectedCarImageUriTwo,
+                        onImageSelected = {
+
+                        }
                     )
                     UploadCarImageBox(
                         selectedImageUri = null,
