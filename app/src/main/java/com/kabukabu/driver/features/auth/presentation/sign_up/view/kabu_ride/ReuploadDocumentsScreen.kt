@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -23,6 +28,10 @@ import com.kabukabu.driver.core.navigation.Navigator
 
 @Composable
 fun KabuRideDocumentsReUploadScreen(navigator: Navigator) {
+
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    val photoError = remember { mutableStateOf("") }
+
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -47,10 +56,14 @@ fun KabuRideDocumentsReUploadScreen(navigator: Navigator) {
 
             GrayBackgroundContainer {
 
-                UploadDocumentItem(
+                CaptureDocumentItem(
                     title = "Vehicle License",
                     label = "Tap here to capture",
-                    onClick = {}
+                    selectedImageUri = selectedImageUri,
+                    onImageSelected = { uri ->
+                        selectedImageUri = uri
+                    },
+                    photoBoxError = photoError
                 )
 
                 FormTextfield(
@@ -60,10 +73,14 @@ fun KabuRideDocumentsReUploadScreen(navigator: Navigator) {
                     onTextChanged = {}
                 )
 
-                UploadDocumentItem(
+                CaptureDocumentItem(
                     title = "Driver’s License",
                     label = "Tap here to capture",
-                    onClick = {}
+                    selectedImageUri = selectedImageUri,
+                    onImageSelected = { uri ->
+                        selectedImageUri = uri
+                    },
+                    photoBoxError = photoError
                 )
 
                 FormTextfield(

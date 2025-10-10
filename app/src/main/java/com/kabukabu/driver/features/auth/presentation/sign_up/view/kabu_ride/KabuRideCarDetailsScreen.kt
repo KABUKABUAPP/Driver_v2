@@ -1,5 +1,9 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,12 +22,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
 import com.kabukabu.driver.components.ui.GrayBackgroundContainer
 import com.kabukabu.driver.components.ui.ScreenTitleText
@@ -34,10 +46,15 @@ import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.KabuOutlinedTextField
 import com.kabukabu.driver.components.ui.KabuOutlinedTextFieldWithTrailingIconButton
 import com.kabukabu.driver.components.ui.TitleText
+import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.navigation.Navigator
 
 @Composable
 fun KabuRideCarDetailsScreen(navigator: Navigator) {
+
+    var selectedCarImageUri by remember { mutableStateOf<Uri?>(null) }
+
+
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -75,10 +92,25 @@ fun KabuRideCarDetailsScreen(navigator: Navigator) {
                     modifier = Modifier.fillMaxWidth()
                         .background(Color.White)
                 ) {
-                    UploadCarImageBox(onClick = {})
-                    UploadCarImageBox(onClick = {})
-                    UploadCarImageBox(onClick = {})
-                    UploadCarImageBox(onClick = {})
+                    UploadCarImageBox(
+                        selectedImageUri = selectedCarImageUri,
+                        onImageSelected = { uri ->
+                            selectedCarImageUri = uri
+                        }
+                    )
+                    UploadCarImageBox(
+                        selectedImageUri = null,
+                        onImageSelected = {}
+                    )
+                    UploadCarImageBox(
+                        selectedImageUri = null,
+                        onImageSelected = {}
+                    )
+                    UploadCarImageBox(
+                        selectedImageUri = null,
+                        onImageSelected = {}
+                    )
+
                 }
             }
 
@@ -129,27 +161,95 @@ internal fun TextfieldSelection(title: String, placeholderText: String) {
 }
 
 
+
 @Composable
 fun RowScope.UploadCarImageBox(
-    onClick: () -> Unit
+    selectedImageUri: Uri?,
+    onImageSelected: (Uri?) -> Unit,
+    showImageSelection: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = Modifier
-            .height(75.dp)
-            .weight(1f)
-            .clip(RoundedCornerShape(6.dp))
-            .background(Color(0xFFF1F1F1))
-//            .padding(8.dp)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
+    val context = LocalContext.current
+
+    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            onImageSelected(uri)
+        }
+    )
+
+    if (selectedImageUri == null || selectedImageUri == Uri.EMPTY) {
+        Box(
+            modifier = modifier
+                .height(75.dp)
+                .weight(1f)
+                .clip(RoundedCornerShape(6.dp))
+                .background(Color(0xFFF1F1F1))
+                .clickable {
+                    if (showImageSelection) {
+                        singlePhotoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    } else {
+                        context.displayToastMessage("Please fill all required fields before uploading.")
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
             Image(
                 painter = painterResource(R.drawable.image_placeholder),
                 contentDescription = "image placeholder icon",
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(24.dp)
             )
         }
-
+    } else {
+        Box(
+            modifier = modifier
+                .height(75.dp)
+                .weight(1f)
+                .clip(RoundedCornerShape(6.dp))
+                .clickable {
+                    singlePhotoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                }
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(selectedImageUri)
+                    .size(800)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Car image preview",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
 }
+
+
+
+//@Composable
+//fun RowScope.UploadCarImageBox(
+//    onClick: () -> Unit
+//) {
+//    Box(
+//        modifier = Modifier
+//            .height(75.dp)
+//            .weight(1f)
+//            .clip(RoundedCornerShape(6.dp))
+//            .background(Color(0xFFF1F1F1))
+//            .clickable { onClick() },
+//        contentAlignment = Alignment.Center
+//    ) {
+//            Image(
+//                painter = painterResource(R.drawable.image_placeholder),
+//                contentDescription = "image placeholder icon",
+//                modifier = Modifier.size(22.dp),
+//            )
+//        }
+//
+//}
 
 

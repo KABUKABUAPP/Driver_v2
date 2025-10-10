@@ -1,5 +1,9 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,21 +12,32 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.AnnotatedTextfieldTitle
 import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
@@ -32,10 +47,15 @@ import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
+import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.navigation.Navigator
 
 @Composable
 fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
+
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    val photoError = remember { mutableStateOf("") }
+
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -60,10 +80,14 @@ fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
 
             GrayBackgroundContainer {
 
-                UploadDocumentItem(
+                CaptureDocumentItem(
                     title = "Vehicle License",
                     label = "Tap here to capture",
-                    onClick = {}
+                    selectedImageUri = selectedImageUri,
+                    onImageSelected = { uri ->
+                        selectedImageUri = uri
+                    },
+                    photoBoxError = photoError
                 )
 
                 FormTextfield(
@@ -73,10 +97,14 @@ fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
                     onTextChanged = {}
                 )
 
-                UploadDocumentItem(
+                CaptureDocumentItem(
                     title = "Driver’s License",
                     label = "Tap here to capture",
-                    onClick = {}
+                    selectedImageUri = selectedImageUri,
+                    onImageSelected = { uri ->
+                        selectedImageUri = uri
+                    },
+                    photoBoxError = photoError
                 )
 
                 FormTextfield(
@@ -86,10 +114,14 @@ fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
                     onTextChanged = {}
                 )
 
-                UploadDocumentItem(
+                CaptureDocumentItem(
                     title = "Issuance Certificate",
                     label = "Tap here to capture",
-                    onClick = {}
+                    selectedImageUri = selectedImageUri,
+                    onImageSelected = { uri ->
+                        selectedImageUri = uri
+                    },
+                    photoBoxError = photoError
                 )
 
                 FormTextfield(
@@ -99,10 +131,14 @@ fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
                     onTextChanged = {}
                 )
 
-                UploadDocumentItem(
+                CaptureDocumentItem(
                     title = "Proof of Ownership",
                     label = "Tap here to capture",
-                    onClick = {}
+                    selectedImageUri = selectedImageUri,
+                    onImageSelected = { uri ->
+                        selectedImageUri = uri
+                    },
+                    photoBoxError = photoError
                 )
 
                 FormTextfield(
@@ -113,10 +149,14 @@ fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
                     onTextChanged = {}
                 )
 
-                UploadDocumentItem(
+                CaptureDocumentItem(
                     title = "Road Worthiness Certificate",
                     label = "Tap here to capture",
-                    onClick = {}
+                    selectedImageUri = selectedImageUri,
+                    onImageSelected = { uri ->
+                        selectedImageUri = uri
+                    },
+                    photoBoxError = photoError
                 )
 
                 FormTextfield(
@@ -127,11 +167,15 @@ fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
                     onTextChanged = {}
                 )
 
-                UploadDocumentItem(
+                CaptureDocumentItem(
                     title = "Hackney Permit",
                     label = "Tap here to capture",
                     isCompulsoryField = false,
-                    onClick = {}
+                    selectedImageUri = selectedImageUri,
+                    onImageSelected = { uri ->
+                        selectedImageUri = uri
+                    },
+                    photoBoxError = photoError
                 )
 
                 TitleText(
@@ -172,24 +216,123 @@ fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
 
 }
 
+
 @Composable
-fun UploadDocumentItem(
+internal fun CaptureDocumentItem(
     title: String,
     label: String,
     isCompulsoryField: Boolean = true,
-    onClick: () -> Unit
+    showImageSelection: Boolean = true,
+    selectedImageUri: Uri?,
+    onImageSelected: (Uri?) -> Unit,
+    photoBoxError: MutableState<String>,
+    modifier: Modifier = Modifier
 ) {
-    Column {
+    val context = LocalContext.current
+
+    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            onImageSelected(uri)
+        }
+    )
+
+    Column(modifier = modifier) {
         AnnotatedTextfieldTitle(title, isCompulsoryField)
-        UploadDocumentBox(
-            label = label,
-            onClick = onClick
-        )
+
+        if (selectedImageUri == null || selectedImageUri == Uri.EMPTY) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(Color(0xFFF1F1F1))
+                    .clickable {
+                        if (showImageSelection) {
+                            singlePhotoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        } else {
+                            context.displayToastMessage("Please fill all required fields before uploading.")
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.doc_upload),
+                        contentDescription = "upload icon",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Gray
+                    )
+                    TitleText(
+                        label,
+                        topPadding = 12
+                    )
+                }
+            }
+
+            if (photoBoxError.value.isNotEmpty()) {
+                TitleText(
+                    text = photoBoxError.value,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 12
+                )
+            }
+
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(selectedImageUri)
+                        .size(800)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Captured document",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clickable {
+                            singlePhotoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                    contentScale = ContentScale.Crop
+                )
+
+//                Text(
+//                    text = "Tap to Retake",
+//                    color = Color.White,
+//                    fontWeight = FontWeight.Bold,
+//                    fontSize = 14.sp,
+//                    modifier = Modifier
+//                        .align(Alignment.BottomCenter)
+//                        .background(Color.Black.copy(alpha = 0.5f))
+//                        .fillMaxWidth()
+//                        .clickable {
+//                            singlePhotoPickerLauncher.launch(
+//                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+//                            )
+//                        }
+//                        .padding(vertical = 8.dp),
+//                    textAlign = TextAlign.Center
+//                )
+            }
+        }
     }
 }
 
+
+
 @Composable
-fun UploadDocumentBox(
+fun CaptureDocumentBox(
     label: String,
     onClick: () -> Unit
 ) {
