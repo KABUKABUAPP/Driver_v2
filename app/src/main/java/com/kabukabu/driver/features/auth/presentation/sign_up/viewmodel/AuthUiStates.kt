@@ -4,7 +4,7 @@ import com.kabukabu.driver.features.auth.data.entity.response.DriverPersonalDeta
 
 
 sealed class OnboardDriverPersonalDetailsUiState {
-    object Default : OnboardDriverPersonalDetailsUiState()
+    object Idle : OnboardDriverPersonalDetailsUiState()
     object Loading : OnboardDriverPersonalDetailsUiState()
     data class Success(val response: DriverPersonalDetailsResponse) : OnboardDriverPersonalDetailsUiState()
     data class Error(val message: String) : OnboardDriverPersonalDetailsUiState()
