@@ -194,8 +194,8 @@ fun DriverBioDataScreen(
                         carOwner = false,
                         carCategory = carCategory
                     )
-//                    authViewModel.sendDriverBioData(driverPersonalDetailsReqBody = driverBiodata)
-                    navToSelectVehicleScreen()
+                    authViewModel.sendDriverBioData(driverPersonalDetailsReqBody = driverBiodata)
+//                    navToSelectVehicleScreen()
 
                 }
             )

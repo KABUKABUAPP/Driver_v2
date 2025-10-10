@@ -34,6 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
@@ -47,15 +48,20 @@ import com.kabukabu.driver.components.ui.KabuOutlinedTextField
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.navigation.Navigator
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 
 @Composable
-fun KabuRideCarDetailsScreen(navigator: Navigator) {
+fun KabuRideCarDetailsScreen(
+    navigator: Navigator,
+    authViewModel: AuthViewModel = viewModel()
+) {
 
     var selectedCarImageUriOne by remember { mutableStateOf<Uri?>(null) }
     var selectedCarImageUriTwo by remember { mutableStateOf<Uri?>(null) }
     var selectedCarImageUriThree by remember { mutableStateOf<Uri?>(null) }
     var selectedCarImageUriFour by remember { mutableStateOf<Uri?>(null) }
-
+    val imagesList = mutableListOf<Uri?>()
+    authViewModel.fetchCarBrands()
 
     Scaffold { paddingValues ->
         Column(
@@ -91,28 +97,38 @@ fun KabuRideCarDetailsScreen(navigator: Navigator) {
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .background(Color.White)
                 ) {
                     UploadCarImageBox(
                         selectedImageUri = selectedCarImageUriOne,
                         onImageSelected = { uri ->
                             selectedCarImageUriOne = uri
+                            imagesList.add(uri)
                         }
                     )
                     UploadCarImageBox(
                         selectedImageUri = selectedCarImageUriTwo,
                         onImageSelected = {
+                            selectedCarImageUriTwo = it
+                            imagesList.add(it)
+                        }
+                    )
+                    UploadCarImageBox(
+                        selectedImageUri = selectedCarImageUriThree,
+                        onImageSelected = {
+                            selectedCarImageUriThree = it
+                            imagesList.add(it)
 
                         }
                     )
                     UploadCarImageBox(
-                        selectedImageUri = null,
-                        onImageSelected = {}
-                    )
-                    UploadCarImageBox(
-                        selectedImageUri = null,
-                        onImageSelected = {}
+                        selectedImageUri = selectedCarImageUriFour,
+                        onImageSelected = {
+                            selectedCarImageUriFour = it
+                            imagesList.add(it)
+                        }
                     )
 
                 }
@@ -138,20 +154,19 @@ fun KabuRideCarDetailsScreen(navigator: Navigator) {
 
             }
 
-           Row {
-               KabuBottomButtonRowScope("Next", icon = R.drawable.arrow_right,
-                   onClick = {
-                       navigator.navToKabuDocumentsUpload()
-                   }
-               )
-           }
+            Row {
+                KabuBottomButtonRowScope(
+                    "Next", icon = R.drawable.arrow_right,
+                    onClick = {
+                        navigator.navToKabuDocumentsUpload()
+                    }
+                )
+            }
 
         }
 
     }
 }
-
-
 
 
 @Composable
@@ -163,7 +178,6 @@ internal fun TextfieldSelection(title: String, placeholderText: String) {
         )
     }
 }
-
 
 
 @Composable
@@ -231,7 +245,6 @@ fun RowScope.UploadCarImageBox(
         }
     }
 }
-
 
 
 //@Composable

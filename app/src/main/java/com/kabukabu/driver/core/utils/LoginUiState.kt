@@ -1,7 +1,6 @@
 package com.kabukabu.driver.core.utils
 
 import com.kabukabu.driver.features.auth.data.OtpLoginResponse
-import com.kabukabu.driver.features.auth.data.entity.response.DriverPersonalDetailsResponse
 
 sealed class LoginUiState {
     object Idle : LoginUiState()

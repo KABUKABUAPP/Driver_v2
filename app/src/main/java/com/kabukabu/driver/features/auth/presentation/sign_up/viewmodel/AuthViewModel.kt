@@ -41,6 +41,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
 
     fun fetchCarBrands() {
+        println("fetching car brands")
         val db = FirebaseFirestore.getInstance()
         val reference = db.collection("carbrands").document("t9MZDmH3FWTg3KoKuXs3")
 
@@ -50,7 +51,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     val brands = document.get("branditems") as? List<String>
                     brands?.let {
                         _carBrands.value = it
-                        println("car brands are $carBrands")
+                        println("car brands are ${_carBrands.value}")
                     }
                 }
             }
