@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,18 +56,21 @@ import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
 import com.kabukabu.driver.components.ui.GrayBackgroundContainer
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.R
+import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.KabuOutlinedTextField
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
+import com.kabukabu.driver.components.utils_functions.convertUrisToFiles
 import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.core.navigation.Navigator
-import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectCarCategorySheet
-import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectStateSheet
+import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
+import java.io.File
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun KabuRideCarDetailsScreen(
     navigator: Navigator,
@@ -75,17 +81,20 @@ fun KabuRideCarDetailsScreen(
         authViewModel.fetchCarBrands()
     }
 
-    val imagesList = mutableListOf<Uri?>()
-    val carBrands  = authViewModel.carBrands.value
+    val imagesUriList = mutableListOf<Uri?>()
+    var imagesFileList = listOf<File>()
+    val carBrands = authViewModel.carBrands.collectAsState().value
+
+    val context = LocalContext.current
 
     var showCarBrandSheet by remember { mutableStateOf(false) }
     var showCarColourSheet by remember { mutableStateOf(false) }
 
-    var selectedCarBrand by remember { mutableStateOf<String>("") }
-    var selectedModel by remember { mutableStateOf<String>("") }
-    var carYear by remember { mutableStateOf<String>("") }
-    var carColour by remember { mutableStateOf<String>("") }
-    var carPlateNumber by remember { mutableStateOf<String>("") }
+    var selectedCarBrand by remember { mutableStateOf("") }
+    var carModel by remember { mutableStateOf("") }
+    var carYear by remember { mutableStateOf("") }
+    var carColour by remember { mutableStateOf("") }
+    var plateNumber by remember { mutableStateOf("") }
 
 
     var selectedCarImageUriOne by remember { mutableStateOf<Uri?>(null) }
@@ -106,12 +115,12 @@ fun KabuRideCarDetailsScreen(
         )
     }
 
-    if (showCarCategorySheet) {
-        SelectCarCategorySheet(
-            onDismiss = { showCarCategorySheet = false },
-            onSelectCategory = { carCat ->
-                carCategory = carCat
-                showCarCategorySheet = false
+    if (showCarColourSheet) {
+        SelectCarColourSheet(
+            onDismiss = { showCarColourSheet = false },
+            onSelectColour = { colour ->
+                carColour = colour
+                showCarColourSheet = false
             }
         )
     }
@@ -199,19 +208,66 @@ fun KabuRideCarDetailsScreen(
                     bottomPadding = 16
                 )
 
-                FormTextfieldDropdown("Car Brand", onClick = {})
-                FormTextfieldDropdown("Car Model", onClick = {})
-                FormTextfieldDropdown("Car Year", onClick = {})
-                FormTextfieldDropdown("Car Colour", onClick = {})
-                TextfieldSelection(title = "Plate Number", placeholderText = "ABC 123 CVGG")
+                FormTextfieldDropdown(
+                    value = selectedCarBrand,
+                    title = "Car Brand",
+                    onClick = {
+                        showCarBrandSheet = true
+                    }
+                )
+
+                FormTextfield(
+                    value = carModel,
+                    title = "Car Model",
+                    hintText = "e.g Corolla",
+                    onTextChanged = { carModel = it }
+                )
+
+                FormTextfield(
+                    value = carYear,
+                    title = "Car Year",
+                    hintText = "e.g 2009",
+                    onTextChanged = { carYear = it }
+                )
+
+                FormTextfieldDropdown(
+                    value = carColour,
+                    title = "Car Colour",
+                    onClick = {
+                        showCarColourSheet = true
+                    }
+                )
+
+                FormTextfield(
+                    value = plateNumber,
+                    title = "Plate Number",
+                    hintText = "e.g ABC 123 CVGG",
+                    onTextChanged = { plateNumber = it }
+                )
 
             }
 
             Row {
+                Spacer(modifier = Modifier.weight(1f))
                 KabuBottomButtonRowScope(
                     "Next", icon = R.drawable.arrow_right,
                     onClick = {
                         navigator.navToKabuDocumentsUpload()
+
+                        listOf(
+                            selectedCarImageUriOne,
+                            selectedCarImageUriTwo,
+                            selectedCarImageUriThree,
+                            selectedCarImageUriFour
+                        ).forEach { uri ->
+                            if (uri != null) {
+                                imagesUriList.add(uri)
+                            }
+                        }
+
+                        imagesFileList = convertUrisToFiles(context = context, uris = imagesUriList as List<Uri>)
+
+                        val uploadCarDetails = UploadCarDetailsReqBody()
                     }
                 )
             }
@@ -220,6 +276,9 @@ fun KabuRideCarDetailsScreen(
 
     }
 }
+
+
+
 
 
 @Composable
@@ -344,7 +403,6 @@ private fun SelectCarBrandSheet(
                                     onSelectCategory(state ?: "")
                                     onDismiss()
                                 }
-//                                .background(color = Color(0x2DD3D3D3))
                                 .padding(vertical = 12.dp, horizontal = 16.dp)
                         )
                     }

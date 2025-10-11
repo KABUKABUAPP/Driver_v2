@@ -15,6 +15,7 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDeta
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -27,7 +28,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val userPreferences = UserPreferences(application)
 
     private val _carBrands = MutableStateFlow<List<String>>(emptyList())
-    val carBrands: StateFlow<List<String>> = _carBrands
+    val carBrands: StateFlow<List<String>> = _carBrands.asStateFlow()
 
     var onboardDriverBiodataUiState: OnboardDriverPersonalDetailsUiState by mutableStateOf(OnboardDriverPersonalDetailsUiState.Idle)
         private set

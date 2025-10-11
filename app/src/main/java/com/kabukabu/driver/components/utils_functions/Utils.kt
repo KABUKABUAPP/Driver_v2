@@ -1,11 +1,15 @@
 package com.kabukabu.driver.components.utils_functions
 
+import android.content.Context
+import android.net.Uri
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
+import java.io.File
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
+import kotlin.collections.forEach
 
 fun priceFilter(text: AnnotatedString, isAmount: Boolean = false): TransformedText {
 
@@ -62,4 +66,25 @@ fun formatCurrency(amount: Double): String {
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "NG"))
     currencyFormat.currency = Currency.getInstance("NGN")
     return currencyFormat.format(amount)
+}
+
+
+fun convertUrisToFiles(context: Context, uris: List<Uri>): List<File> {
+    val files = mutableListOf<File>()
+
+    uris.forEach { uri ->
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val fileName = uri.lastPathSegment ?: "temp_image_${System.currentTimeMillis()}"
+        val tempFile = File(context.cacheDir, fileName)
+
+        inputStream?.use { input ->
+            tempFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        files.add(tempFile)
+    }
+
+    return files
 }
