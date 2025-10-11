@@ -539,6 +539,7 @@ fun FormTextfield(
     hintText: String,
     isCompulsory: Boolean = true,
     keyboardType: String = "",
+    imeAction: ImeAction = ImeAction.Next,
     onTextChanged: (String) -> Unit
 ) {
     Box(
@@ -553,6 +554,7 @@ fun FormTextfield(
                 value = value,
                 onTextChanged = onTextChanged,
                 placeholderText = hintText,
+                imeAction = imeAction,
                 keyboardType = keyboardType,
                 textFieldColors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color(0xFFF1F1F1),
