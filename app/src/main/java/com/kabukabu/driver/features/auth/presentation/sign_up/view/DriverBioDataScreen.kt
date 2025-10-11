@@ -164,7 +164,7 @@ fun DriverBioDataScreen(
                     RowScopeFormTextfield(
                         title = "State",
                         value = state,
-                        hintText = "Abia State",
+                        hintText = "Abia",
                         isDropdown = true,
                         onClick = { showStateSheet = true },
                         onTextChanged = {}

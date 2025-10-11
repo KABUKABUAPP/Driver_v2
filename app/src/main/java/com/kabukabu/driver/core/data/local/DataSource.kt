@@ -63,4 +63,8 @@ class LocalDataSource {
         "REGULAR", "TRICYCLE"
     )
 
+    val carColours = listOf(
+        "Black", "Blue", "Yellow", "Orange", "Green", "Red", "Purple", "Green", "Ash", "Grey",
+    )
+
 }

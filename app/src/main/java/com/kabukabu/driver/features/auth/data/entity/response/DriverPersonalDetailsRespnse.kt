@@ -67,16 +67,22 @@ data class AverageRating(
 
 @JsonClass(generateAdapter = true)
 data class AutoDebitDates(
-    @Json(name = "trip_charges_date") val tripChargesDate: String,
-    @Json(name = "sharp_payment_date") val sharpPaymentDate: String,
-    @Json(name = "repair_loan_date") val repairLoanDate: String,
-    @Json(name = "is_NIN_verified") val isNINVerified: Boolean
+    @Json(name = "trip_charges_date")
+    val tripChargesDate: String,
+    @Json(name = "sharp_payment_date")
+    val sharpPaymentDate: String,
+    @Json(name = "repair_loan_date")
+    val repairLoanDate: String,
+    @Json(name = "is_NIN_verified")
+    val isNINVerified: Boolean
 )
 
 @JsonClass(generateAdapter = true)
 data class DriverDetails(
-    @Json(name = "preferred_payment_methods") val preferredPaymentMethods: PreferredPaymentMethods,
-    @Json(name = "_id") val id: String,
+    @Json(name = "preferred_payment_methods")
+    val preferredPaymentMethods: PreferredPaymentMethods,
+    @Json(name = "_id")
+    val id: String,
     @Json(name = "user") val user: String,
     @Json(name = "car_owner") val carOwner: Boolean,
     @Json(name = "house_address") val houseAddress: String,

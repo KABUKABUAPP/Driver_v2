@@ -4,6 +4,9 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,11 +20,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -47,7 +59,10 @@ import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.KabuOutlinedTextField
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
+import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.core.navigation.Navigator
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectCarCategorySheet
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectStateSheet
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 
 @Composable
@@ -56,12 +71,50 @@ fun KabuRideCarDetailsScreen(
     authViewModel: AuthViewModel = viewModel()
 ) {
 
+    LaunchedEffect(Unit) {
+        authViewModel.fetchCarBrands()
+    }
+
+    val imagesList = mutableListOf<Uri?>()
+    val carBrands  = authViewModel.carBrands.value
+
+    var showCarBrandSheet by remember { mutableStateOf(false) }
+    var showCarColourSheet by remember { mutableStateOf(false) }
+
+    var selectedCarBrand by remember { mutableStateOf<String>("") }
+    var selectedModel by remember { mutableStateOf<String>("") }
+    var carYear by remember { mutableStateOf<String>("") }
+    var carColour by remember { mutableStateOf<String>("") }
+    var carPlateNumber by remember { mutableStateOf<String>("") }
+
+
     var selectedCarImageUriOne by remember { mutableStateOf<Uri?>(null) }
     var selectedCarImageUriTwo by remember { mutableStateOf<Uri?>(null) }
     var selectedCarImageUriThree by remember { mutableStateOf<Uri?>(null) }
     var selectedCarImageUriFour by remember { mutableStateOf<Uri?>(null) }
-    val imagesList = mutableListOf<Uri?>()
-    authViewModel.fetchCarBrands()
+
+
+
+    if (showCarBrandSheet) {
+        SelectCarBrandSheet(
+            carBrands = carBrands,
+            onDismiss = { showCarBrandSheet = false },
+            onSelectCategory = { selectedBrand ->
+                selectedCarBrand = selectedBrand
+                showCarBrandSheet = false
+            }
+        )
+    }
+
+    if (showCarCategorySheet) {
+        SelectCarCategorySheet(
+            onDismiss = { showCarCategorySheet = false },
+            onSelectCategory = { carCat ->
+                carCategory = carCat
+                showCarCategorySheet = false
+            }
+        )
+    }
 
     Scaffold { paddingValues ->
         Column(
@@ -105,21 +158,21 @@ fun KabuRideCarDetailsScreen(
                         selectedImageUri = selectedCarImageUriOne,
                         onImageSelected = { uri ->
                             selectedCarImageUriOne = uri
-                            imagesList.add(uri)
+//                            imagesList.add(uri)
                         }
                     )
                     UploadCarImageBox(
                         selectedImageUri = selectedCarImageUriTwo,
                         onImageSelected = {
                             selectedCarImageUriTwo = it
-                            imagesList.add(it)
+//                            imagesList.add(it)
                         }
                     )
                     UploadCarImageBox(
                         selectedImageUri = selectedCarImageUriThree,
                         onImageSelected = {
                             selectedCarImageUriThree = it
-                            imagesList.add(it)
+//                            imagesList.add(it)
 
                         }
                     )
@@ -127,7 +180,7 @@ fun KabuRideCarDetailsScreen(
                         selectedImageUri = selectedCarImageUriFour,
                         onImageSelected = {
                             selectedCarImageUriFour = it
-                            imagesList.add(it)
+//                            imagesList.add(it)
                         }
                     )
 
@@ -247,26 +300,111 @@ fun RowScope.UploadCarImageBox(
 }
 
 
-//@Composable
-//fun RowScope.UploadCarImageBox(
-//    onClick: () -> Unit
-//) {
-//    Box(
-//        modifier = Modifier
-//            .height(75.dp)
-//            .weight(1f)
-//            .clip(RoundedCornerShape(6.dp))
-//            .background(Color(0xFFF1F1F1))
-//            .clickable { onClick() },
-//        contentAlignment = Alignment.Center
-//    ) {
-//            Image(
-//                painter = painterResource(R.drawable.image_placeholder),
-//                contentDescription = "image placeholder icon",
-//                modifier = Modifier.size(22.dp),
-//            )
-//        }
-//
-//}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SelectCarBrandSheet(
+    carBrands: List<String?>,
+    onDismiss: () -> Unit,
+    onSelectCategory: (String) -> Unit
+) {
 
 
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 16.dp)
+        ) {
+            Text(
+                text = "Select Car Brand",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 12.dp)
+            )
+
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                items(carBrands) { state ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
+                    ) {
+                        Text(
+                            text = state ?: "",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    onSelectCategory(state ?: "")
+                                    onDismiss()
+                                }
+//                                .background(color = Color(0x2DD3D3D3))
+                                .padding(vertical = 12.dp, horizontal = 16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SelectCarColourSheet(
+    onDismiss: () -> Unit,
+    onSelectColour: (String) -> Unit
+) {
+
+    val nigeriaStates = LocalDataSource().carColours
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 16.dp)
+        ) {
+            Text(
+                text = "Select State",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 12.dp)
+            )
+
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                items(nigeriaStates) { state ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
+                    ) {
+                        Text(
+                            text = state,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    onSelectColour(state)
+                                    onDismiss()
+                                }
+//                                .background(color = Color(0x2DD3D3D3))
+                                .padding(vertical = 12.dp, horizontal = 16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
