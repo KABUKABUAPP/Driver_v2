@@ -61,37 +61,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
-//    fun sendDriverBioData(driverPersonalDetailsReqBody: DriverPersonalDetailsReqBody) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            val token = userPreferences.authToken.firstOrNull()
-//            if (token.isNullOrBlank()) {
-//                Log.e("DriverViewModel", "Cannot fetch profile, token is missing.")
-//                return@launch
-//            }
-//
-//            try {
-//                onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Loading
-//                val bearerToken = "Bearer $token"
-//
-//                val response = ApiClient.authService.onboardDriverPersonalDetails(
-//                    bearerToken = bearerToken,
-//                    request = driverPersonalDetailsReqBody
-//                )
-//                if (response.status == "success") {
-//                    onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Success(response)
-//                } else {
-//                    onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(response.message)
-//                }
-//
-//            } catch (e: Exception) {
-//                onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(
-//                    e.message ?: "An unknown error occurred"
-//                )
-//                Log.e("DriverViewModel", "Error sending biodata", e)
-//            }
-//        }
-//    }
-
 
     fun sendDriverBioData(driverPersonalDetailsReqBody: DriverPersonalDetailsReqBody) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -195,6 +164,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     fun resetState() {
         onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Idle
+        uploadCarDetailsUiState = UploadCarDetailsUiState.Idle
     }
 
 

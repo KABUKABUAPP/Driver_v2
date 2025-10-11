@@ -68,6 +68,8 @@ import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDetailsUiState
 import java.io.File
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -76,6 +78,8 @@ fun KabuRideCarDetailsScreen(
     navigator: Navigator,
     authViewModel: AuthViewModel = viewModel()
 ) {
+
+    val uploadCarDetailsUiState = authViewModel.uploadCarDetailsUiState
 
     LaunchedEffect(Unit) {
         authViewModel.fetchCarBrands()
@@ -123,6 +127,24 @@ fun KabuRideCarDetailsScreen(
                 showCarColourSheet = false
             }
         )
+    }
+
+
+    LaunchedEffect(uploadCarDetailsUiState) {
+        when (uploadCarDetailsUiState) {
+            is UploadCarDetailsUiState.Success -> {
+                context.displayToastMessage(uploadCarDetailsUiState.response.message)
+                authViewModel.resetState()
+                navigator.navToKabuDocumentsUpload()
+            }
+
+            is UploadCarDetailsUiState.Error -> {
+                context.displayToastMessage(uploadCarDetailsUiState.message)
+                authViewModel.resetState()
+            }
+
+            else -> {}
+        }
     }
 
     Scaffold { paddingValues ->
@@ -251,8 +273,9 @@ fun KabuRideCarDetailsScreen(
                 Spacer(modifier = Modifier.weight(1f))
                 KabuBottomButtonRowScope(
                     "Next", icon = R.drawable.arrow_right,
+                    isLoading = uploadCarDetailsUiState == UploadCarDetailsUiState.Loading,
                     onClick = {
-                        navigator.navToKabuDocumentsUpload()
+//                        navigator.navToKabuDocumentsUpload()
 
                         listOf(
                             selectedCarImageUriOne,
@@ -265,9 +288,19 @@ fun KabuRideCarDetailsScreen(
                             }
                         }
 
-                        imagesFileList = convertUrisToFiles(context = context, uris = imagesUriList as List<Uri>)
+                        imagesFileList =
+                            convertUrisToFiles(context = context, uris = imagesUriList as List<Uri>)
 
-                        val uploadCarDetails = UploadCarDetailsReqBody()
+                        val uploadCarDetails = UploadCarDetailsReqBody(
+                            carBrand = selectedCarBrand,
+                            carModel = carModel,
+                            carYear = carYear,
+                            carColor = carColour,
+                            carPlateNumber = plateNumber,
+                            carImages = imagesFileList
+                        )
+
+                        authViewModel.uploadCarDetails(uploadCarDetails)
                     }
                 )
             }
@@ -276,9 +309,6 @@ fun KabuRideCarDetailsScreen(
 
     }
 }
-
-
-
 
 
 @Composable
