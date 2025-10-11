@@ -71,6 +71,7 @@ interface ApiService {
     @Multipart
     @POST("auth/driver-onboard-three")
     suspend fun uploadCarDocs(
+        @Header("Authorization") bearerToken: String,
         @Part("driver_licence_number") driverLicenceNumber: RequestBody,
         @Part("car_insurance_number") carInsuranceNumber: RequestBody,
         @Part("vehicle_licence_number") vehicleLicenceNumber: RequestBody,

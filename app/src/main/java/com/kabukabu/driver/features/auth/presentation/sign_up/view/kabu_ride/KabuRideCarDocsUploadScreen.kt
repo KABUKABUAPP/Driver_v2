@@ -1,9 +1,6 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.kabukabu.driver.R
@@ -48,17 +45,37 @@ import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
-import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.navigation.Navigator
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
+
+private enum class SelectedDoc { VehicleLicense, DriverLicense, Insurance, ProofOfOwnership, RoadWorthiness, HackneyPermit }
 
 @Composable
-fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
+fun KabuRideCarDocumentsUploadScreen(
+    navigation: Navigator,
+    authViewModel: AuthViewModel = viewModel()
+) {
 
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedDocUri by remember { mutableStateOf(SelectedDoc.VehicleLicense) }
     var vehicleLicenseUri by remember { mutableStateOf<Uri?>(null) }
+    var driverLicenseUri by remember { mutableStateOf<Uri?>(null) }
+    var insuranceNumberUri by remember { mutableStateOf<Uri?>(null) }
+    var proofOfOwnershipNUri by remember { mutableStateOf<Uri?>(null) }
+    var roadWorthinessUri by remember { mutableStateOf<Uri?>(null) }
+    var hackneyPermitUri by remember { mutableStateOf<Uri?>(null) }
+
+
     var photoError by remember { mutableStateOf("") }
     var launchCamera by remember { mutableStateOf(false) }
     var isPreviewVisible by remember { mutableStateOf(true) }
+
+    var vehicleLicense by remember { mutableStateOf("") }
+    var driverLicense by remember { mutableStateOf("") }
+    var insuranceNumber by remember { mutableStateOf("") }
+    var proofOfOwnershipNumber by remember { mutableStateOf("") }
+    var roadWorthinessNumber by remember { mutableStateOf("") }
+    var hackneyPermitNumber by remember { mutableStateOf("") }
+
 
     Scaffold { paddingValues ->
         if (launchCamera) {
@@ -66,7 +83,9 @@ fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
             CameraXCaptureImage(
                 onImageCaptured = { uri ->
                     if (uri != null) {
-                        vehicleLicenseUri = uri
+                        if (selectedDocUri == SelectedDoc.VehicleLicense) {
+                            vehicleLicenseUri = uri
+                        }
                     }
                     launchCamera = false
                 },
@@ -118,7 +137,7 @@ fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
                     CaptureDocumentItem(
                         title = "Driver’s License",
                         label = "Tap here to capture",
-                        imageUri = selectedImageUri,
+                        imageUri = selectedDocUri,
                         onClick = { launchCamera = true }
                     )
 
@@ -132,7 +151,7 @@ fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
                     CaptureDocumentItem(
                         title = "Issuance Certificate",
                         label = "Tap here to capture",
-                        imageUri = selectedImageUri,
+                        imageUri = selectedDocUri,
                         onClick = { launchCamera = true }
                     )
 
@@ -215,8 +234,6 @@ fun KabuRideCarDocumentsUploadScreen(navigation: Navigator) {
         }
     }
 }
-
-
 
 
 @Composable
@@ -322,7 +339,6 @@ fun CaptureDocumentBox(
     }
 
 }
-
 
 
 //@Composable

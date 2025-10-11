@@ -228,6 +228,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
                 // Make network call
                 val response = ApiClient.authService.uploadCarDocs(
+                    bearerToken = bearerToken,
                     driverLicenceNumber = driverLicenceNumber,
                     carInsuranceNumber = carInsuranceNumber,
                     vehicleLicenceNumber = vehicleLicenceNumber,
