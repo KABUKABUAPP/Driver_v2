@@ -5,7 +5,7 @@ import com.squareup.moshi.JsonClass
 import java.io.File
 
 @JsonClass(generateAdapter = true)
-data class UploadDriverAndCarDocsReqBody(
+data class UploadCarDocsReqBody(
     @Json(name = "driver_licence_number") val driverLicenceNumber: String,
     @Json(name = "car_insurance_number") val carInsuranceNumber: String,
     @Json(name = "vehicle_licence_number") val vehicleLicenceNumber: String,

@@ -12,6 +12,7 @@ import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.data.remote.ApiClient
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDetailsReqBody
+import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBody
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +35,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         private set
 
   var uploadCarDetailsUiState: UploadCarDetailsUiState by mutableStateOf(UploadCarDetailsUiState.Idle)
+        private set
+
+  var uploadCarDocsUiState: UploadCarDocsUiState by mutableStateOf(UploadCarDocsUiState.Idle)
         private set
 
     init {
@@ -156,6 +160,99 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     e.message ?: "An unknown error occurred"
                 )
                 Log.e("DriverViewModel", "Error uploading car details", e)
+            }
+        }
+    }
+
+    fun uploadCarDocs(uploadDriverAndCarDocsReqBody: UploadCarDocsReqBody) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val token = userPreferences.authToken.firstOrNull()
+            if (token.isNullOrBlank()) {
+                Log.e("DriverViewModel", "Cannot upload car docs, token is missing.")
+                return@launch
+            }
+
+            try {
+                uploadCarDocsUiState = UploadCarDocsUiState.Loading
+                val bearerToken = "Bearer $token"
+                val textPlain = "text/plain".toMediaTypeOrNull()
+
+                // Prepare text parts
+                val driverLicenceNumber = uploadDriverAndCarDocsReqBody.driverLicenceNumber.toRequestBody(textPlain)
+                val carInsuranceNumber = uploadDriverAndCarDocsReqBody.carInsuranceNumber.toRequestBody(textPlain)
+                val vehicleLicenceNumber = uploadDriverAndCarDocsReqBody.vehicleLicenceNumber.toRequestBody(textPlain)
+                val proofOfOwnershipNumber = uploadDriverAndCarDocsReqBody.proofOfOwnershipNumber.toRequestBody(textPlain)
+                val roadWorthinessCertificationNumber = uploadDriverAndCarDocsReqBody.roadWorthinessCertificationNumber.toRequestBody(textPlain)
+                val hackneyPermitNumber = uploadDriverAndCarDocsReqBody.hackneyPermitNumber.toRequestBody(textPlain)
+
+                // Prepare file parts
+                val driverLicence = MultipartBody.Part.createFormData(
+                    name = "driver_licence",
+                    filename = uploadDriverAndCarDocsReqBody.driverLicence.name,
+                    body = uploadDriverAndCarDocsReqBody.driverLicence.asRequestBody("image/*".toMediaTypeOrNull())
+                )
+
+                val vehicleLicence = MultipartBody.Part.createFormData(
+                    name = "vehicle_licence",
+                    filename = uploadDriverAndCarDocsReqBody.vehicleLicence.name,
+                    body = uploadDriverAndCarDocsReqBody.vehicleLicence.asRequestBody("image/*".toMediaTypeOrNull())
+                )
+
+                val insuranceCertificate = MultipartBody.Part.createFormData(
+                    name = "insurance_certificate",
+                    filename = uploadDriverAndCarDocsReqBody.insuranceCertificate.name,
+                    body = uploadDriverAndCarDocsReqBody.insuranceCertificate.asRequestBody("image/*".toMediaTypeOrNull())
+                )
+
+                val proofOfOwnership = uploadDriverAndCarDocsReqBody.proofOfOwnership?.let { file ->
+                    MultipartBody.Part.createFormData(
+                        name = "proof_of_ownership",
+                        filename = file.name,
+                        body = file.asRequestBody("image/*".toMediaTypeOrNull())
+                    )
+                }
+
+                val roadWorthinessCertification = MultipartBody.Part.createFormData(
+                    name = "road_worthiness_certification",
+                    filename = uploadDriverAndCarDocsReqBody.roadWorthinessCertification.name,
+                    body = uploadDriverAndCarDocsReqBody.roadWorthinessCertification.asRequestBody("image/*".toMediaTypeOrNull())
+                )
+
+                val hackneyPermit = uploadDriverAndCarDocsReqBody.hackneyPermit?.let { file ->
+                    MultipartBody.Part.createFormData(
+                        name = "hackney_permit",
+                        filename = file.name,
+                        body = file.asRequestBody("image/*".toMediaTypeOrNull())
+                    )
+                }
+
+                // Make network call
+                val response = ApiClient.authService.uploadCarDocs(
+                    driverLicenceNumber = driverLicenceNumber,
+                    carInsuranceNumber = carInsuranceNumber,
+                    vehicleLicenceNumber = vehicleLicenceNumber,
+                    proofOfOwnershipNumber = proofOfOwnershipNumber,
+                    roadWorthinessCertificationNumber = roadWorthinessCertificationNumber,
+                    hackneyPermitNumber = hackneyPermitNumber,
+                    driverLicence = driverLicence,
+                    vehicleLicence = vehicleLicence,
+                    insuranceCertificate = insuranceCertificate,
+                    proofOfOwnership = proofOfOwnership,
+                    roadWorthinessCertification = roadWorthinessCertification,
+                    hackneyPermit = hackneyPermit
+                )
+
+                if (response.status == "success") {
+                    uploadCarDocsUiState = UploadCarDocsUiState.Success(response)
+                } else {
+                    uploadCarDocsUiState = UploadCarDocsUiState.Error(response.message)
+                }
+
+            } catch (e: Exception) {
+                uploadCarDocsUiState = UploadCarDocsUiState.Error(
+                    e.message ?: "An unknown error occurred"
+                )
+                Log.e("DriverViewModel", "Error uploading car docs", e)
             }
         }
     }

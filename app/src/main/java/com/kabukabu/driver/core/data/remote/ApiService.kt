@@ -25,6 +25,7 @@ import com.kabukabu.driver.features.analytics.data.DriverAnalysisResponse
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.response.DriverPersonalDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDetailsResponse
+import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDocsResponse
 import com.kabukabu.driver.features.trips.data.TripHistoryResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -67,15 +68,27 @@ interface ApiService {
     ): UploadCarDetailsResponse
 
 
-//    @POST("auth/driver-onboard-one")
-//    suspend fun onboardDriverPersonalDetails(
-//        @Header("Authorization") bearerToken: String,
-//        @Body request: DriverPersonalDetailsReqBody
-//    ): DriverPersonalDetailsResponse
+    @Multipart
+    @POST("auth/driver-onboard-three")
+    suspend fun uploadCarDocs(
+        @Part("driver_licence_number") driverLicenceNumber: RequestBody,
+        @Part("car_insurance_number") carInsuranceNumber: RequestBody,
+        @Part("vehicle_licence_number") vehicleLicenceNumber: RequestBody,
+        @Part("proof_of_ownership_number") proofOfOwnershipNumber: RequestBody,
+        @Part("road_worthiness_certification_number") roadWorthinessCertificationNumber: RequestBody,
+        @Part("hackney_permit_number") hackneyPermitNumber: RequestBody,
+        @Part driverLicence: MultipartBody.Part,
+        @Part vehicleLicence: MultipartBody.Part,
+        @Part insuranceCertificate: MultipartBody.Part,
+        @Part proofOfOwnership: MultipartBody.Part?,
+        @Part roadWorthinessCertification: MultipartBody.Part,
+        @Part hackneyPermit: MultipartBody.Part?
+    ): UploadCarDocsResponse
 
 
     @GET("user/profile")
     suspend fun getProfile(@Header("Authorization") token: String): Response<ResponseBody>
+
 
     @PUT("driver/online_status")
     suspend fun updateOnlineStatus(
@@ -84,6 +97,7 @@ interface ApiService {
         @Body request: OnlineStatusRequest
     ): Response<OnlineStatusResponse>
 
+
     @PUT("order/match-order/{orderId}")
     suspend fun acceptTrip(
         @Header("Authorization") bearerToken: String,
@@ -91,6 +105,7 @@ interface ApiService {
         @Header("authid") userId: String,
         @Path("orderId") orderId: String
     ): AcceptTripResponse
+
 
     @PUT("order/decline-order/{orderId}")
     suspend fun declineTrip(
