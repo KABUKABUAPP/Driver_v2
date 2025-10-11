@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
+import com.kabukabu.driver.components.utils_functions.toMultipartPart
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.data.remote.ApiClient
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
@@ -185,46 +186,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val roadWorthinessCertificationNumber = uploadDriverAndCarDocsReqBody.roadWorthinessCertificationNumber.toRequestBody(textPlain)
                 val hackneyPermitNumber = uploadDriverAndCarDocsReqBody.hackneyPermitNumber.toRequestBody(textPlain)
 
-                // Prepare file parts
-                val driverLicence = MultipartBody.Part.createFormData(
-                    name = "driver_licence",
-                    filename = uploadDriverAndCarDocsReqBody.driverLicence.name,
-                    body = uploadDriverAndCarDocsReqBody.driverLicence.asRequestBody("image/*".toMediaTypeOrNull())
-                )
-
-                val vehicleLicence = MultipartBody.Part.createFormData(
-                    name = "vehicle_licence",
-                    filename = uploadDriverAndCarDocsReqBody.vehicleLicence.name,
-                    body = uploadDriverAndCarDocsReqBody.vehicleLicence.asRequestBody("image/*".toMediaTypeOrNull())
-                )
-
-                val insuranceCertificate = MultipartBody.Part.createFormData(
-                    name = "insurance_certificate",
-                    filename = uploadDriverAndCarDocsReqBody.insuranceCertificate.name,
-                    body = uploadDriverAndCarDocsReqBody.insuranceCertificate.asRequestBody("image/*".toMediaTypeOrNull())
-                )
-
-                val proofOfOwnership = uploadDriverAndCarDocsReqBody.proofOfOwnership?.let { file ->
-                    MultipartBody.Part.createFormData(
-                        name = "proof_of_ownership",
-                        filename = file.name,
-                        body = file.asRequestBody("image/*".toMediaTypeOrNull())
-                    )
-                }
-
-                val roadWorthinessCertification = MultipartBody.Part.createFormData(
-                    name = "road_worthiness_certification",
-                    filename = uploadDriverAndCarDocsReqBody.roadWorthinessCertification.name,
-                    body = uploadDriverAndCarDocsReqBody.roadWorthinessCertification.asRequestBody("image/*".toMediaTypeOrNull())
-                )
-
-                val hackneyPermit = uploadDriverAndCarDocsReqBody.hackneyPermit?.let { file ->
-                    MultipartBody.Part.createFormData(
-                        name = "hackney_permit",
-                        filename = file.name,
-                        body = file.asRequestBody("image/*".toMediaTypeOrNull())
-                    )
-                }
+                // Prepare file parts using the helper
+                val driverLicence = uploadDriverAndCarDocsReqBody.driverLicence.toMultipartPart("driver_licence")
+                val vehicleLicence = uploadDriverAndCarDocsReqBody.vehicleLicence.toMultipartPart("vehicle_licence")
+                val insuranceCertificate = uploadDriverAndCarDocsReqBody.insuranceCertificate.toMultipartPart("insurance_certificate")
+                val proofOfOwnership = uploadDriverAndCarDocsReqBody.proofOfOwnership.toMultipartPart("proof_of_ownership")
+                val roadWorthinessCertification = uploadDriverAndCarDocsReqBody.roadWorthinessCertification.toMultipartPart("road_worthiness_certification")
+                val hackneyPermit = uploadDriverAndCarDocsReqBody.hackneyPermit.toMultipartPart("hackney_permit")
 
                 // Make network call
                 val response = ApiClient.authService.uploadCarDocs(
@@ -235,12 +203,12 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     proofOfOwnershipNumber = proofOfOwnershipNumber,
                     roadWorthinessCertificationNumber = roadWorthinessCertificationNumber,
                     hackneyPermitNumber = hackneyPermitNumber,
-                    driverLicence = driverLicence,
-                    vehicleLicence = vehicleLicence,
-                    insuranceCertificate = insuranceCertificate,
-                    proofOfOwnership = proofOfOwnership,
-                    roadWorthinessCertification = roadWorthinessCertification,
-                    hackneyPermit = hackneyPermit
+                    driverLicence = driverLicence!!, // required
+                    vehicleLicence = vehicleLicence!!, // required
+                    insuranceCertificate = insuranceCertificate!!, // required
+                    proofOfOwnership = proofOfOwnership, // optional
+                    roadWorthinessCertification = roadWorthinessCertification!!, // required
+                    hackneyPermit = hackneyPermit // optional
                 )
 
                 if (response.status == "success") {
@@ -263,6 +231,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     fun resetState() {
         onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Idle
         uploadCarDetailsUiState = UploadCarDetailsUiState.Idle
+        uploadCarDocsUiState = UploadCarDocsUiState.Idle
     }
 
 

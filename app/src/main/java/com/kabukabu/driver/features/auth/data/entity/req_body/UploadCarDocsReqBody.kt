@@ -13,10 +13,10 @@ data class UploadCarDocsReqBody(
     @Json(name = "road_worthiness_certification_number") val roadWorthinessCertificationNumber: String,
     @Json(name = "hackney_permit_number") val hackneyPermitNumber: String,
 
-    @Json(name = "driver_licence") val driverLicence: File,
-    @Json(name = "vehicle_licence") val vehicleLicence: File,
-    @Json(name = "insurance_certificate") val insuranceCertificate: File,
+    @Json(name = "driver_licence") val driverLicence: File?,
+    @Json(name = "vehicle_licence") val vehicleLicence: File?,
+    @Json(name = "insurance_certificate") val insuranceCertificate: File?,
     @Json(name = "proof_of_ownership") val proofOfOwnership: File?,
-    @Json(name = "road_worthiness_certification") val roadWorthinessCertification: File,
+    @Json(name = "road_worthiness_certification") val roadWorthinessCertification: File?,
     @Json(name = "hackney_permit") val hackneyPermit: File?
 )

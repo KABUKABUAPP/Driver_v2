@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,8 +46,12 @@ import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
+import com.kabukabu.driver.components.ui.displayToastMessage
+import com.kabukabu.driver.components.utils_functions.convertUriToFile
 import com.kabukabu.driver.core.navigation.Navigator
+import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDocsUiState
 
 private enum class SelectedDoc { VehicleLicense, DriverLicense, Insurance, ProofOfOwnership, RoadWorthiness, HackneyPermit }
 
@@ -56,11 +61,14 @@ fun KabuRideCarDocumentsUploadScreen(
     authViewModel: AuthViewModel = viewModel()
 ) {
 
-    var selectedDocUri by remember { mutableStateOf(SelectedDoc.VehicleLicense) }
+    val uploadCarDocsUiState = authViewModel.uploadCarDocsUiState
+    val context = LocalContext.current
+
+    var selectedDocType by remember { mutableStateOf(SelectedDoc.VehicleLicense) }
     var vehicleLicenseUri by remember { mutableStateOf<Uri?>(null) }
     var driverLicenseUri by remember { mutableStateOf<Uri?>(null) }
     var insuranceNumberUri by remember { mutableStateOf<Uri?>(null) }
-    var proofOfOwnershipNUri by remember { mutableStateOf<Uri?>(null) }
+    var proofOfOwnershipUri by remember { mutableStateOf<Uri?>(null) }
     var roadWorthinessUri by remember { mutableStateOf<Uri?>(null) }
     var hackneyPermitUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -76,6 +84,24 @@ fun KabuRideCarDocumentsUploadScreen(
     var roadWorthinessNumber by remember { mutableStateOf("") }
     var hackneyPermitNumber by remember { mutableStateOf("") }
 
+    LaunchedEffect(uploadCarDocsUiState) {
+        when (uploadCarDocsUiState) {
+
+            is UploadCarDocsUiState.Success -> {
+                context.displayToastMessage(uploadCarDocsUiState.response.message)
+                authViewModel.resetState()
+                navigation.navToKabuRideGuarantorDetailsScreen()
+            }
+
+            is UploadCarDocsUiState.Error -> {
+                context.displayToastMessage(uploadCarDocsUiState.message)
+                authViewModel.resetState()
+            }
+
+            else -> {}
+        }
+    }
+
 
     Scaffold { paddingValues ->
         if (launchCamera) {
@@ -83,8 +109,30 @@ fun KabuRideCarDocumentsUploadScreen(
             CameraXCaptureImage(
                 onImageCaptured = { uri ->
                     if (uri != null) {
-                        if (selectedDocUri == SelectedDoc.VehicleLicense) {
-                            vehicleLicenseUri = uri
+                        when (selectedDocType) {
+                            SelectedDoc.VehicleLicense -> {
+                                vehicleLicenseUri = uri
+                            }
+
+                            SelectedDoc.DriverLicense -> {
+                                driverLicenseUri = uri
+                            }
+
+                            SelectedDoc.Insurance -> {
+                                insuranceNumberUri = uri
+                            }
+
+                            SelectedDoc.ProofOfOwnership -> {
+                                proofOfOwnershipUri = uri
+                            }
+
+                            SelectedDoc.RoadWorthiness -> {
+                                roadWorthinessUri = uri
+                            }
+
+                            SelectedDoc.HackneyPermit -> {
+                                hackneyPermitUri = uri
+                            }
                         }
                     }
                     launchCamera = false
@@ -123,81 +171,96 @@ fun KabuRideCarDocumentsUploadScreen(
                         title = "Vehicle License",
                         label = "Tap here to capture",
                         imageUri = vehicleLicenseUri,
-                        onClick = { launchCamera = true }
+                        onClick = {
+                            selectedDocType = SelectedDoc.VehicleLicense
+                            launchCamera = true
+                        }
                     )
 
 
                     FormTextfield(
                         title = "Vehicle License Number",
-                        value = "",
+                        value = vehicleLicense,
                         hintText = "ABC1234567",
-                        onTextChanged = {}
+                        onTextChanged = { vehicleLicense = it}
                     )
 
                     CaptureDocumentItem(
                         title = "Driver’s License",
                         label = "Tap here to capture",
-                        imageUri = selectedDocUri,
-                        onClick = { launchCamera = true }
+                        imageUri = driverLicenseUri,
+                        onClick = {
+                            selectedDocType = SelectedDoc.DriverLicense
+                            launchCamera = true
+                        }
                     )
 
                     FormTextfield(
                         title = "Driver's License Number",
-                        value = "",
+                        value = driverLicense,
                         hintText = "ABC1234567",
-                        onTextChanged = {}
+                        onTextChanged = { driverLicense = it }
                     )
 
                     CaptureDocumentItem(
-                        title = "Issuance Certificate",
+                        title = "Insurance Certificate",
                         label = "Tap here to capture",
-                        imageUri = selectedDocUri,
-                        onClick = { launchCamera = true }
+                        imageUri = insuranceNumberUri,
+                        onClick = {
+                            selectedDocType = SelectedDoc.Insurance
+                            launchCamera = true
+                        }
                     )
 
                     FormTextfield(
-                        title = "Issuance Certificate Number",
-                        value = "",
+                        title = "Insurance Certificate Number",
+                        value = insuranceNumber,
                         hintText = "ABC1234567",
-                        onTextChanged = {}
+                        onTextChanged = { insuranceNumber = it }
                     )
 
                     CaptureDocumentItem(
                         title = "Proof of Ownership",
                         label = "Tap here to capture",
-                        imageUri = vehicleLicenseUri,
-                        onClick = { launchCamera = true }
+                        imageUri = proofOfOwnershipUri,
+                        onClick = {
+                            selectedDocType = SelectedDoc.ProofOfOwnership
+                            launchCamera = true }
                     )
 
                     FormTextfield(
                         title = "Proof of Ownership Number",
-                        value = "",
+                        value = proofOfOwnershipNumber,
                         hintText = "ABC1234567",
                         isCompulsory = false,
-                        onTextChanged = {}
+                        onTextChanged = { proofOfOwnershipNumber = it }
                     )
 
                     CaptureDocumentItem(
                         title = "Road Worthiness Certificate",
                         label = "Tap here to capture",
-                        imageUri = vehicleLicenseUri,
-                        onClick = { launchCamera = true }
+                        imageUri = roadWorthinessUri,
+                        onClick = {
+                            selectedDocType = SelectedDoc.RoadWorthiness
+                            launchCamera = true }
                     )
 
                     FormTextfield(
                         title = "Road Worthiness Certificate",
-                        value = "",
+                        value = roadWorthinessNumber,
                         hintText = "ABC1234567",
                         isCompulsory = false,
-                        onTextChanged = {}
+                        onTextChanged = { roadWorthinessNumber = it }
                     )
 
                     CaptureDocumentItem(
                         title = "Hackney Permit",
                         label = "Tap here to capture",
                         isCompulsoryField = false,
-                        imageUri = vehicleLicenseUri,
-                        onClick = { launchCamera = true }
+                        imageUri = hackneyPermitUri,
+                        onClick = {
+                            selectedDocType = SelectedDoc.HackneyPermit
+                            launchCamera = true }
                     )
 
                     TitleText(
@@ -208,10 +271,10 @@ fun KabuRideCarDocumentsUploadScreen(
 
                     FormTextfield(
                         title = "Hackney Permit Number",
-                        value = "",
+                        value = hackneyPermitNumber,
                         hintText = "Doc-IMHG-0088",
                         isCompulsory = false,
-                        onTextChanged = {}
+                        onTextChanged = { hackneyPermitNumber = it }
                     )
                 }
 
@@ -226,8 +289,25 @@ fun KabuRideCarDocumentsUploadScreen(
 
                     KabuBottomButtonRowScope(
                         "Next",
+                        isLoading = uploadCarDocsUiState == UploadCarDocsUiState.Loading,
                         icon = R.drawable.arrow_right,
-                        onClick = { navigation.navToKabuRideGuarantorDetailsScreen() }
+                        onClick = {
+                            val uploadCarDocsReqBody = UploadCarDocsReqBody(
+                                driverLicenceNumber = driverLicense,
+                                carInsuranceNumber = insuranceNumber,
+                                vehicleLicenceNumber = vehicleLicense,
+                                proofOfOwnershipNumber = proofOfOwnershipNumber,
+                                roadWorthinessCertificationNumber = roadWorthinessNumber,
+                                hackneyPermitNumber = hackneyPermitNumber,
+                                driverLicence = convertUriToFile(context, driverLicenseUri),
+                                vehicleLicence = convertUriToFile(context, vehicleLicenseUri),
+                                insuranceCertificate = convertUriToFile(context, insuranceNumberUri),
+                                proofOfOwnership = convertUriToFile(context, proofOfOwnershipUri),
+                                roadWorthinessCertification = convertUriToFile(context, roadWorthinessUri),
+                                hackneyPermit = convertUriToFile(context, hackneyPermitUri),
+                            )
+                            authViewModel.uploadCarDocs(uploadDriverAndCarDocsReqBody = uploadCarDocsReqBody)
+                        }
                     )
                 }
             }
