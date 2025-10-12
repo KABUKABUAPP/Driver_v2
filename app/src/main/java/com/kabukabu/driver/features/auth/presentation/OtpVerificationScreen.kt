@@ -35,6 +35,7 @@ import com.kabukabu.driver.core.utils.LoginUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.kabukabu.driver.components.ui.displayToastMessage
 
 @Composable
 fun OtpVerificationScreen(
@@ -107,8 +108,10 @@ fun OtpVerificationScreen(
 
                 if (uiState.response.data?.loggedInUser?.isOnboardingComplete == true) {
                     onNavigateToHome()
+                    Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
                 }else {
                     navigateToDriverDetailsScreen()
+                    context.displayToastMessage("Continue to Onboarding")
                 }
                 // Navigate to home
 

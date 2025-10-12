@@ -67,7 +67,7 @@ fun KabuRideCarDocumentsUploadScreen(
     var selectedDocType by remember { mutableStateOf(SelectedDoc.VehicleLicense) }
     var vehicleLicenseUri by remember { mutableStateOf<Uri?>(null) }
     var driverLicenseUri by remember { mutableStateOf<Uri?>(null) }
-    var insuranceNumberUri by remember { mutableStateOf<Uri?>(null) }
+    var insuranceUri by remember { mutableStateOf<Uri?>(null) }
     var proofOfOwnershipUri by remember { mutableStateOf<Uri?>(null) }
     var roadWorthinessUri by remember { mutableStateOf<Uri?>(null) }
     var hackneyPermitUri by remember { mutableStateOf<Uri?>(null) }
@@ -119,7 +119,7 @@ fun KabuRideCarDocumentsUploadScreen(
                             }
 
                             SelectedDoc.Insurance -> {
-                                insuranceNumberUri = uri
+                                insuranceUri = uri
                             }
 
                             SelectedDoc.ProofOfOwnership -> {
@@ -205,7 +205,7 @@ fun KabuRideCarDocumentsUploadScreen(
                     CaptureDocumentItem(
                         title = "Insurance Certificate",
                         label = "Tap here to capture",
-                        imageUri = insuranceNumberUri,
+                        imageUri = insuranceUri,
                         onClick = {
                             selectedDocType = SelectedDoc.Insurance
                             launchCamera = true
@@ -301,12 +301,12 @@ fun KabuRideCarDocumentsUploadScreen(
                                 hackneyPermitNumber = hackneyPermitNumber,
                                 driverLicence = convertUriToFile(context, driverLicenseUri),
                                 vehicleLicence = convertUriToFile(context, vehicleLicenseUri),
-                                insuranceCertificate = convertUriToFile(context, insuranceNumberUri),
+                                insuranceCertificate = convertUriToFile(context, insuranceUri),
                                 proofOfOwnership = convertUriToFile(context, proofOfOwnershipUri),
                                 roadWorthinessCertification = convertUriToFile(context, roadWorthinessUri),
                                 hackneyPermit = convertUriToFile(context, hackneyPermitUri),
                             )
-                            authViewModel.uploadCarDocs(uploadDriverAndCarDocsReqBody = uploadCarDocsReqBody)
+                            authViewModel.uploadCarDocs(uploadCarDocsReqBody = uploadCarDocsReqBody)
                         }
                     )
                 }

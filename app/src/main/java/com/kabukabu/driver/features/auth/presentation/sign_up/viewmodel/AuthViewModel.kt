@@ -165,7 +165,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun uploadCarDocs(uploadDriverAndCarDocsReqBody: UploadCarDocsReqBody) {
+    fun uploadCarDocs(uploadCarDocsReqBody: UploadCarDocsReqBody) {
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
@@ -179,20 +179,20 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val textPlain = "text/plain".toMediaTypeOrNull()
 
                 // Prepare text parts
-                val driverLicenceNumber = uploadDriverAndCarDocsReqBody.driverLicenceNumber.toRequestBody(textPlain)
-                val carInsuranceNumber = uploadDriverAndCarDocsReqBody.carInsuranceNumber.toRequestBody(textPlain)
-                val vehicleLicenceNumber = uploadDriverAndCarDocsReqBody.vehicleLicenceNumber.toRequestBody(textPlain)
-                val proofOfOwnershipNumber = uploadDriverAndCarDocsReqBody.proofOfOwnershipNumber.toRequestBody(textPlain)
-                val roadWorthinessCertificationNumber = uploadDriverAndCarDocsReqBody.roadWorthinessCertificationNumber.toRequestBody(textPlain)
-                val hackneyPermitNumber = uploadDriverAndCarDocsReqBody.hackneyPermitNumber.toRequestBody(textPlain)
+                val driverLicenceNumber = uploadCarDocsReqBody.driverLicenceNumber.toRequestBody(textPlain)
+                val carInsuranceNumber = uploadCarDocsReqBody.carInsuranceNumber.toRequestBody(textPlain)
+                val vehicleLicenceNumber = uploadCarDocsReqBody.vehicleLicenceNumber.toRequestBody(textPlain)
+                val proofOfOwnershipNumber = uploadCarDocsReqBody.proofOfOwnershipNumber.toRequestBody(textPlain)
+                val roadWorthinessCertificationNumber = uploadCarDocsReqBody.roadWorthinessCertificationNumber.toRequestBody(textPlain)
+                val hackneyPermitNumber = uploadCarDocsReqBody.hackneyPermitNumber.toRequestBody(textPlain)
 
                 // Prepare file parts using the helper
-                val driverLicence = uploadDriverAndCarDocsReqBody.driverLicence.toMultipartPart("driver_licence")
-                val vehicleLicence = uploadDriverAndCarDocsReqBody.vehicleLicence.toMultipartPart("vehicle_licence")
-                val insuranceCertificate = uploadDriverAndCarDocsReqBody.insuranceCertificate.toMultipartPart("insurance_certificate")
-                val proofOfOwnership = uploadDriverAndCarDocsReqBody.proofOfOwnership.toMultipartPart("proof_of_ownership")
-                val roadWorthinessCertification = uploadDriverAndCarDocsReqBody.roadWorthinessCertification.toMultipartPart("road_worthiness_certification")
-                val hackneyPermit = uploadDriverAndCarDocsReqBody.hackneyPermit.toMultipartPart("hackney_permit")
+                val driverLicence = uploadCarDocsReqBody.driverLicence.toMultipartPart("driver_licence")
+                val vehicleLicence = uploadCarDocsReqBody.vehicleLicence.toMultipartPart("vehicle_licence")
+                val insuranceCertificate = uploadCarDocsReqBody.insuranceCertificate.toMultipartPart("insurance_certificate")
+                val proofOfOwnership = uploadCarDocsReqBody.proofOfOwnership.toMultipartPart("proof_of_ownership")
+                val roadWorthinessCertification = uploadCarDocsReqBody.roadWorthinessCertification.toMultipartPart("road_worthiness_certificate")
+                val hackneyPermit = uploadCarDocsReqBody.hackneyPermit.toMultipartPart("hackney_permit")
 
                 // Make network call
                 val response = ApiClient.authService.uploadCarDocs(
@@ -214,7 +214,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 if (response.status == "success") {
                     uploadCarDocsUiState = UploadCarDocsUiState.Success(response)
                 } else {
-                    uploadCarDocsUiState = UploadCarDocsUiState.Error(response.message)
+                    uploadCarDocsUiState = UploadCarDocsUiState.Error(response.status)
                 }
 
             } catch (e: Exception) {

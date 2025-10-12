@@ -3,7 +3,6 @@ package com.kabukabu.driver.features.auth.data.entity.response
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-
 @JsonClass(generateAdapter = true)
 data class DriverPersonalDetailsResponse(
     @Json(name = "status") val status: String,
@@ -15,7 +14,7 @@ data class DriverPersonalDetailsResponse(
 data class DriverPersonalDetailsData(
     @Json(name = "new_user") val newUser: NewUser,
     @Json(name = "driver_details") val driverDetails: DriverDetails
-    // Remove access_tokens and drivers_licence
+    // access_tokens and drivers_licence removed as requested
 )
 
 @JsonClass(generateAdapter = true)
@@ -49,7 +48,7 @@ data class NewUser(
     @Json(name = "type_of_car") val typeOfCar: String,
     @Json(name = "driver") val driver: String,
     @Json(name = "preferred_destination") val preferredDestination: PreferredDestination,
-    @Json(name = "average_rating") val averageRating: AverageRating,
+    @Json(name = "average_rating") val averageRating: DriverDetailsAverageRating,
     @Json(name = "auto_debit_dates") val autoDebitDates: AutoDebitDates
 )
 
@@ -60,27 +59,23 @@ data class PreferredDestination(
 )
 
 @JsonClass(generateAdapter = true)
-data class AverageRating(
+data class DriverDetailsAverageRating(
     @Json(name = "value") val value: Int,
     @Json(name = "count") val count: Int
 )
 
 @JsonClass(generateAdapter = true)
 data class AutoDebitDates(
-    @Json(name = "trip_charges_date")
-    val tripChargesDate: String,
-    @Json(name = "sharp_payment_date")
-    val sharpPaymentDate: String,
-    @Json(name = "repair_loan_date")
-    val repairLoanDate: String,
-    @Json(name = "is_NIN_verified")
-    val isNINVerified: Boolean
+    @Json(name = "trip_charges_date") val tripChargesDate: String,
+    @Json(name = "sharp_payment_date") val sharpPaymentDate: String,
+    @Json(name = "repair_loan_date") val repairLoanDate: String,
+    @Json(name = "is_NIN_verified") val isNINVerified: Boolean
 )
 
 @JsonClass(generateAdapter = true)
 data class DriverDetails(
     @Json(name = "preferred_payment_methods")
-    val preferredPaymentMethods: PreferredPaymentMethods,
+    val preferredPaymentMethods: DriverDetailsPreferredPaymentMethods,
     @Json(name = "_id")
     val id: String,
     @Json(name = "user") val user: String,
@@ -107,7 +102,7 @@ data class DriverDetails(
 )
 
 @JsonClass(generateAdapter = true)
-data class PreferredPaymentMethods(
+data class DriverDetailsPreferredPaymentMethods(
     @Json(name = "cash") val cash: Boolean,
     @Json(name = "wallet") val wallet: Boolean,
     @Json(name = "card") val card: Boolean
