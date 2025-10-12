@@ -112,8 +112,8 @@ fun OtpVerificationScreen(
                     onNavigateToHome()
                     Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
                 }else {
-                    navigator.navToKabuRideGuarantorDetailsScreen()
-//                    navigateToDriverDetailsScreen()
+//                    navigator.navToKabuRideGuarantorDetailsScreen()
+                    navigateToDriverDetailsScreen()
                     context.displayToastMessage("Continue to Onboarding")
                 }
                 // Navigate to home

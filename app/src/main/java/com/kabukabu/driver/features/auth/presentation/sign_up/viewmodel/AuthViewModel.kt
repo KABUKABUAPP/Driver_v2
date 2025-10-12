@@ -248,7 +248,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val state = uploadGuarantorDetailsReqBody.guarantorState.toRequestBody(textPlain)
                 val phoneNumber = uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain)
                 val email = uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain)
-                val referralCode = uploadGuarantorDetailsReqBody.referralCode.toRequestBody(textPlain)
+                val referralCode = uploadGuarantorDetailsReqBody.referralCode?.toRequestBody(textPlain)
                 val sharpProgramType = uploadGuarantorDetailsReqBody.sharpProgramType?.toRequestBody(textPlain)
 
                 // Prepare file part
@@ -272,7 +272,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 uploadGuarantorDetailsUiState = if (response.status == "success") {
                     UploadGuarantorDetailsUiState.Success(response)
                 } else {
-                    UploadGuarantorDetailsUiState.Error(response.message)
+                    UploadGuarantorDetailsUiState.Error(response.status)
                 }
 
             } catch (e: Exception) {
@@ -290,6 +290,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Idle
         uploadCarDetailsUiState = UploadCarDetailsUiState.Idle
         uploadCarDocsUiState = UploadCarDocsUiState.Idle
+        uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Idle
     }
 
 

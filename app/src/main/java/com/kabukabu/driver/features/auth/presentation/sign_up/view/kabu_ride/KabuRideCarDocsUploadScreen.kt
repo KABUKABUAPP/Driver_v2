@@ -32,6 +32,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -274,6 +275,7 @@ fun KabuRideCarDocumentsUploadScreen(
                         value = hackneyPermitNumber,
                         hintText = "Doc-IMHG-0088",
                         isCompulsory = false,
+                        imeAction = ImeAction.Done,
                         onTextChanged = { hackneyPermitNumber = it }
                     )
                 }
@@ -292,7 +294,22 @@ fun KabuRideCarDocumentsUploadScreen(
                         isLoading = uploadCarDocsUiState == UploadCarDocsUiState.Loading,
                         icon = R.drawable.arrow_right,
                         onClick = {
-                            navigation.navToKabuRideGuarantorDetailsScreen()
+//                            navigation.navToKabuRideGuarantorDetailsScreen()
+
+                            val uploadCarDocsReqBody = UploadCarDocsReqBody(
+                                driverLicenceNumber = "324434441",
+                                carInsuranceNumber = "324434441",
+                                vehicleLicenceNumber = "324434441",
+                                proofOfOwnershipNumber = "324434441",
+                                roadWorthinessCertificationNumber = "324434441",
+                                hackneyPermitNumber = "324434441",
+                                driverLicence = convertUriToFile(context, driverLicenseUri),
+                                vehicleLicence = convertUriToFile(context, vehicleLicenseUri),
+                                insuranceCertificate = convertUriToFile(context, insuranceUri),
+                                proofOfOwnership = convertUriToFile(context, proofOfOwnershipUri),
+                                roadWorthinessCertification = convertUriToFile(context, roadWorthinessUri),
+                                hackneyPermit = convertUriToFile(context, hackneyPermitUri),
+                            )
 //                            val uploadCarDocsReqBody = UploadCarDocsReqBody(
 //                                driverLicenceNumber = driverLicense,
 //                                carInsuranceNumber = insuranceNumber,
@@ -307,7 +324,7 @@ fun KabuRideCarDocumentsUploadScreen(
 //                                roadWorthinessCertification = convertUriToFile(context, roadWorthinessUri),
 //                                hackneyPermit = convertUriToFile(context, hackneyPermitUri),
 //                            )
-//                            authViewModel.uploadCarDocs(uploadCarDocsReqBody = uploadCarDocsReqBody)
+                            authViewModel.uploadCarDocs(uploadCarDocsReqBody = uploadCarDocsReqBody)
                         }
                     )
                 }
@@ -420,100 +437,3 @@ fun CaptureDocumentBox(
     }
 
 }
-
-
-//@Composable
-//internal fun CaptureDocumentItem(
-//    title: String,
-//    label: String,
-//    isCompulsoryField: Boolean = true,
-//    showImageSelection: Boolean = true,
-//    selectedImageUri: Uri?,
-//    onImageSelected: (Uri?) -> Unit,
-//    photoBoxError: MutableState<String>,
-//    modifier: Modifier = Modifier
-//) {
-//    val context = LocalContext.current
-//
-//    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.PickVisualMedia(),
-//        onResult = { uri ->
-//            onImageSelected(uri)
-//        }
-//    )
-//
-//    Column(modifier = modifier) {
-//        AnnotatedTextfieldTitle(title, isCompulsoryField)
-//
-//        if (selectedImageUri == null || selectedImageUri == Uri.EMPTY) {
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(200.dp)
-//                    .clip(RoundedCornerShape(6.dp))
-//                    .background(Color(0xFFF1F1F1))
-//                    .clickable {
-//                        if (showImageSelection) {
-//                            singlePhotoPickerLauncher.launch(
-//                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-//                            )
-//                        } else {
-//                            context.displayToastMessage("Please fill all required fields before uploading.")
-//                        }
-//                    },
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Column(
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                    verticalArrangement = Arrangement.Center
-//                ) {
-//                    Icon(
-//                        painter = painterResource(R.drawable.doc_upload),
-//                        contentDescription = "upload icon",
-//                        modifier = Modifier.size(24.dp),
-//                        tint = Color.Gray
-//                    )
-//                    TitleText(
-//                        label,
-//                        topPadding = 12
-//                    )
-//                }
-//            }
-//
-//            if (photoBoxError.value.isNotEmpty()) {
-//                TitleText(
-//                    text = photoBoxError.value,
-//                    color = MaterialTheme.colorScheme.error,
-//                    fontSize = 12
-//                )
-//            }
-//
-//        } else {
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .clip(RoundedCornerShape(8.dp))
-//            ) {
-//                AsyncImage(
-//                    model = ImageRequest.Builder(LocalContext.current)
-//                        .data(selectedImageUri)
-//                        .size(800)
-//                        .crossfade(true)
-//                        .build(),
-//                    contentDescription = "Captured document",
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(200.dp)
-//                        .clickable {
-//                            singlePhotoPickerLauncher.launch(
-//                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-//                            )
-//                        },
-//                    contentScale = ContentScale.Crop
-//                )
-//
-//            }
-//        }
-//    }
-//}
-

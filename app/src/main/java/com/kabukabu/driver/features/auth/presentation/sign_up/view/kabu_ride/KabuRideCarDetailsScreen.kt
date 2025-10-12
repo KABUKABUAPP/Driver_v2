@@ -295,13 +295,22 @@ fun KabuRideCarDetailsScreen(
                             convertUrisToFiles(context = context, uris = imagesUriList as List<Uri>)
 
                         val uploadCarDetails = UploadCarDetailsReqBody(
-                            carBrand = selectedCarBrand,
-                            carModel = carModel,
-                            carYear = carYear,
-                            carColor = carColour,
-                            carPlateNumber = plateNumber,
+                            carBrand = "Cadillac",
+                            carModel = "Mead",
+                            carYear = "2023",
+                            carColor = "Red",
+                            carPlateNumber = "231344512",
                             carImages = imagesFileList
                         )
+
+//                        val uploadCarDetails = UploadCarDetailsReqBody(
+//                            carBrand = selectedCarBrand,
+//                            carModel = carModel,
+//                            carYear = carYear,
+//                            carColor = carColour,
+//                            carPlateNumber = plateNumber,
+//                            carImages = imagesFileList
+//                        )
 
                         authViewModel.uploadCarDetails(uploadCarDetails)
                     }

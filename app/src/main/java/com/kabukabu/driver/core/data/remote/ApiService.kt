@@ -98,7 +98,7 @@ interface ApiService {
         @Part("guarantor_state") guarantorState: RequestBody,
         @Part("guarantor_phone_number") guarantorPhoneNumber: RequestBody,
         @Part("guarantor_email") guarantorEmail: RequestBody,
-        @Part("referral_code") referralCode: RequestBody,
+        @Part("referral_code") referralCode: RequestBody?,
         @Part("sharp_program_type") sharpProgramType: RequestBody?,
         @Part guarantorImage: MultipartBody.Part
     ): UploadGuarantorDetailsResponse

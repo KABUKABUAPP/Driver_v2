@@ -67,12 +67,15 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.UploadGuarantorDet
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectStateSheet
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDetailsUiState
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadGuarantorDetailsUiState
 
 
 @Composable
 fun KabuRideGuarantorDetail(navigator: Navigator,
                             authViewModel: AuthViewModel = viewModel()
 ) {
+
+    val uploadGuarantorDetailsUiState = authViewModel.uploadGuarantorDetailsUiState
 
     val context = LocalContext.current
 
@@ -109,16 +112,16 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
         )
     }
 
-    LaunchedEffect(uploadCarDetailsUiState) {
-        when (uploadCarDetailsUiState) {
-            is UploadCarDetailsUiState.Success -> {
-                context.displayToastMessage(uploadCarDetailsUiState.response.message)
+    LaunchedEffect(uploadGuarantorDetailsUiState) {
+        when (uploadGuarantorDetailsUiState) {
+            is UploadGuarantorDetailsUiState.Success -> {
+                context.displayToastMessage(uploadGuarantorDetailsUiState.response.message)
                 authViewModel.resetState()
-                navigator.navToKabuDocumentsUpload()
+                navigator.navToKabuRidePendingAccountApprovalScreen()
             }
 
-            is UploadCarDetailsUiState.Error -> {
-                context.displayToastMessage(uploadCarDetailsUiState.message)
+            is UploadGuarantorDetailsUiState.Error -> {
+                context.displayToastMessage(uploadGuarantorDetailsUiState.message)
                 authViewModel.resetState()
             }
 
@@ -216,10 +219,10 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
 
                 FormTextfield(
                     title = "Referral Code (Optional)",
-                    value = "",
+                    value = referralCode,
                     hintText = "Code here",
                     isCompulsory = false,
-                    onTextChanged = {}
+                    onTextChanged = { referralCode = it }
                 )
 
             }
@@ -238,6 +241,7 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
                 KabuBottomButtonRowScope(
                     "Submit",
                     icon = R.drawable.arrow_right,
+                    isLoading = uploadGuarantorDetailsUiState == UploadGuarantorDetailsUiState.Loading,
                     onClick = {
 //                        navigator.navToKabuRidePendingAccountApprovalScreen()
                         val uploadGuarantorDetailsReqBody = UploadGuarantorDetailsReqBody(
@@ -250,8 +254,9 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
                             guarantorPhoneNumber = phoneNumber,
                             guarantorEmail = email,
                             referralCode = referralCode,
-//                            sharpProgramType = TODO()
+                            sharpProgramType = "HIRE_PURCHASE"
                         )
+                        authViewModel.uploadGuarantorDetails(uploadGuarantorDetailsReqBody)
                     }
                 )
             }
