@@ -87,7 +87,7 @@ fun KabuRideCarDetailsScreen(
     }
 
     val imagesUriList = mutableListOf<Uri?>()
-    var imagesFileList = listOf<File>()
+    var imagesFileList: List<File>
     val carBrands = authViewModel.carBrands.collectAsState().value
 
     val context = LocalContext.current
