@@ -249,7 +249,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val phoneNumber = uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain)
                 val email = uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain)
                 val referralCode = uploadGuarantorDetailsReqBody.referralCode.toRequestBody(textPlain)
-                val sharpProgramType = uploadGuarantorDetailsReqBody.sharpProgramType.toRequestBody(textPlain)
+                val sharpProgramType = uploadGuarantorDetailsReqBody.sharpProgramType?.toRequestBody(textPlain)
 
                 // Prepare file part
                 val guarantorImage = uploadGuarantorDetailsReqBody.guarantorImage.toMultipartPart("guarantor_image")!!
@@ -269,10 +269,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     guarantorImage = guarantorImage
                 )
 
-                if (response.status == "success") {
-                    uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Success(response)
+                uploadGuarantorDetailsUiState = if (response.status == "success") {
+                    UploadGuarantorDetailsUiState.Success(response)
                 } else {
-                    uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Error(response.message)
+                    UploadGuarantorDetailsUiState.Error(response.message)
                 }
 
             } catch (e: Exception) {

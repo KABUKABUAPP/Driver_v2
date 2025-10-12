@@ -36,6 +36,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.util.Log
 import com.kabukabu.driver.components.ui.displayToastMessage
+import com.kabukabu.driver.core.navigation.Navigator
 
 @Composable
 fun OtpVerificationScreen(
@@ -43,6 +44,7 @@ fun OtpVerificationScreen(
     navigateToDriverDetailsScreen: () -> Unit,
     onNavigateToHome: () -> Unit,
     onNavigateToLogin: () -> Unit, // Added navigation back to login
+    navigator: Navigator,
     viewModel: OtpViewModel = viewModel(),
     loginViewModel: LoginViewModel = viewModel() // Add login view model for resending OTP
 ) {
@@ -110,7 +112,8 @@ fun OtpVerificationScreen(
                     onNavigateToHome()
                     Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
                 }else {
-                    navigateToDriverDetailsScreen()
+                    navigator.navToKabuRideGuarantorDetailsScreen()
+//                    navigateToDriverDetailsScreen()
                     context.displayToastMessage("Continue to Onboarding")
                 }
                 // Navigate to home

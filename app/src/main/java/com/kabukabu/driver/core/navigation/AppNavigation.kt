@@ -128,7 +128,8 @@ fun AppNavigation() {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.OtpVerification.route) { inclusive = true }
                     }
-                }
+                },
+                navigator = navigation
             )
         }
 

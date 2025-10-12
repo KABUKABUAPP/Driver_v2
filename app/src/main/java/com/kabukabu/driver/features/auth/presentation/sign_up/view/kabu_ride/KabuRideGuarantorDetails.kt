@@ -33,6 +33,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.kabukabu.driver.R
@@ -58,14 +60,24 @@ import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
 import com.kabukabu.driver.components.ui.RowScopeFormTextfield
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
+import com.kabukabu.driver.components.utils_functions.convertUriToFile
 import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.core.navigation.Navigator
+import com.kabukabu.driver.features.auth.data.entity.req_body.UploadGuarantorDetailsReqBody
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectStateSheet
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDetailsUiState
 
 
 @Composable
-fun KabuRideGuarantorDetail(navigator: Navigator) {
+fun KabuRideGuarantorDetail(navigator: Navigator,
+                            authViewModel: AuthViewModel = viewModel()
+) {
+
+    val context = LocalContext.current
 
     var showStateSheet by remember { mutableStateOf(false) }
+    var showGuarantorSheet by remember { mutableStateOf(false) }
 
     var guarantorImageUri by remember { mutableStateOf<Uri?>(null) }
     var fullName by remember { mutableStateOf("") }
@@ -74,15 +86,44 @@ fun KabuRideGuarantorDetail(navigator: Navigator) {
     var houseAddress by remember { mutableStateOf("") }
     var city by remember { mutableStateOf("") }
     var state by remember { mutableStateOf("") }
+    var guarantorRelationship by remember { mutableStateOf("") }
+    var referralCode by remember { mutableStateOf("") }
+
+    if (showGuarantorSheet) {
+        SelectGuarantorRelationshipModal(
+            onDismiss = { showGuarantorSheet = false },
+            onSelectRelationship = { guarantor ->
+                guarantorRelationship = guarantor
+                showStateSheet = false
+            }
+        )
+    }
 
     if (showStateSheet) {
-        SelectGuarantorRelationshipModal(
+        SelectStateSheet(
             onDismiss = { showStateSheet = false },
-            onSelectRelationship = { selectedState ->
+            onSelectState = { selectedState ->
                 state = selectedState
                 showStateSheet = false
             }
         )
+    }
+
+    LaunchedEffect(uploadCarDetailsUiState) {
+        when (uploadCarDetailsUiState) {
+            is UploadCarDetailsUiState.Success -> {
+                context.displayToastMessage(uploadCarDetailsUiState.response.message)
+                authViewModel.resetState()
+                navigator.navToKabuDocumentsUpload()
+            }
+
+            is UploadCarDetailsUiState.Error -> {
+                context.displayToastMessage(uploadCarDetailsUiState.message)
+                authViewModel.resetState()
+            }
+
+            else -> {}
+        }
     }
 
     Scaffold { paddingValues ->
@@ -123,8 +164,11 @@ fun KabuRideGuarantorDetail(navigator: Navigator) {
 
                 FormTextfieldDropdown(
                     "Relationship",
+                    value = guarantorRelationship,
                     isCompulsory = false,
-                    onClick = {}
+                    onClick = {
+                        showGuarantorSheet = true
+                    }
                 )
 
                 FormTextfield(
@@ -174,6 +218,7 @@ fun KabuRideGuarantorDetail(navigator: Navigator) {
                     title = "Referral Code (Optional)",
                     value = "",
                     hintText = "Code here",
+                    isCompulsory = false,
                     onTextChanged = {}
                 )
 
@@ -193,7 +238,21 @@ fun KabuRideGuarantorDetail(navigator: Navigator) {
                 KabuBottomButtonRowScope(
                     "Submit",
                     icon = R.drawable.arrow_right,
-                    onClick = { navigator.navToKabuRidePendingAccountApprovalScreen() }
+                    onClick = {
+//                        navigator.navToKabuRidePendingAccountApprovalScreen()
+                        val uploadGuarantorDetailsReqBody = UploadGuarantorDetailsReqBody(
+                            guarantorImage = convertUriToFile(context, guarantorImageUri),
+                            guarantorFullName = fullName,
+                            guarantorRelationship = guarantorRelationship,
+                            guarantorHouseAddress = houseAddress,
+                            guarantorCity = city,
+                            guarantorState = state,
+                            guarantorPhoneNumber = phoneNumber,
+                            guarantorEmail = email,
+                            referralCode = referralCode,
+//                            sharpProgramType = TODO()
+                        )
+                    }
                 )
             }
 
@@ -282,7 +341,7 @@ fun ProfileCard(
                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                 )
 //                } else {
-                context.displayToastMessage("Please complete required fields before uploading.")
+//                context.displayToastMessage("Please complete required fields before uploading.")
 //                }
             },
         contentAlignment = Alignment.Center

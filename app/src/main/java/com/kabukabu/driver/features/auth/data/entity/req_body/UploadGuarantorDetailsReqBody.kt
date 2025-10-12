@@ -6,7 +6,7 @@ import java.io.File
 @JsonClass(generateAdapter = true)
 data class UploadGuarantorDetailsReqBody(
     @Json(name = "guarantor_image")
-    val guarantorImage: File,
+    val guarantorImage: File?,
     @Json(name = "guarantor_full_name")
     val guarantorFullName: String,
     @Json(name = "guarantor_relationship")
@@ -22,7 +22,7 @@ data class UploadGuarantorDetailsReqBody(
     @Json(name = "guarantor_email")
     val guarantorEmail: String,
     @Json(name = "referral_code")
-    val referralCode: String,
+    val referralCode: String ?= "",
     @Json(name = "sharp_program_type")
-    val sharpProgramType: String
+    val sharpProgramType: String ?= ""
 )
