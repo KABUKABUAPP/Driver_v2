@@ -12,12 +12,12 @@ data class UploadCarDetailsResponse(
 
 @JsonClass(generateAdapter = true)
 data class DriverData(
-    @Json(name = "user") val user: DriverUser,
+    @Json(name = "user") val user: DriverGuarantorUser,
     @Json(name = "car_details") val carDetails: DriverCarDetails
 )
 
 @JsonClass(generateAdapter = true)
-data class DriverUser(
+data class DriverGuarantorUser(
     @Json(name = "_id") val id: String,
     @Json(name = "full_name") val fullName: String,
     @Json(name = "phone_number") val phoneNumber: String,

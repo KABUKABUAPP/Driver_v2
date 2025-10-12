@@ -13,13 +13,13 @@ data class DriverGuarantorDetailsResponse(
 
 @JsonClass(generateAdapter = true)
 data class DriverGuarantorData(
-    @Json(name = "user") val user: DriverUser
+    @Json(name = "user") val user: DriverGuarantorUserResponse
 )
 
 @JsonClass(generateAdapter = true)
-data class DriverUser(
+data class DriverGuarantorUserResponse(
     @Json(name = "guarantor") val guarantor: GuarantorDetails,
-    @Json(name = "average_rating") val averageRating: AverageRating,
+    @Json(name = "average_rating") val averageRating: GuarantorResponseAverageRating,
     @Json(name = "_id") val id: String,
     @Json(name = "full_name") val fullName: String,
     @Json(name = "phone_number") val phoneNumber: String,
@@ -56,7 +56,7 @@ data class GuarantorDetails(
 )
 
 @JsonClass(generateAdapter = true)
-data class AverageRating(
+data class GuarantorResponseAverageRating(
     @Json(name = "value") val value: Int,
     @Json(name = "count") val count: Int
 )

@@ -23,6 +23,7 @@ import retrofit2.Response
 import com.kabukabu.driver.features.wallet.data.DuePaymentResponse
 import com.kabukabu.driver.features.analytics.data.DriverAnalysisResponse
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDetailsReqBody
+import com.kabukabu.driver.features.auth.data.entity.response.DriverGuarantorDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.DriverPersonalDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDocsResponse
@@ -85,6 +86,24 @@ interface ApiService {
         @Part roadWorthinessCertification: MultipartBody.Part,
         @Part hackneyPermit: MultipartBody.Part?
     ): UploadCarDocsResponse
+
+
+    @Multipart
+    @POST("auth/driver-onboard-four")
+    suspend fun uploadGuarantorDetails(
+        @Header("Authorization") bearerToken: String,
+        @Part("guarantor_full_name") guarantorFullName: RequestBody,
+        @Part("guarantor_relationship") guarantorRelationship: RequestBody,
+        @Part("guarantor_house_address") guarantorHouseAddress: RequestBody,
+        @Part("guarantor_city") guarantorCity: RequestBody,
+        @Part("guarantor_state") guarantorState: RequestBody,
+        @Part("guarantor_phone_number") guarantorPhoneNumber: RequestBody,
+        @Part("guarantor_email") guarantorEmail: RequestBody,
+        @Part("referral_code") referralCode: RequestBody,
+        @Part("sharp_program_type") sharpProgramType: RequestBody,
+        @Part guarantorImage: MultipartBody.Part
+    ): DriverGuarantorDetailsResponse
+
 
 
     @GET("user/profile")
