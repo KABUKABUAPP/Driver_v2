@@ -4,6 +4,9 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,15 +14,24 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +43,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -44,14 +58,32 @@ import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
 import com.kabukabu.driver.components.ui.RowScopeFormTextfield
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
+import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.core.navigation.Navigator
 
 
 @Composable
 fun KabuRideGuarantorDetail(navigator: Navigator) {
 
-    var selectedProfileImageUri by remember { mutableStateOf<Uri?>(null) }
+    var showStateSheet by remember { mutableStateOf(false) }
 
+    var guarantorImageUri by remember { mutableStateOf<Uri?>(null) }
+    var fullName by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var houseAddress by remember { mutableStateOf("") }
+    var city by remember { mutableStateOf("") }
+    var state by remember { mutableStateOf("") }
+
+    if (showStateSheet) {
+        SelectGuarantorRelationshipModal(
+            onDismiss = { showStateSheet = false },
+            onSelectRelationship = { selectedState ->
+                state = selectedState
+                showStateSheet = false
+            }
+        )
+    }
 
     Scaffold { paddingValues ->
         Column(
@@ -78,15 +110,15 @@ fun KabuRideGuarantorDetail(navigator: Navigator) {
             GrayBackgroundContainer {
 
                 ProfileCard(
-                    selectedImageUri = selectedProfileImageUri,
-                    onImageSelected = { selectedProfileImageUri = it }
+                    selectedImageUri = guarantorImageUri,
+                    onImageSelected = { guarantorImageUri = it }
                 )
 
                 FormTextfield(
                     title = "Full Name",
-                    value = "",
+                    value = fullName,
                     hintText = "John Doe",
-                    onTextChanged = {}
+                    onTextChanged = { fullName = it }
                 )
 
                 FormTextfieldDropdown(
@@ -95,36 +127,45 @@ fun KabuRideGuarantorDetail(navigator: Navigator) {
                     onClick = {}
                 )
 
-                FormTextfieldDropdown(
-                    "Email Address",
-                    onClick = {}
+                FormTextfield(
+                    title = "Email Address",
+                    value = email,
+                    hintText = "Email",
+                    onTextChanged = { email = it }
                 )
 
-                FormTextfieldDropdown(
-                    "Phone number",
-                    onClick = {}
+                FormTextfield(
+                    title = "Phone number",
+                    value = phoneNumber,
+                    hintText = "Email",
+                    onTextChanged = { phoneNumber = it }
                 )
 
-                FormTextfieldDropdown(
-                    "House Address",
-                    onClick = {}
+                FormTextfield(
+                    title = "House address",
+                    value = houseAddress,
+                    hintText = "House address",
+                    onTextChanged = { houseAddress = it }
                 )
+
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     RowScopeFormTextfield(
                         title = "City",
-                        value = "",
+                        value = city,
                         hintText = "City here",
                         isDropdown = false,
-                        onTextChanged = {}
+                        onTextChanged = { city = it },
+                        imeAction = ImeAction.Done
                     )
                     RowScopeFormTextfield(
                         title = "State",
-                        value = "",
-                        hintText = "Abia State",
+                        value = state,
+                        hintText = "Abia",
                         isDropdown = true,
+                        onClick = { showStateSheet = true },
                         onTextChanged = {}
                     )
                 }
@@ -161,6 +202,60 @@ fun KabuRideGuarantorDetail(navigator: Navigator) {
     }
 }
 
+@OptIn( ExperimentalMaterial3Api::class)
+@Composable
+private fun SelectGuarantorRelationshipModal(
+    onDismiss: () -> Unit,
+    onSelectRelationship: (String) -> Unit
+) {
+
+    val relationship = LocalDataSource().guarantorRelationship
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 16.dp)
+        ) {
+            Text(
+                text = "Select State",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 12.dp)
+            )
+
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                items(relationship) { state ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
+                    ) {
+                        Text(
+                            text = state,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    onSelectRelationship(state)
+                                    onDismiss()
+                                }
+//                                .background(color = Color(0x2DD3D3D3))
+                                .padding(vertical = 12.dp, horizontal = 16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 fun ProfileCard(
@@ -183,11 +278,11 @@ fun ProfileCard(
             .background(color = Color(0xFFF8C34A))
             .clickable {
 //                if (showImageSelection) {
-                    photoPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
+                photoPickerLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
 //                } else {
-                    context.displayToastMessage("Please complete required fields before uploading.")
+                context.displayToastMessage("Please complete required fields before uploading.")
 //                }
             },
         contentAlignment = Alignment.Center
