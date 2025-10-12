@@ -150,7 +150,7 @@ fun KabuRideGuarantorDetail(navigator: Navigator) {
 
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(24.dp)
+                    horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     RowScopeFormTextfield(
                         title = "City",
