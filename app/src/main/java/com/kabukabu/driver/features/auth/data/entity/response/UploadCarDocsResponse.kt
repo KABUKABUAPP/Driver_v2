@@ -2,7 +2,6 @@ package com.kabukabu.driver.features.auth.data.entity.response
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-
 @JsonClass(generateAdapter = true)
 data class UploadCarDocsResponse(
     @Json(name = "status") val status: String,
@@ -14,12 +13,15 @@ data class UploadCarDocsResponse(
 @JsonClass(generateAdapter = true)
 data class ResponseData(
     @Json(name = "user") val user: User,
-    @Json(name = "car_docs") val carDocs: CarDocs
+    @Json(name = "car_docs") val carDocs: List<CarDoc>,
+    @Json(name = "car") val car: Car
 )
 
 @JsonClass(generateAdapter = true)
 data class User(
+    @Json(name = "preferred_destination") val preferredDestination: UploadCarDocsPreferredDestination,
     @Json(name = "average_rating") val averageRating: AverageRating,
+    @Json(name = "auto_debit_dates") val autoDebitDates: UploadCarDocsAutoDebitDates,
     @Json(name = "_id") val id: String,
     @Json(name = "full_name") val fullName: String,
     @Json(name = "phone_number") val phoneNumber: String,
@@ -37,12 +39,30 @@ data class User(
     @Json(name = "total_trips") val totalTrips: Int,
     @Json(name = "deleted") val deleted: Boolean,
     @Json(name = "reason_for_delete") val reasonForDelete: String,
+    @Json(name = "is_rewarded") val isRewarded: Boolean,
+    @Json(name = "reward_signup_bonus") val rewardSignupBonus: Boolean,
+    @Json(name = "is_badge_rated") val isBadgeRated: Boolean,
     @Json(name = "favourite_locations") val favouriteLocations: List<String>,
     @Json(name = "created_at") val createdAt: String,
     @Json(name = "updated_at") val updatedAt: String,
     @Json(name = "__v") val v: Int,
     @Json(name = "accessTokens") val accessTokens: String,
+    @Json(name = "type_of_car") val typeOfCar: String,
     @Json(name = "driver") val driver: Driver
+)
+
+@JsonClass(generateAdapter = true)
+data class UploadCarDocsPreferredDestination(
+    @Json(name = "is_active") val isActive: Boolean,
+    @Json(name = "coordinate") val coordinate: List<Double>
+)
+
+@JsonClass(generateAdapter = true)
+data class UploadCarDocsAutoDebitDates(
+    @Json(name = "trip_charges_date") val tripChargesDate: String,
+    @Json(name = "sharp_payment_date") val sharpPaymentDate: String,
+    @Json(name = "repair_loan_date") val repairLoanDate: String,
+    @Json(name = "is_NIN_verified") val isNINVerified: Boolean
 )
 
 @JsonClass(generateAdapter = true)
@@ -71,6 +91,8 @@ data class Driver(
     @Json(name = "admin_approval") val adminApproval: String,
     @Json(name = "admin_decline_count") val adminDeclineCount: Int,
     @Json(name = "status_remark") val statusRemark: String,
+    @Json(name = "sharp_approval_status") val sharpApprovalStatus: String,
+    @Json(name = "sharp_program_type") val sharpProgramType: String,
     @Json(name = "created_at") val createdAt: String,
     @Json(name = "updated_at") val updatedAt: String,
     @Json(name = "__v") val v: Int,
@@ -85,7 +107,18 @@ data class PreferredPaymentMethods(
 )
 
 @JsonClass(generateAdapter = true)
-data class CarDocs(
+data class CarDoc(
+    @Json(name = "_id") val id: String,
+    @Json(name = "title") val title: String,
+    @Json(name = "url") val url: String,
+    @Json(name = "status") val status: String,
+    @Json(name = "owner") val owner: String,
+    @Json(name = "created_at") val createdAt: String,
+    @Json(name = "updated_at") val updatedAt: String
+)
+
+@JsonClass(generateAdapter = true)
+data class Car(
     @Json(name = "camera") val camera: Camera,
     @Json(name = "location_tracker") val locationTracker: LocationTracker,
     @Json(name = "_id") val id: String,
@@ -98,9 +131,13 @@ data class CarDocs(
     @Json(name = "images") val images: List<String>,
     @Json(name = "plate_number") val plateNumber: String,
     @Json(name = "isVerified") val isVerified: Boolean,
+    @Json(name = "isAvailable") val isAvailable: Boolean,
     @Json(name = "on_a_trip") val onATrip: Boolean,
     @Json(name = "assigned") val assigned: Boolean,
+    @Json(name = "active") val active: Boolean,
     @Json(name = "coordinate") val coordinate: List<Double>,
+    @Json(name = "pick_up_status") val pickUpStatus: String,
+    @Json(name = "sharp_status") val sharpStatus: String,
     @Json(name = "created_at") val createdAt: String,
     @Json(name = "updated_at") val updatedAt: String,
     @Json(name = "__v") val v: Int

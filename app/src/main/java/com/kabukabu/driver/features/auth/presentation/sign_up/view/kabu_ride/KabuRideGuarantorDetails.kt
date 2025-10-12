@@ -255,6 +255,7 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
                             guarantorEmail = email,
                             referralCode = referralCode,
                             sharpProgramType = "HIRE_PURCHASE"
+                            //RENTAL
                         )
                         authViewModel.uploadGuarantorDetails(uploadGuarantorDetailsReqBody)
                     }

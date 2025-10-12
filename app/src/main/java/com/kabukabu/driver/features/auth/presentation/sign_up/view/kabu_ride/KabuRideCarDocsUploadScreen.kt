@@ -297,12 +297,12 @@ fun KabuRideCarDocumentsUploadScreen(
 //                            navigation.navToKabuRideGuarantorDetailsScreen()
 
                             val uploadCarDocsReqBody = UploadCarDocsReqBody(
-                                driverLicenceNumber = "324434441",
-                                carInsuranceNumber = "324434441",
-                                vehicleLicenceNumber = "324434441",
-                                proofOfOwnershipNumber = "324434441",
-                                roadWorthinessCertificationNumber = "324434441",
-                                hackneyPermitNumber = "324434441",
+                                driverLicenceNumber = driverLicense,
+                                carInsuranceNumber = insuranceNumber,
+                                vehicleLicenceNumber = vehicleLicense,
+                                proofOfOwnershipNumber = proofOfOwnershipNumber,
+                                roadWorthinessCertificationNumber = roadWorthinessNumber,
+                                hackneyPermitNumber = hackneyPermitNumber,
                                 driverLicence = convertUriToFile(context, driverLicenseUri),
                                 vehicleLicence = convertUriToFile(context, vehicleLicenseUri),
                                 insuranceCertificate = convertUriToFile(context, insuranceUri),
@@ -310,20 +310,6 @@ fun KabuRideCarDocumentsUploadScreen(
                                 roadWorthinessCertification = convertUriToFile(context, roadWorthinessUri),
                                 hackneyPermit = convertUriToFile(context, hackneyPermitUri),
                             )
-//                            val uploadCarDocsReqBody = UploadCarDocsReqBody(
-//                                driverLicenceNumber = driverLicense,
-//                                carInsuranceNumber = insuranceNumber,
-//                                vehicleLicenceNumber = vehicleLicense,
-//                                proofOfOwnershipNumber = proofOfOwnershipNumber,
-//                                roadWorthinessCertificationNumber = roadWorthinessNumber,
-//                                hackneyPermitNumber = hackneyPermitNumber,
-//                                driverLicence = convertUriToFile(context, driverLicenseUri),
-//                                vehicleLicence = convertUriToFile(context, vehicleLicenseUri),
-//                                insuranceCertificate = convertUriToFile(context, insuranceUri),
-//                                proofOfOwnership = convertUriToFile(context, proofOfOwnershipUri),
-//                                roadWorthinessCertification = convertUriToFile(context, roadWorthinessUri),
-//                                hackneyPermit = convertUriToFile(context, hackneyPermitUri),
-//                            )
                             authViewModel.uploadCarDocs(uploadCarDocsReqBody = uploadCarDocsReqBody)
                         }
                     )
