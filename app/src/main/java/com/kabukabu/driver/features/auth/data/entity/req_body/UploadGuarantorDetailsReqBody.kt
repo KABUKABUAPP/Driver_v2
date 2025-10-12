@@ -4,7 +4,7 @@ import com.squareup.moshi.JsonClass
 import java.io.File
 
 @JsonClass(generateAdapter = true)
-data class DriverGuarantorDetailsRequest(
+data class UploadGuarantorDetailsReqBody(
     @Json(name = "guarantor_image")
     val guarantorImage: File,
     @Json(name = "guarantor_full_name")

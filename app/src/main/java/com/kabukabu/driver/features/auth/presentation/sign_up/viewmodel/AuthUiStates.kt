@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel
 
+import com.kabukabu.driver.features.auth.data.entity.response.UploadGuarantorDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.DriverPersonalDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDocsResponse
@@ -25,5 +26,12 @@ sealed class UploadCarDocsUiState {
     object Loading : UploadCarDocsUiState()
     data class Success(val response: UploadCarDocsResponse) : UploadCarDocsUiState()
     data class Error(val message: String) : UploadCarDocsUiState()
+}
+
+sealed class UploadGuarantorDetailsUiState {
+    object Idle : UploadGuarantorDetailsUiState()
+    object Loading : UploadGuarantorDetailsUiState()
+    data class Success(val response: UploadGuarantorDetailsResponse) : UploadGuarantorDetailsUiState()
+    data class Error(val message: String) : UploadGuarantorDetailsUiState()
 }
 

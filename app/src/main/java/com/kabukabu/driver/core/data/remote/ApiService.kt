@@ -22,8 +22,7 @@ import okhttp3.ResponseBody
 import retrofit2.Response
 import com.kabukabu.driver.features.wallet.data.DuePaymentResponse
 import com.kabukabu.driver.features.analytics.data.DriverAnalysisResponse
-import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDetailsReqBody
-import com.kabukabu.driver.features.auth.data.entity.response.DriverGuarantorDetailsResponse
+import com.kabukabu.driver.features.auth.data.entity.response.UploadGuarantorDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.DriverPersonalDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDocsResponse
@@ -102,7 +101,7 @@ interface ApiService {
         @Part("referral_code") referralCode: RequestBody,
         @Part("sharp_program_type") sharpProgramType: RequestBody,
         @Part guarantorImage: MultipartBody.Part
-    ): DriverGuarantorDetailsResponse
+    ): UploadGuarantorDetailsResponse
 
 
 

@@ -12,8 +12,9 @@ import com.kabukabu.driver.components.utils_functions.toMultipartPart
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.data.remote.ApiClient
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
-import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDetailsReqBody
+import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBody
+import com.kabukabu.driver.features.auth.data.entity.req_body.UploadGuarantorDetailsReqBody
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,13 +42,15 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
   var uploadCarDocsUiState: UploadCarDocsUiState by mutableStateOf(UploadCarDocsUiState.Idle)
         private set
 
+  var uploadGuarantorDetailsUiState: UploadGuarantorDetailsUiState by mutableStateOf(UploadGuarantorDetailsUiState.Idle)
+        private set
+
     init {
         fetchCarBrands()
     }
 
-
+    //fetch car brands from firebase
     fun fetchCarBrands() {
-        println("fetching car brands")
         val db = FirebaseFirestore.getInstance()
         val reference = db.collection("carbrands").document("t9MZDmH3FWTg3KoKuXs3")
 
@@ -57,7 +60,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     val brands = document.get("branditems") as? List<String>
                     brands?.let {
                         _carBrands.value = it
-                        println("car brands are ${_carBrands.value}")
                     }
                 }
             }
@@ -67,14 +69,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    fun sendDriverBioData(driverPersonalDetailsReqBody: DriverPersonalDetailsReqBody) {
+    fun sendDriverBioData(driverPersonalDetailsReqBody: UploadPersonalDetailsReqBody) {
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
                 Log.e("DriverViewModel", "Cannot fetch profile, token is missing.")
                 return@launch
             }
-
             try {
                 onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Loading
                 val bearerToken = "Bearer $token"
@@ -222,6 +223,63 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     e.message ?: "An unknown error occurred"
                 )
                 Log.e("DriverViewModel", "Error uploading car docs", e)
+            }
+        }
+    }
+
+    fun uploadGuarantorDetails(uploadGuarantorDetailsReqBody: UploadGuarantorDetailsReqBody) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val token = userPreferences.authToken.firstOrNull()
+            if (token.isNullOrBlank()) {
+                Log.e("DriverViewModel", "Cannot upload guarantor details, token is missing.")
+                return@launch
+            }
+
+            try {
+                uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Loading
+                val bearerToken = "Bearer $token"
+                val textPlain = "text/plain".toMediaTypeOrNull()
+
+                // Prepare text parts
+                val fullName = uploadGuarantorDetailsReqBody.guarantorFullName.toRequestBody(textPlain)
+                val relationship = uploadGuarantorDetailsReqBody.guarantorRelationship.toRequestBody(textPlain)
+                val houseAddress = uploadGuarantorDetailsReqBody.guarantorHouseAddress.toRequestBody(textPlain)
+                val city = uploadGuarantorDetailsReqBody.guarantorCity.toRequestBody(textPlain)
+                val state = uploadGuarantorDetailsReqBody.guarantorState.toRequestBody(textPlain)
+                val phoneNumber = uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain)
+                val email = uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain)
+                val referralCode = uploadGuarantorDetailsReqBody.referralCode.toRequestBody(textPlain)
+                val sharpProgramType = uploadGuarantorDetailsReqBody.sharpProgramType.toRequestBody(textPlain)
+
+                // Prepare file part
+                val guarantorImage = uploadGuarantorDetailsReqBody.guarantorImage.toMultipartPart("guarantor_image")!!
+
+                // Make network call
+                val response = ApiClient.authService.uploadGuarantorDetails(
+                    bearerToken = bearerToken,
+                    guarantorFullName = fullName,
+                    guarantorRelationship = relationship,
+                    guarantorHouseAddress = houseAddress,
+                    guarantorCity = city,
+                    guarantorState = state,
+                    guarantorPhoneNumber = phoneNumber,
+                    guarantorEmail = email,
+                    referralCode = referralCode,
+                    sharpProgramType = sharpProgramType,
+                    guarantorImage = guarantorImage
+                )
+
+                if (response.status == "success") {
+                    uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Success(response)
+                } else {
+                    uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Error(response.message)
+                }
+
+            } catch (e: Exception) {
+                uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Error(
+                    e.message ?: "An unknown error occurred"
+                )
+                Log.e("DriverViewModel", "Error uploading guarantor details", e)
             }
         }
     }

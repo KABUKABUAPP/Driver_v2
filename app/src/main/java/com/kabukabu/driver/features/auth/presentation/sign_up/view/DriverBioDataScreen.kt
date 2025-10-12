@@ -42,7 +42,7 @@ import com.kabukabu.driver.components.ui.RowScopeFormTextfield
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.data.local.LocalDataSource
-import com.kabukabu.driver.features.auth.data.entity.req_body.DriverPersonalDetailsReqBody
+import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
 
@@ -194,7 +194,7 @@ fun DriverBioDataScreen(
 //                        carOwner = false,
 //                        carCategory = carCategory
 //                    )
-                    val driverBiodata = DriverPersonalDetailsReqBody(
+                    val driverBiodata = UploadPersonalDetailsReqBody(
                         fullName = "Olad djei",
                         phoneNumber = phoneNumber,
                         email = email,
