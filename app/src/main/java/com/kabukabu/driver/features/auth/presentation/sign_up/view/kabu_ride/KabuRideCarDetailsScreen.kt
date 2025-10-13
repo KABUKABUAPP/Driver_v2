@@ -69,7 +69,6 @@ import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
-import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDetailsUiState
 import java.io.File
 
@@ -136,7 +135,7 @@ fun KabuRideCarDetailsScreen(
             is UploadCarDetailsUiState.Success -> {
                 context.displayToastMessage(uploadCarDetailsUiState.response.message)
                 authViewModel.resetState()
-                navigator.navToKabuDocumentsUpload()
+                navigator.navToKabuRideCarDocsUpload()
             }
 
             is UploadCarDetailsUiState.Error -> {

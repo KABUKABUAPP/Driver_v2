@@ -129,6 +129,9 @@ fun AppNavigation() {
                         popUpTo(Screen.OtpVerification.route) { inclusive = true }
                     }
                 },
+                navToSelectVehicleScreen = {
+                    navController.navigate(Screen.SelectVehicleScreen.route)
+                },
                 navigator = navigation
             )
         }
@@ -163,7 +166,7 @@ fun AppNavigation() {
             KabuRideCarDetailsScreen(navigation)
         }
 
-        composable(Screen.KabuRideDocumentUpload.route) {
+        composable(Screen.KabuRideCarDocsUpload.route) {
             KabuRideCarDocumentsUploadScreen(navigation)
         }
 

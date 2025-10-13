@@ -36,31 +36,47 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.util.Log
 import com.kabukabu.driver.components.ui.displayToastMessage
+import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.navigation.Navigator
+import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import kotlinx.coroutines.flow.firstOrNull
 
 @Composable
 fun OtpVerificationScreen(
     email: String,
     navigateToDriverDetailsScreen: () -> Unit,
     onNavigateToHome: () -> Unit,
+    navToSelectVehicleScreen: () -> Unit,
     onNavigateToLogin: () -> Unit, // Added navigation back to login
     navigator: Navigator,
     viewModel: OtpViewModel = viewModel(),
-    loginViewModel: LoginViewModel = viewModel() // Add login view model for resending OTP
+    loginViewModel: LoginViewModel = viewModel() ,// Add login view model for resending OTP
+//    driverViewModel: DriverViewModel = viewModel()
 ) {
+
+//    val driverViewModel: DriverViewModel = viewModel()
+    val context = LocalContext.current
+    var onboardingStep: Int? = 1
     var otpValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue("", TextRange(0)))
     }
     var isError by remember { mutableStateOf(false) }
     val uiState = viewModel.uiState
-    val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
-    
+
     // Countdown timer state
     var secondsLeft by remember { mutableStateOf(15) }
     var isTimerRunning by remember { mutableStateOf(true) }
-    
+
+    // Request focus when the screen is first displayed
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+        onboardingStep = UserPreferences(context).onboardingStep.firstOrNull()
+    }
+
+
+
     // Start countdown timer
     LaunchedEffect(isTimerRunning) {
         if (isTimerRunning) {
@@ -89,7 +105,7 @@ fun OtpVerificationScreen(
             isError = true
         }
     }
-    
+
     // Function to resend OTP
     fun resendOtp() {
         loginViewModel.login(email)
@@ -113,7 +129,22 @@ fun OtpVerificationScreen(
                     Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
                 }else {
 //                    navigator.navToKabuRideGuarantorDetailsScreen()
-                    navigateToDriverDetailsScreen()
+                    when (onboardingStep) {
+                        1 -> {
+                            navigateToDriverDetailsScreen()
+                        }
+                        2 -> {
+                            navToSelectVehicleScreen()
+                        }
+                        3 -> {
+                            navigator.navToKabuRideCarDocsUpload()
+                        }
+                        4 -> {
+                            navigator.navToKabuRideGuarantorDetailsScreen()
+                        }
+                        else -> navigateToDriverDetailsScreen()
+
+                    }
                     context.displayToastMessage("Continue to Onboarding")
                 }
                 // Navigate to home
@@ -135,7 +166,7 @@ fun OtpVerificationScreen(
             }
         }
     }
-    
+
     // Handle login/resend OTP state
     LaunchedEffect(loginUiState) {
         when (loginUiState) {
@@ -154,10 +185,6 @@ fun OtpVerificationScreen(
         }
     }
 
-    // Request focus when the screen is first displayed
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(

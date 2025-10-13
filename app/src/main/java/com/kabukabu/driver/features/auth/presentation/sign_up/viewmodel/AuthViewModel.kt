@@ -33,16 +33,22 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val _carBrands = MutableStateFlow<List<String>>(emptyList())
     val carBrands: StateFlow<List<String>> = _carBrands.asStateFlow()
 
-    var onboardDriverBiodataUiState: OnboardDriverPersonalDetailsUiState by mutableStateOf(OnboardDriverPersonalDetailsUiState.Idle)
+
+
+    var onboardDriverBiodataUiState: OnboardDriverPersonalDetailsUiState by mutableStateOf(
+        OnboardDriverPersonalDetailsUiState.Idle
+    )
         private set
 
-  var uploadCarDetailsUiState: UploadCarDetailsUiState by mutableStateOf(UploadCarDetailsUiState.Idle)
+    var uploadCarDetailsUiState: UploadCarDetailsUiState by mutableStateOf(UploadCarDetailsUiState.Idle)
         private set
 
-  var uploadCarDocsUiState: UploadCarDocsUiState by mutableStateOf(UploadCarDocsUiState.Idle)
+    var uploadCarDocsUiState: UploadCarDocsUiState by mutableStateOf(UploadCarDocsUiState.Idle)
         private set
 
-  var uploadGuarantorDetailsUiState: UploadGuarantorDetailsUiState by mutableStateOf(UploadGuarantorDetailsUiState.Idle)
+    var uploadGuarantorDetailsUiState: UploadGuarantorDetailsUiState by mutableStateOf(
+        UploadGuarantorDetailsUiState.Idle
+    )
         private set
 
     init {
@@ -51,25 +57,29 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     //fetch car brands from firebase
     fun fetchCarBrands() {
-        val db = FirebaseFirestore.getInstance()
-        val reference = db.collection("carbrands").document("t9MZDmH3FWTg3KoKuXs3")
+        viewModelScope.launch(Dispatchers.IO) {
+            val db = FirebaseFirestore.getInstance()
+            val reference = db.collection("carbrands").document("t9MZDmH3FWTg3KoKuXs3")
 
-        reference.get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val brands = document.get("branditems") as? List<String>
-                    brands?.let {
-                        _carBrands.value = it
+            reference.get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val brands = document.get("branditems") as? List<String>
+                        brands?.let {
+                            _carBrands.value = it
+                        }
                     }
                 }
-            }
-            .addOnFailureListener { e ->
-                e.printStackTrace()
-            }
+                .addOnFailureListener { e ->
+                    e.printStackTrace()
+                }
+
+        }
+
     }
 
 
-    fun sendDriverBioData(driverPersonalDetailsReqBody: UploadPersonalDetailsReqBody) {
+    fun uploadDriverBioData(driverPersonalDetailsReqBody: UploadPersonalDetailsReqBody) {
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
@@ -90,14 +100,18 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     houseAddress = driverPersonalDetailsReqBody.houseAddress.toRequestBody(textPlain),
                     city = driverPersonalDetailsReqBody.city.toRequestBody(textPlain),
                     state = driverPersonalDetailsReqBody.state.toRequestBody(textPlain),
-                    carOwner = driverPersonalDetailsReqBody.carOwner.toString().toRequestBody(textPlain),
+                    carOwner = driverPersonalDetailsReqBody.carOwner.toString()
+                        .toRequestBody(textPlain),
                     carCategory = driverPersonalDetailsReqBody.carCategory.toRequestBody(textPlain)
                 )
 
                 if (response.status == "success") {
-                    onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Success(response)
+                    onboardDriverBiodataUiState =
+                        OnboardDriverPersonalDetailsUiState.Success(response)
+                    userPreferences.saveOnboardingStep(response.data.newUser.onboardingStep)
                 } else {
-                    onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(response.message)
+                    onboardDriverBiodataUiState =
+                        OnboardDriverPersonalDetailsUiState.Error(response.message)
                 }
 
             } catch (e: Exception) {
@@ -153,6 +167,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (response.status == "success") {
                     uploadCarDetailsUiState = UploadCarDetailsUiState.Success(response)
+                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
                 } else {
                     uploadCarDetailsUiState = UploadCarDetailsUiState.Error(response.message)
                 }
@@ -180,20 +195,32 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val textPlain = "text/plain".toMediaTypeOrNull()
 
                 // Prepare text parts
-                val driverLicenceNumber = uploadCarDocsReqBody.driverLicenceNumber.toRequestBody(textPlain)
-                val carInsuranceNumber = uploadCarDocsReqBody.carInsuranceNumber.toRequestBody(textPlain)
-                val vehicleLicenceNumber = uploadCarDocsReqBody.vehicleLicenceNumber.toRequestBody(textPlain)
-                val proofOfOwnershipNumber = uploadCarDocsReqBody.proofOfOwnershipNumber.toRequestBody(textPlain)
-                val roadWorthinessCertificationNumber = uploadCarDocsReqBody.roadWorthinessCertificationNumber.toRequestBody(textPlain)
-                val hackneyPermitNumber = uploadCarDocsReqBody.hackneyPermitNumber.toRequestBody(textPlain)
+                val driverLicenceNumber =
+                    uploadCarDocsReqBody.driverLicenceNumber.toRequestBody(textPlain)
+                val carInsuranceNumber =
+                    uploadCarDocsReqBody.carInsuranceNumber.toRequestBody(textPlain)
+                val vehicleLicenceNumber =
+                    uploadCarDocsReqBody.vehicleLicenceNumber.toRequestBody(textPlain)
+                val proofOfOwnershipNumber =
+                    uploadCarDocsReqBody.proofOfOwnershipNumber.toRequestBody(textPlain)
+                val roadWorthinessCertificationNumber =
+                    uploadCarDocsReqBody.roadWorthinessCertificationNumber.toRequestBody(textPlain)
+                val hackneyPermitNumber =
+                    uploadCarDocsReqBody.hackneyPermitNumber.toRequestBody(textPlain)
 
                 // Prepare file parts using the helper
-                val driverLicence = uploadCarDocsReqBody.driverLicence.toMultipartPart("driver_licence")
-                val vehicleLicence = uploadCarDocsReqBody.vehicleLicence.toMultipartPart("vehicle_licence")
-                val insuranceCertificate = uploadCarDocsReqBody.insuranceCertificate.toMultipartPart("insurance_certificate")
-                val proofOfOwnership = uploadCarDocsReqBody.proofOfOwnership.toMultipartPart("proof_of_ownership")
-                val roadWorthinessCertification = uploadCarDocsReqBody.roadWorthinessCertification.toMultipartPart("road_worthiness_certificate")
-                val hackneyPermit = uploadCarDocsReqBody.hackneyPermit.toMultipartPart("hackney_permit")
+                val driverLicence =
+                    uploadCarDocsReqBody.driverLicence.toMultipartPart("driver_licence")
+                val vehicleLicence =
+                    uploadCarDocsReqBody.vehicleLicence.toMultipartPart("vehicle_licence")
+                val insuranceCertificate =
+                    uploadCarDocsReqBody.insuranceCertificate.toMultipartPart("insurance_certificate")
+                val proofOfOwnership =
+                    uploadCarDocsReqBody.proofOfOwnership.toMultipartPart("proof_of_ownership")
+                val roadWorthinessCertification =
+                    uploadCarDocsReqBody.roadWorthinessCertification.toMultipartPart("road_worthiness_certificate")
+                val hackneyPermit =
+                    uploadCarDocsReqBody.hackneyPermit.toMultipartPart("hackney_permit")
 
                 // Make network call
                 val response = ApiClient.authService.uploadCarDocs(
@@ -214,6 +241,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (response.status == "success") {
                     uploadCarDocsUiState = UploadCarDocsUiState.Success(response)
+                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
+
                 } else {
                     uploadCarDocsUiState = UploadCarDocsUiState.Error(response.status)
                 }
@@ -241,18 +270,25 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val textPlain = "text/plain".toMediaTypeOrNull()
 
                 // Prepare text parts
-                val fullName = uploadGuarantorDetailsReqBody.guarantorFullName.toRequestBody(textPlain)
-                val relationship = uploadGuarantorDetailsReqBody.guarantorRelationship.toRequestBody(textPlain)
-                val houseAddress = uploadGuarantorDetailsReqBody.guarantorHouseAddress.toRequestBody(textPlain)
+                val fullName =
+                    uploadGuarantorDetailsReqBody.guarantorFullName.toRequestBody(textPlain)
+                val relationship =
+                    uploadGuarantorDetailsReqBody.guarantorRelationship.toRequestBody(textPlain)
+                val houseAddress =
+                    uploadGuarantorDetailsReqBody.guarantorHouseAddress.toRequestBody(textPlain)
                 val city = uploadGuarantorDetailsReqBody.guarantorCity.toRequestBody(textPlain)
                 val state = uploadGuarantorDetailsReqBody.guarantorState.toRequestBody(textPlain)
-                val phoneNumber = uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain)
+                val phoneNumber =
+                    uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain)
                 val email = uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain)
-                val referralCode = uploadGuarantorDetailsReqBody.referralCode?.toRequestBody(textPlain)
-                val sharpProgramType = uploadGuarantorDetailsReqBody.sharpProgramType?.toRequestBody(textPlain)
+                val referralCode =
+                    uploadGuarantorDetailsReqBody.referralCode?.toRequestBody(textPlain)
+                val sharpProgramType =
+                    uploadGuarantorDetailsReqBody.sharpProgramType?.toRequestBody(textPlain)
 
                 // Prepare file part
-                val guarantorImage = uploadGuarantorDetailsReqBody.guarantorImage.toMultipartPart("guarantor_image")!!
+                val guarantorImage =
+                    uploadGuarantorDetailsReqBody.guarantorImage.toMultipartPart("guarantor_image")!!
 
                 // Make network call
                 val response = ApiClient.authService.uploadGuarantorDetails(
@@ -269,8 +305,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     guarantorImage = guarantorImage
                 )
 
-                uploadGuarantorDetailsUiState = if (response.status == "success") {
+                if (response.status == "success") {
                     UploadGuarantorDetailsUiState.Success(response)
+                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
                 } else {
                     UploadGuarantorDetailsUiState.Error(response.status)
                 }
@@ -283,7 +320,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-
 
 
     fun resetState() {
