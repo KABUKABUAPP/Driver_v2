@@ -129,7 +129,12 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    fun updateUserImage(imageFile: File) {
+    fun updateUserImage(imageFile: File?) {
+        if (imageFile == null) {
+            Log.e("ProfileViewModel", "Image file is null, skipping upload.")
+            return
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
@@ -383,6 +388,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         uploadCarDetailsUiState = UploadCarDetailsUiState.Idle
         uploadCarDocsUiState = UploadCarDocsUiState.Idle
         uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Idle
+        editDriverProfileUiState = EditDriverProfileUiState.Idle
     }
 
 

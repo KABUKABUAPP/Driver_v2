@@ -15,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,19 +24,52 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.kabukabu.driver.components.ui.CameraXCaptureImage
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.ScreenTitleText
+import com.kabukabu.driver.components.ui.displayToastMessage
+import com.kabukabu.driver.components.utils_functions.convertUriToFile
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.EditDriverProfileUiState
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadGuarantorDetailsUiState
+
 @Composable
 fun KabuRideSelfieVerificationScreen(
-    onNavToTermsAndCondition: () -> Unit
-) {
+    onNavToTermsAndCondition: () -> Unit,
+    authViewModel: AuthViewModel = viewModel()
+    ) {
+
+    val uiState = authViewModel.editDriverProfileUiState
+    val context = LocalContext.current
+
     var selfieUri by remember { mutableStateOf<Uri?>(null) }
     var photoError by remember { mutableStateOf<String?>(null) }
     var isCapturing by remember { mutableStateOf(true) }
+
+
+    LaunchedEffect(uiState) {
+        when (uiState) {
+            is EditDriverProfileUiState.Success -> {
+                context.displayToastMessage(uiState.response.message)
+                authViewModel.resetState()
+                onNavToTermsAndCondition()
+
+            }
+
+            is EditDriverProfileUiState.Error -> {
+                context.displayToastMessage(uiState.message)
+                authViewModel.resetState()
+            }
+
+            else -> {}
+        }
+    }
+
 
     Scaffold { paddingValues ->
         Column(
@@ -45,14 +79,12 @@ fun KabuRideSelfieVerificationScreen(
                 .padding(horizontal = 16.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // --- Top Section: Titles ---
             ScreenTitleText(
                 title = "Verification",
                 subtitle = "Let's put a face to your name",
                 bottomPadding = 16
             )
 
-            // --- Camera / Preview Section ---
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -71,7 +103,6 @@ fun KabuRideSelfieVerificationScreen(
                         cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
                     )
                 } else {
-                    // Show captured image
                     Image(
                         painter = rememberAsyncImagePainter(selfieUri),
                         contentDescription = "Captured Selfie",
@@ -80,31 +111,17 @@ fun KabuRideSelfieVerificationScreen(
                     )
                 }
 
-                // Optional: show error
                 photoError?.let { Text(it, color = Color.Red) }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Capture / Retake Button ---
-//            Button(
-//                onClick = {
-//                    if (selfieUri != null) {
-//                        selfieUri = null // Retake
-//                        isCapturing = true
-//                    } else {
-//                        // No-op, capture happens automatically in CameraXCaptureImage
-//                    }
-//                },
-//                modifier = Modifier.padding(top = 8.dp)
-//            ) {
-//                Text(if (selfieUri != null) "Retake Selfie" else "Capture Selfie")
-//            }
-
-            // --- Continue Button ---
             KabuBottomButton(
                 text = "Continue",
-                onClick = onNavToTermsAndCondition,
+                isLoading = uiState == EditDriverProfileUiState.Loading,
+                onClick = {
+                    authViewModel.updateUserImage(convertUriToFile(context, selfieUri))
+                },
                 enabled = selfieUri != null
             )
         }
