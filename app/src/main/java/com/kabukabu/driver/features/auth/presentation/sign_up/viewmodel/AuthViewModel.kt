@@ -306,10 +306,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 )
 
                 if (response.status == "success") {
-                    UploadGuarantorDetailsUiState.Success(response)
+                    uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Success(response)
                     userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
                 } else {
-                    UploadGuarantorDetailsUiState.Error(response.status)
+                    uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Error(response.status)
                 }
 
             } catch (e: Exception) {
