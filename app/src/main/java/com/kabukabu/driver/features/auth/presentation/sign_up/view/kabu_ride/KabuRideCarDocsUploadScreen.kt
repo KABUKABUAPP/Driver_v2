@@ -78,12 +78,12 @@ fun KabuRideCarDocumentsUploadScreen(
     var launchCamera by remember { mutableStateOf(false) }
     var isPreviewVisible by remember { mutableStateOf(true) }
 
-    var vehicleLicense by remember { mutableStateOf("") }
-    var driverLicense by remember { mutableStateOf("") }
-    var insuranceNumber by remember { mutableStateOf("") }
-    var proofOfOwnershipNumber by remember { mutableStateOf("") }
-    var roadWorthinessNumber by remember { mutableStateOf("") }
-    var hackneyPermitNumber by remember { mutableStateOf("") }
+    var vehicleLicense by remember { mutableStateOf(null) }
+    var driverLicense by remember { mutableStateOf(null) }
+    var insuranceNumber by remember { mutableStateOf(null) }
+    var proofOfOwnershipNumber by remember { mutableStateOf(null) }
+    var roadWorthinessNumber by remember { mutableStateOf(null) }
+    var hackneyPermitNumber by remember { mutableStateOf(null) }
 
     LaunchedEffect(uploadCarDocsUiState) {
         when (uploadCarDocsUiState) {
@@ -179,12 +179,12 @@ fun KabuRideCarDocumentsUploadScreen(
                     )
 
 
-                    FormTextfield(
-                        title = "Vehicle License Number",
-                        value = vehicleLicense,
-                        hintText = "ABC1234567",
-                        onTextChanged = { vehicleLicense = it}
-                    )
+//                    FormTextfield(
+//                        title = "Vehicle License Number",
+//                        value = vehicleLicense,
+//                        hintText = "ABC1234567",
+//                        onTextChanged = { vehicleLicense = it}
+//                    )
 
                     CaptureDocumentItem(
                         title = "Driver’s License",
@@ -196,12 +196,12 @@ fun KabuRideCarDocumentsUploadScreen(
                         }
                     )
 
-                    FormTextfield(
-                        title = "Driver's License Number",
-                        value = driverLicense,
-                        hintText = "ABC1234567",
-                        onTextChanged = { driverLicense = it }
-                    )
+//                    FormTextfield(
+//                        title = "Driver's License Number",
+//                        value = driverLicense,
+//                        hintText = "ABC1234567",
+//                        onTextChanged = { driverLicense = it }
+//                    )
 
                     CaptureDocumentItem(
                         title = "Insurance Certificate",
@@ -213,12 +213,12 @@ fun KabuRideCarDocumentsUploadScreen(
                         }
                     )
 
-                    FormTextfield(
-                        title = "Insurance Certificate Number",
-                        value = insuranceNumber,
-                        hintText = "ABC1234567",
-                        onTextChanged = { insuranceNumber = it }
-                    )
+//                    FormTextfield(
+//                        title = "Insurance Certificate Number",
+//                        value = insuranceNumber,
+//                        hintText = "ABC1234567",
+//                        onTextChanged = { insuranceNumber = it }
+//                    )
 
                     CaptureDocumentItem(
                         title = "Proof of Ownership",
@@ -229,13 +229,13 @@ fun KabuRideCarDocumentsUploadScreen(
                             launchCamera = true }
                     )
 
-                    FormTextfield(
-                        title = "Proof of Ownership Number",
-                        value = proofOfOwnershipNumber,
-                        hintText = "ABC1234567",
-                        isCompulsory = false,
-                        onTextChanged = { proofOfOwnershipNumber = it }
-                    )
+//                    FormTextfield(
+//                        title = "Proof of Ownership Number",
+//                        value = proofOfOwnershipNumber,
+//                        hintText = "ABC1234567",
+//                        isCompulsory = false,
+//                        onTextChanged = { proofOfOwnershipNumber = it }
+//                    )
 
                     CaptureDocumentItem(
                         title = "Road Worthiness Certificate",
@@ -246,13 +246,13 @@ fun KabuRideCarDocumentsUploadScreen(
                             launchCamera = true }
                     )
 
-                    FormTextfield(
-                        title = "Road Worthiness Certificate",
-                        value = roadWorthinessNumber,
-                        hintText = "ABC1234567",
-                        isCompulsory = false,
-                        onTextChanged = { roadWorthinessNumber = it }
-                    )
+//                    FormTextfield(
+//                        title = "Road Worthiness Certificate",
+//                        value = roadWorthinessNumber,
+//                        hintText = "ABC1234567",
+//                        isCompulsory = false,
+//                        onTextChanged = { roadWorthinessNumber = it }
+//                    )
 
                     CaptureDocumentItem(
                         title = "Hackney Permit",
@@ -264,20 +264,20 @@ fun KabuRideCarDocumentsUploadScreen(
                             launchCamera = true }
                     )
 
-                    TitleText(
-                        "Tap to reupload",
-                        color = Color.Gray,
-                        fontWeight = FontWeight.W500
-                    )
+//                    TitleText(
+//                        "Tap to reupload",
+//                        color = Color.Gray,
+//                        fontWeight = FontWeight.W500
+//                    )
 
-                    FormTextfield(
-                        title = "Hackney Permit Number",
-                        value = hackneyPermitNumber,
-                        hintText = "Doc-IMHG-0088",
-                        isCompulsory = false,
-                        imeAction = ImeAction.Done,
-                        onTextChanged = { hackneyPermitNumber = it }
-                    )
+//                    FormTextfield(
+//                        title = "Hackney Permit Number",
+//                        value = hackneyPermitNumber,
+//                        hintText = "Doc-IMHG-0088",
+//                        isCompulsory = false,
+//                        imeAction = ImeAction.Done,
+//                        onTextChanged = { hackneyPermitNumber = it }
+//                    )
                 }
 
                 Row(

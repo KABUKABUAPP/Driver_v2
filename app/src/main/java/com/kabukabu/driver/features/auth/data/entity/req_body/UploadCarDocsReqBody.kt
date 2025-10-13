@@ -6,12 +6,12 @@ import java.io.File
 
 @JsonClass(generateAdapter = true)
 data class UploadCarDocsReqBody(
-    @Json(name = "driver_licence_number") val driverLicenceNumber: String,
-    @Json(name = "car_insurance_number") val carInsuranceNumber: String,
-    @Json(name = "vehicle_licence_number") val vehicleLicenceNumber: String,
-    @Json(name = "proof_of_ownership_number") val proofOfOwnershipNumber: String,
-    @Json(name = "road_worthiness_certification_number") val roadWorthinessCertificationNumber: String,
-    @Json(name = "hackney_permit_number") val hackneyPermitNumber: String,
+    @Json(name = "driver_licence_number") val driverLicenceNumber: String?=null,
+    @Json(name = "car_insurance_number") val carInsuranceNumber: String?=null,
+    @Json(name = "vehicle_licence_number") val vehicleLicenceNumber: String?=null,
+    @Json(name = "proof_of_ownership_number") val proofOfOwnershipNumber: String?=null,
+    @Json(name = "road_worthiness_certification_number") val roadWorthinessCertificationNumber: String?=null,
+    @Json(name = "hackney_permit_number") val hackneyPermitNumber: String?=null,
 
     @Json(name = "driver_licence") val driverLicence: File?,
     @Json(name = "vehicle_licence") val vehicleLicence: File?,

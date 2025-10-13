@@ -96,12 +96,12 @@ interface ApiService {
     @POST("auth/driver-onboard-three")
     suspend fun uploadCarDocs(
         @Header("Authorization") bearerToken: String,
-        @Part("driver_licence_number") driverLicenceNumber: RequestBody,
-        @Part("car_insurance_number") carInsuranceNumber: RequestBody,
-        @Part("vehicle_licence_number") vehicleLicenceNumber: RequestBody,
-        @Part("proof_of_ownership_number") proofOfOwnershipNumber: RequestBody,
-        @Part("road_worthiness_certification_number") roadWorthinessCertificationNumber: RequestBody,
-        @Part("hackney_permit_number") hackneyPermitNumber: RequestBody,
+        @Part("driver_licence_number") driverLicenceNumber: RequestBody?,
+        @Part("car_insurance_number") carInsuranceNumber: RequestBody?,
+        @Part("vehicle_licence_number") vehicleLicenceNumber: RequestBody?,
+        @Part("proof_of_ownership_number") proofOfOwnershipNumber: RequestBody?,
+        @Part("road_worthiness_certification_number") roadWorthinessCertificationNumber: RequestBody?,
+        @Part("hackney_permit_number") hackneyPermitNumber: RequestBody?,
         @Part driverLicence: MultipartBody.Part,
         @Part vehicleLicence: MultipartBody.Part,
         @Part insuranceCertificate: MultipartBody.Part,

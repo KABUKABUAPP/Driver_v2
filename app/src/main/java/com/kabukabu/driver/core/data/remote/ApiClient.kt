@@ -10,6 +10,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 object ApiClient {
     private const val BASE_URL = "https://rideservice-dev.up.railway.app/"
+    private const val HUB_BASE_URL = "https://hubservice.up.railway.app/"
     private const val API_KEY = "3yBrArNb838bdyIPpLith6dpr0NHCcc66J4AR313"
 
     val moshi: Moshi = Moshi.Builder()
@@ -38,6 +39,12 @@ object ApiClient {
         .client(httpClient)
         .build()
 
+    private val hubRetrofit = Retrofit.Builder()
+        .baseUrl(HUB_BASE_URL)
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .client(httpClient)
+        .build()
+
     val authService: ApiService by lazy {
         retrofit.create(ApiService::class.java)
     }
@@ -45,4 +52,5 @@ object ApiClient {
     val rideService: ApiService by lazy {
         retrofit.create(ApiService::class.java)
     }
+
 } 

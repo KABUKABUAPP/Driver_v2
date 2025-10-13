@@ -46,13 +46,14 @@ fun OtpVerificationScreen(
     email: String,
     navigateToDriverDetailsScreen: () -> Unit,
     onNavigateToHome: () -> Unit,
+    navToSelfieScreen: () -> Unit,
     navToSelectVehicleScreen: () -> Unit,
     onNavigateToLogin: () -> Unit, // Added navigation back to login
     navigator: Navigator,
     viewModel: OtpViewModel = viewModel(),
-    loginViewModel: LoginViewModel = viewModel() ,// Add login view model for resending OTP
+    loginViewModel: LoginViewModel = viewModel(),// Add login view model for resending OTP
 //    driverViewModel: DriverViewModel = viewModel()
-) {
+    ) {
 
 //    val driverViewModel: DriverViewModel = viewModel()
     val context = LocalContext.current
@@ -66,15 +67,15 @@ fun OtpVerificationScreen(
     val coroutineScope = rememberCoroutineScope()
 
     // Countdown timer state
-    var secondsLeft by remember { mutableStateOf(15) }
+    var secondsLeft by remember { mutableIntStateOf(15) }
     var isTimerRunning by remember { mutableStateOf(true) }
 
     // Request focus when the screen is first displayed
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
         onboardingStep = UserPreferences(context).onboardingStep.firstOrNull()
+        println("current onboaring step is..........${UserPreferences(context).onboardingStep.firstOrNull()}")
     }
-
 
 
     // Start countdown timer
@@ -127,22 +128,41 @@ fun OtpVerificationScreen(
                 if (uiState.response.data?.loggedInUser?.isOnboardingComplete == true) {
                     onNavigateToHome()
                     Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
-                }else {
+                } else {
 //                    navigator.navToKabuRideGuarantorDetailsScreen()
                     when (onboardingStep) {
-                        1 -> {
+                        0 -> {
                             navigateToDriverDetailsScreen()
                         }
+
                         2 -> {
-                            navToSelectVehicleScreen()
+                            navToSelfieScreen()
+//                            navToSelectVehicleScreen()
+//                            navigateToDriverDetailsScreen()
                         }
+
                         3 -> {
+                            navigator.navToKabuRideCarDetails()
+                        }
+
+                        4 -> {
                             navigator.navToKabuRideCarDocsUpload()
                         }
-                        4 -> {
+
+                        5 -> {
                             navigator.navToKabuRideGuarantorDetailsScreen()
                         }
-                        else -> navigateToDriverDetailsScreen()
+
+                        6 -> {
+                            navigator.navToKabuRidePendingAccountApprovalScreen()
+                        }
+
+                        else -> {
+                            println("onboarding step is....$onboardingStep")
+                            navigateToDriverDetailsScreen()
+//                            navigator.navToKabuRideGuarantorDetailsScreen()
+
+                        }
 
                     }
                     context.displayToastMessage("Continue to Onboarding")
@@ -153,14 +173,20 @@ fun OtpVerificationScreen(
                 delay(1000)
                 viewModel.resetState()
             }
+
             is OtpUiState.Error -> {
                 Log.e("OtpVerificationScreen", "Error state: ${uiState.message}")
                 Toast.makeText(context, uiState.message, Toast.LENGTH_SHORT).show()
-                if (uiState.message.contains("Proceed to Complete driver  Registration", ignoreCase = true)) {
+                if (uiState.message.contains(
+                        "Proceed to Complete driver  Registration",
+                        ignoreCase = true
+                    )
+                ) {
                     navigateToDriverDetailsScreen()
                 }
                 viewModel.resetState()
             }
+
             else -> {
                 Log.d("OtpVerificationScreen", "Other state: $uiState")
             }
@@ -174,13 +200,20 @@ fun OtpVerificationScreen(
                 Toast.makeText(context, "OTP resent successfully", Toast.LENGTH_SHORT).show()
                 loginViewModel.resetState()
             }
+
             is LoginUiState.Error -> {
-                Toast.makeText(context, "Failed to resend OTP: ${loginUiState.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    "Failed to resend OTP: ${loginUiState.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
                 loginViewModel.resetState()
             }
+
             is LoginUiState.Loading -> {
                 // Show loading state for resend if needed
             }
+
             else -> {}
         }
     }
@@ -210,7 +243,7 @@ fun OtpVerificationScreen(
                     textAlign = TextAlign.Start,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                
+
                 Text(
                     text = "An OTP has been sent to $email\nEnter the code to validate your number",
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -230,7 +263,7 @@ fun OtpVerificationScreen(
                     if (newValue.text.length <= 4 && newValue.text.all { it.isDigit() }) {
                         otpValue = newValue.copy(selection = TextRange(newValue.text.length))
                         isError = false
-                        
+
                         // Auto-submit when 4 digits are entered
                         if (newValue.text.length == 4) {
                             coroutineScope.launch {
@@ -257,7 +290,7 @@ fun OtpVerificationScreen(
                         repeat(4) { index ->
                             val char = otpValue.text.getOrNull(index)?.toString() ?: ""
                             val isFocused = otpValue.text.length == index
-                            
+
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
@@ -284,7 +317,7 @@ fun OtpVerificationScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onBackground
                                 )
-                                
+
                                 // Show cursor indicator
                                 if (isFocused) {
                                     Box(
@@ -297,7 +330,7 @@ fun OtpVerificationScreen(
                             }
                         }
                     }
-                    
+
                     // Hide the actual text field by placing it in a zero-sized box
                     Box(modifier = Modifier.size(0.dp)) {
                         innerTextField()
@@ -313,7 +346,7 @@ fun OtpVerificationScreen(
                     modifier = Modifier.padding(top = 8.dp, start = 4.dp)
                 )
             }
-            
+
             // Resend Code Button with countdown
             Box(
                 contentAlignment = Alignment.Center,

@@ -113,7 +113,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 if (response.status == "success") {
                     onboardDriverBiodataUiState =
                         OnboardDriverPersonalDetailsUiState.Success(response)
-                    userPreferences.saveOnboardingStep(response.data.newUser.onboardingStep)
+//                    userPreferences.saveOnboardingStep(response.data.newUser.onboardingStep)
+                    userPreferences.saveOnboardingStep(2)
                 } else {
                     onboardDriverBiodataUiState =
                         OnboardDriverPersonalDetailsUiState.Error(response.message)
@@ -170,6 +171,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (response.status == "success") {
                     editDriverProfileUiState = EditDriverProfileUiState.Success(response)
+                    userPreferences.saveOnboardingStep(3)
+//                    userPreferences.saveOnboardingStep(response.data.editedUser.onboardingStep)
                 } else {
                     editDriverProfileUiState = EditDriverProfileUiState.Error(response.message)
                 }
@@ -227,7 +230,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (response.status == "success") {
                     uploadCarDetailsUiState = UploadCarDetailsUiState.Success(response)
-                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
+                    userPreferences.saveOnboardingStep(4)
+//                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
                 } else {
                     uploadCarDetailsUiState = UploadCarDetailsUiState.Error(response.message)
                 }
@@ -256,17 +260,17 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
                 // Prepare text parts
                 val driverLicenceNumber =
-                    uploadCarDocsReqBody.driverLicenceNumber.toRequestBody(textPlain)
+                    uploadCarDocsReqBody.driverLicenceNumber?.toRequestBody(textPlain)
                 val carInsuranceNumber =
-                    uploadCarDocsReqBody.carInsuranceNumber.toRequestBody(textPlain)
+                    uploadCarDocsReqBody.carInsuranceNumber?.toRequestBody(textPlain)
                 val vehicleLicenceNumber =
-                    uploadCarDocsReqBody.vehicleLicenceNumber.toRequestBody(textPlain)
+                    uploadCarDocsReqBody.vehicleLicenceNumber?.toRequestBody(textPlain)
                 val proofOfOwnershipNumber =
-                    uploadCarDocsReqBody.proofOfOwnershipNumber.toRequestBody(textPlain)
+                    uploadCarDocsReqBody.proofOfOwnershipNumber?.toRequestBody(textPlain)
                 val roadWorthinessCertificationNumber =
-                    uploadCarDocsReqBody.roadWorthinessCertificationNumber.toRequestBody(textPlain)
+                    uploadCarDocsReqBody.roadWorthinessCertificationNumber?.toRequestBody(textPlain)
                 val hackneyPermitNumber =
-                    uploadCarDocsReqBody.hackneyPermitNumber.toRequestBody(textPlain)
+                    uploadCarDocsReqBody.hackneyPermitNumber?.toRequestBody(textPlain)
 
                 // Prepare file parts using the helper
                 val driverLicence =
@@ -301,7 +305,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (response.status == "success") {
                     uploadCarDocsUiState = UploadCarDocsUiState.Success(response)
-                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
+                    userPreferences.saveOnboardingStep(5)
+
+//                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
 
                 } else {
                     uploadCarDocsUiState = UploadCarDocsUiState.Error(response.status)
@@ -367,7 +373,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (response.status == "success") {
                     uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Success(response)
-                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
+                    userPreferences.saveOnboardingStep(6)
+//                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
                 } else {
                     uploadGuarantorDetailsUiState =
                         UploadGuarantorDetailsUiState.Error(response.status)

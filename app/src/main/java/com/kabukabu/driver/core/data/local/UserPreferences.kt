@@ -94,9 +94,9 @@ class UserPreferences(private val context: Context) {
         }
     }
 
-    suspend fun saveOnboardingStep(stage: Int) {
+    suspend fun saveOnboardingStep(step: Int) {
         context.dataStore.edit { preferences ->
-            preferences[ONBOARDING_STAGE] = stage
+            preferences[ONBOARDING_STAGE] = step
         }
     }
 
