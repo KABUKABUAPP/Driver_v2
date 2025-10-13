@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,16 +41,22 @@ import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.TitleText
+import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.ui.getThirtyPercentOfScreenWidth
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SelectVehicleScreen(
     onNavToTermsAndCondition: () -> Unit,
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = koinViewModel()
 ) {
+
+    val driverUiState = authViewModel.onboardDriverBiodataUiState
+    val context = LocalContext.current
 
     val userDetails = authViewModel.personalDetailsReqBody.collectAsState().value
 
@@ -56,8 +64,21 @@ fun SelectVehicleScreen(
     var selectedCar by remember { mutableStateOf<Boolean?>(null) }
 
 
-//    onNavToTermsAndCondition
+    LaunchedEffect(driverUiState) {
+        when (driverUiState) {
+            is OnboardDriverPersonalDetailsUiState.Success -> {
+                context.displayToastMessage(driverUiState.response.message)
+                authViewModel.resetState()
+                onNavToTermsAndCondition()
+            }
 
+            is OnboardDriverPersonalDetailsUiState.Error -> {
+                context.displayToastMessage(driverUiState.message)
+                authViewModel.resetState()
+            }
+            else -> {}
+        }
+    }
 
     Scaffold { paddingValues ->
         Column(
@@ -110,7 +131,7 @@ fun SelectVehicleScreen(
                             selectedCar = it
                         },
                     )
-                } else if (hasVehicle == false) {
+                } else if (hasVehicle == false && selectedCar == false) {
                     TitleText(
                         "You will be enrolled in the Sharp application, once \n you qualify, a car will be presented to you",
                         maxLines = 2,
@@ -130,7 +151,7 @@ fun SelectVehicleScreen(
                         fontWeight = FontWeight.W400,
                         topPadding = 30
                     )
-                } else if (selectedCar == false) {
+                } else if (selectedCar == false && hasVehicle == false) {
                     TitleText(
                         "Driving your keke on Kabukabu enrols you \n to the KabuKeke family",
                         maxLines = 2,
@@ -151,11 +172,11 @@ fun SelectVehicleScreen(
                         fullName = userDetails?.fullName ?: "",
                         phoneNumber = userDetails?.phoneNumber ?: "",
                         email = userDetails?.email ?: "",
-                        houseAddress = userDetails.houseAddress ?: "",
-                        city = userDetails.city ?: "",
-                        state = userDetails.state ?: "",
+                        houseAddress = userDetails?.houseAddress ?: "",
+                        city = userDetails?.city ?: "",
+                        state = userDetails?.state ?: "",
                         carOwner = hasVehicle,
-                        carCategory = "REGULAR"
+                        carCategory = userDetails?.carCategory ?: "REGULAR"
                     )
 
                     authViewModel.uploadDriverBioData(driverPersonalDetailsReqBody = driverBiodata)

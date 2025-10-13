@@ -74,7 +74,7 @@ fun OtpVerificationScreen(
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
         onboardingStep = UserPreferences(context).onboardingStep.firstOrNull()
-        println("current onboaring step is..........${UserPreferences(context).onboardingStep.firstOrNull()}")
+        println("current onboarding step is..........${UserPreferences(context).onboardingStep.firstOrNull()}")
     }
 
 

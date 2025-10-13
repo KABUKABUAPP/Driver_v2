@@ -132,6 +132,9 @@ fun AppNavigation() {
                 navToSelectVehicleScreen = {
                     navController.navigate(Screen.SelectVehicleScreen.route)
                 },
+                navToSelfieScreen = {
+                    navController.navigate(Screen.KabuRideSelfieVerificationScreen.route)
+                },
                 navigator = navigation
             )
         }

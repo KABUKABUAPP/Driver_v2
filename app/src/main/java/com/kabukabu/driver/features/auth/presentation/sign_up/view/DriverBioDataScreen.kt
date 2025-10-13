@@ -45,15 +45,16 @@ import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
 fun DriverBioDataScreen(
     navToSelectVehicleScreen: () -> Unit,
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = koinViewModel()
 ) {
-    val driverUiState = authViewModel.onboardDriverBiodataUiState
-    val context = LocalContext.current
+//    val driverUiState = authViewModel.onboardDriverBiodataUiState
+//    val context = LocalContext.current
 
     var showStateSheet by remember { mutableStateOf(false) }
     var showCarCategorySheet by remember { mutableStateOf(false) }
@@ -66,21 +67,21 @@ fun DriverBioDataScreen(
     var state by remember { mutableStateOf("") }
     var carCategory by remember { mutableStateOf("") }
 
-    LaunchedEffect(driverUiState) {
-        when (driverUiState) {
-            is OnboardDriverPersonalDetailsUiState.Success -> {
-                context.displayToastMessage(driverUiState.response.message)
-              authViewModel.resetState()
-                navToSelectVehicleScreen()
-            }
-
-            is OnboardDriverPersonalDetailsUiState.Error -> {
-                context.displayToastMessage(driverUiState.message)
-                authViewModel.resetState()
-            }
-            else -> {}
-        }
-    }
+//    LaunchedEffect(driverUiState) {
+//        when (driverUiState) {
+//            is OnboardDriverPersonalDetailsUiState.Success -> {
+//                context.displayToastMessage(driverUiState.response.message)
+//              authViewModel.resetState()
+//                navToSelectVehicleScreen()
+//            }
+//
+//            is OnboardDriverPersonalDetailsUiState.Error -> {
+//                context.displayToastMessage(driverUiState.message)
+//                authViewModel.resetState()
+//            }
+//            else -> {}
+//        }
+//    }
 
 
     if (showStateSheet) {
@@ -183,17 +184,29 @@ fun DriverBioDataScreen(
                 isLoading = authViewModel.onboardDriverBiodataUiState ==
                     OnboardDriverPersonalDetailsUiState.Loading,
                 onClick = {
+
                     val driverBiodata = UploadPersonalDetailsReqBody(
-                        fullName = fullName,
+                        fullName = "Olad djei",
                         phoneNumber = phoneNumber,
                         email = email,
-                        houseAddress = houseAddress,
-                        city = city,
-                        state = state,
+                        houseAddress = "Isolo",
+                        city = "Leventis",
+                        state = "Lagos",
                         carOwner = false,
-                        carCategory = carCategory
+                        carCategory = "REGULAR"
                     )
 
+//                    val driverBiodata = UploadPersonalDetailsReqBody(
+//                        fullName = fullName,
+//                        phoneNumber = phoneNumber,
+//                        email = email,
+//                        houseAddress = houseAddress,
+//                        city = city,
+//                        state = state,
+//                        carOwner = false,
+//                        carCategory = carCategory
+//                    )
+                    //persist values locally before navigating
                     authViewModel.setUploadUserDetailsReqBody(driverBiodata)
                     navToSelectVehicleScreen()
                 }
