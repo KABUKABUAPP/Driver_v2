@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,19 +34,29 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.getThirtyPercentOfScreenWidth
+import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
+import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 
 @Composable
 fun SelectVehicleScreen(
-    onNavToTermsAndCondition: () -> Unit
+    onNavToTermsAndCondition: () -> Unit,
+    authViewModel: AuthViewModel = viewModel()
 ) {
+
+    val userDetails = authViewModel.personalDetailsReqBody.collectAsState().value
 
     var hasVehicle by remember { mutableStateOf<Boolean?>(null) }
     var selectedCar by remember { mutableStateOf<Boolean?>(null) }
+
+
+//    onNavToTermsAndCondition
 
 
     Scaffold { paddingValues ->
@@ -134,7 +145,22 @@ fun SelectVehicleScreen(
 
             KabuBottomButton(
                 text = "Continue",
-                onClick = onNavToTermsAndCondition
+                onClick = {
+
+                    val driverBiodata = UploadPersonalDetailsReqBody(
+                        fullName = userDetails?.fullName ?: "",
+                        phoneNumber = userDetails?.phoneNumber ?: "",
+                        email = userDetails?.email ?: "",
+                        houseAddress = userDetails.houseAddress ?: "",
+                        city = userDetails.city ?: "",
+                        state = userDetails.state ?: "",
+                        carOwner = hasVehicle,
+                        carCategory = "REGULAR"
+                    )
+
+                    authViewModel.uploadDriverBioData(driverPersonalDetailsReqBody = driverBiodata)
+
+                }
             )
         }
     }

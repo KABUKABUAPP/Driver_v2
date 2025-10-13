@@ -52,7 +52,6 @@ fun DriverBioDataScreen(
     navToSelectVehicleScreen: () -> Unit,
     authViewModel: AuthViewModel = viewModel()
 ) {
-
     val driverUiState = authViewModel.onboardDriverBiodataUiState
     val context = LocalContext.current
 
@@ -184,29 +183,19 @@ fun DriverBioDataScreen(
                 isLoading = authViewModel.onboardDriverBiodataUiState ==
                     OnboardDriverPersonalDetailsUiState.Loading,
                 onClick = {
-//                    val driverBiodata = DriverPersonalDetailsReqBody(
-//                        fullName = fullName,
-//                        phoneNumber = phoneNumber,
-//                        email = email,
-//                        houseAddress = houseAddress,
-//                        city = city,
-//                        state = state,
-//                        carOwner = false,
-//                        carCategory = carCategory
-//                    )
                     val driverBiodata = UploadPersonalDetailsReqBody(
-                        fullName = "Olad djei",
+                        fullName = fullName,
                         phoneNumber = phoneNumber,
                         email = email,
-                        houseAddress = "Isolo",
-                        city = "Leventis",
-                        state = "Lagos",
+                        houseAddress = houseAddress,
+                        city = city,
+                        state = state,
                         carOwner = false,
-                        carCategory = "REGULAR"
+                        carCategory = carCategory
                     )
-                    authViewModel.uploadDriverBioData(driverPersonalDetailsReqBody = driverBiodata)
-//                    navToSelectVehicleScreen()
 
+                    authViewModel.setUploadUserDetailsReqBody(driverBiodata)
+                    navToSelectVehicleScreen()
                 }
             )
         }

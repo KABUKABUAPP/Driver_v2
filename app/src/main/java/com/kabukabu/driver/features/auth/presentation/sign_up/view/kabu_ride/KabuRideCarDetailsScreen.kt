@@ -301,7 +301,6 @@ fun KabuRideCarDetailsScreen(
                             carPlateNumber = plateNumber,
                             carImages = imagesFileList
                         )
-
                         authViewModel.uploadCarDetails(uploadCarDetails)
                     }
                 )

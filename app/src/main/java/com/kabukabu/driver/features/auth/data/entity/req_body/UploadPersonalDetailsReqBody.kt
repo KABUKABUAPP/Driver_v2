@@ -11,6 +11,6 @@ data class UploadPersonalDetailsReqBody(
     @Json(name = "house_address") val houseAddress: String,
     @Json(name = "city") val city: String,
     @Json(name = "state") val state: String,
-    @Json(name = "car_owner") val carOwner: Boolean = false,
+    @Json(name = "car_owner") val carOwner: Boolean?,
     @Json(name = "car_category") val carCategory: String,
 )

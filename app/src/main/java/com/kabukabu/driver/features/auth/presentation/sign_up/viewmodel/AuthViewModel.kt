@@ -34,6 +34,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val _carBrands = MutableStateFlow<List<String>>(emptyList())
     val carBrands: StateFlow<List<String>> = _carBrands.asStateFlow()
 
+    private val _uploadPersonalDetailsReqBody = MutableStateFlow<UploadPersonalDetailsReqBody?>(null)
+    val personalDetailsReqBody: StateFlow<UploadPersonalDetailsReqBody?> = _uploadPersonalDetailsReqBody.asStateFlow()
+
 
     var onboardDriverBiodataUiState: OnboardDriverPersonalDetailsUiState by mutableStateOf(
         OnboardDriverPersonalDetailsUiState.Idle
@@ -58,6 +61,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         fetchCarBrands()
+    }
+
+    fun setUploadUserDetailsReqBody(uploadPersonalDetailsReqBody: UploadPersonalDetailsReqBody) {
+        _uploadPersonalDetailsReqBody.value = uploadPersonalDetailsReqBody
     }
 
     //fetch car brands from firebase
