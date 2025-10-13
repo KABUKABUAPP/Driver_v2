@@ -25,6 +25,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -34,9 +35,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     val carBrands: StateFlow<List<String>> = _carBrands.asStateFlow()
 
 
-
     var onboardDriverBiodataUiState: OnboardDriverPersonalDetailsUiState by mutableStateOf(
         OnboardDriverPersonalDetailsUiState.Idle
+    )
+        private set
+
+    var editDriverProfileUiState: EditDriverProfileUiState by mutableStateOf(
+        EditDriverProfileUiState.Idle
     )
         private set
 
@@ -119,6 +124,56 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     e.message ?: "An unknown error occurred"
                 )
                 Log.e("DriverViewModel", "Error sending biodata", e)
+            }
+        }
+    }
+
+
+    fun updateUserImage(imageFile: File) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val token = userPreferences.authToken.firstOrNull()
+            if (token.isNullOrBlank()) {
+                Log.e("ProfileViewModel", "Cannot upload image, token missing.")
+                return@launch
+            }
+            try {
+                editDriverProfileUiState = EditDriverProfileUiState.Loading
+                val bearerToken = "Bearer $token"
+
+                val requestFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
+                val profileImagePart = MultipartBody.Part.createFormData(
+                    "profile_image",
+                    imageFile.name,
+                    requestFile
+                )
+
+                val response = ApiClient.authService.editUserProfile(
+                    bearerToken = bearerToken,
+                    fullName = null,
+                    phoneNumber = null,
+                    email = null,
+                    profile_image = profileImagePart,
+                    nextOfKinFullName = null,
+                    nextOfKinRelationship = null,
+                    nextOfKinPhoneNumber = null,
+                    guarantorName = null,
+                    guarantorAddress = null,
+                    guarantorPhoneNumber = null,
+                    guarantor_image = null,
+                    gender = null
+                )
+
+                if (response.status == "success") {
+                    editDriverProfileUiState = EditDriverProfileUiState.Success(response)
+                } else {
+                    editDriverProfileUiState = EditDriverProfileUiState.Error(response.message)
+                }
+
+            } catch (e: Exception) {
+                editDriverProfileUiState = EditDriverProfileUiState.Error(
+                    e.message ?: "Unexpected error occurred"
+                )
+                Log.e("ProfileViewModel", "Error uploading image", e)
             }
         }
     }
@@ -309,7 +364,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Success(response)
                     userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
                 } else {
-                    uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Error(response.status)
+                    uploadGuarantorDetailsUiState =
+                        UploadGuarantorDetailsUiState.Error(response.status)
                 }
 
             } catch (e: Exception) {

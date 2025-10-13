@@ -24,6 +24,7 @@ import com.kabukabu.driver.features.wallet.data.DuePaymentResponse
 import com.kabukabu.driver.features.analytics.data.DriverAnalysisResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadGuarantorDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.DriverPersonalDetailsResponse
+import com.kabukabu.driver.features.auth.data.entity.response.EditDriverProfileResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDocsResponse
 import com.kabukabu.driver.features.trips.data.TripHistoryResponse
@@ -54,6 +55,29 @@ interface ApiService {
         @Part("car_category") carCategory: RequestBody
     ): DriverPersonalDetailsResponse
 
+
+    @Multipart
+    @PUT("user/edit-profile")
+    suspend fun editUserProfile(
+        @Header("Authorization") bearerToken: String,
+
+        @Part("full_name") fullName: RequestBody?,
+        @Part("phone_number") phoneNumber: RequestBody?,
+        @Part("email") email: RequestBody?,
+
+        @Part profile_image: MultipartBody.Part?, // file
+
+        @Part("next_of_kin_full_name") nextOfKinFullName: RequestBody?,
+        @Part("next_of_kin_relationship") nextOfKinRelationship: RequestBody?,
+        @Part("next_of_kin_phone_number") nextOfKinPhoneNumber: RequestBody?,
+
+        @Part("guarantor_name") guarantorName: RequestBody?,
+        @Part("guarantor_address") guarantorAddress: RequestBody?,
+        @Part("guarantor_phone_number") guarantorPhoneNumber: RequestBody?,
+        @Part guarantor_image: MultipartBody.Part?, // file
+
+        @Part("gender") gender: RequestBody?
+    ): EditDriverProfileResponse
 
     @Multipart
     @POST("auth/driver-onboard-two")
