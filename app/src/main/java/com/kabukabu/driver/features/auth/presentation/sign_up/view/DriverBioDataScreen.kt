@@ -1,6 +1,5 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
-import android.content.Context
 import android.util.Patterns
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -24,7 +23,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,18 +30,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.RowScopeFormTextfield
 import com.kabukabu.driver.components.ui.ScreenTitleText
-import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
@@ -123,28 +118,36 @@ fun DriverBioDataScreen(
                     title = "Full Name",
                     value = fullName,
                     hintText = "John Doe",
-                    onTextChanged = { fullName = it }
+                    onTextChanged = { fullName = it },
+                    validationError = fullNameError.value.isNotEmpty(),
+                    validationErrorMessage = fullNameError.value
                 )
 
                 FormTextfield(
                     title = "Email Address",
                     value = email,
                     hintText = "example@gmail.com",
-                    onTextChanged = { email = it }
+                    onTextChanged = { email = it },
+                    validationError = emailError.value.isNotEmpty(),
+                    validationErrorMessage = emailError.value
                 )
 
                 FormTextfield(
                     title = "Phone number",
                     value = phoneNumber,
                     hintText = "08012345678",
-                    onTextChanged = { phoneNumber = it }
+                    onTextChanged = { phoneNumber = it },
+                    validationError = phoneNumberError.value.isNotEmpty(),
+                    validationErrorMessage = phoneNumberError.value
                 )
 
                 FormTextfield(
                     title = "House Address",
                     value = houseAddress,
                     hintText = "House address here",
-                    onTextChanged = { houseAddress = it }
+                    onTextChanged = { houseAddress = it },
+                    validationError = houseAddressError.value.isNotEmpty(),
+                    validationErrorMessage = houseAddressError.value
                 )
 
                 Row(
@@ -156,7 +159,9 @@ fun DriverBioDataScreen(
                         hintText = "City here",
                         isDropdown = false,
                         onTextChanged = { city = it },
-                        imeAction = ImeAction.Done
+                        imeAction = ImeAction.Done,
+                        validationError = cityError.value.isNotEmpty(),
+                        validationErrorMessage = cityError.value
                     )
                     RowScopeFormTextfield(
                         title = "State",
@@ -164,14 +169,19 @@ fun DriverBioDataScreen(
                         hintText = "Abia",
                         isDropdown = true,
                         onClick = { showStateSheet = true },
-                        onTextChanged = {}
+                        onTextChanged = {},
+                        validationError = stateError.value.isNotEmpty(),
+                        validationErrorMessage = stateError.value
                     )
                 }
 
                 FormTextfieldDropdown(
                     value = carCategory,
                     title = "Car Category",
-                    onClick = { showCarCategorySheet = true }
+                    onClick = { showCarCategorySheet = true },
+                    validationError = carCategoryError.value.isNotEmpty(),
+                    validationErrorMessage = carCategoryError.value
+
                 )
             }
 
@@ -190,14 +200,13 @@ fun DriverBioDataScreen(
                         state = state,
                         carCategory = carCategory,
                         fullNameError = fullNameError,
-                        phoneNumberError = TODO(),
-                        emailError = TODO(),
-                        houseAddressError = TODO(),
-                        cityError = TODO(),
-                        stateError = TODO(),
-                        carCategoryError = TODO(),
+                        phoneNumberError = phoneNumberError,
+                        emailError = emailError,
+                        houseAddressError = houseAddressError,
+                        cityError = cityError,
+                        stateError = stateError,
+                        carCategoryError = carCategoryError,
                     )
-
                     if (isInputValidated.value) {
 
                         val driverBiodata = UploadPersonalDetailsReqBody(
@@ -274,7 +283,7 @@ private fun validateDriverDetails(
         isValid = false
     }
 
-    if (email.isNotEmpty() && !Patterns.EMAIL_ADDRESS.matcher(email)
+    if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email)
             .matches()
     ) {
         phoneNumberError.value = "Invalid email address"
@@ -287,7 +296,7 @@ private fun validateDriverDetails(
     }
 
     if (city.isEmpty() || city.length < 3) {
-        houseAddressError.value = "Invalid city"
+        cityError.value = "Invalid city"
         isValid = false
     }
 
