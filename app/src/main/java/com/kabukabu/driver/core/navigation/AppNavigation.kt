@@ -26,7 +26,7 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.Kab
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideCarDocumentsUploadScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideDocumentsReUploadScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideGuarantorDetail
-import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideInspectionScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.InspectionHubsScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRidePendingAccountApprovalScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideSelfieVerificationScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideTermsAndConditionsScreen
@@ -190,7 +190,7 @@ fun AppNavigation() {
         }
 
         composable(Screen.KabuRideInspection.route) {
-            KabuRideInspectionScreen(navigation)
+            InspectionHubsScreen(navigation)
         }
 
 

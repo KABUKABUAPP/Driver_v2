@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,12 +36,18 @@ import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
-import com.kabukabu.driver.core.data.local.InspectionHubData
-import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.core.navigation.Navigator
+import com.kabukabu.driver.features.auth.data.entity.response.InspectionHub
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
+import org.koin.androidx.compose.koinViewModel
+
 
 @Composable
-fun KabuRideInspectionScreen(navigator: Navigator) {
+fun InspectionHubsScreen(navigator: Navigator,
+                         authViewModel: AuthViewModel = koinViewModel()
+) {
+    val hubsList = authViewModel.inspectionsHubs.collectAsState().value?.data ?: emptyList()
+
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -88,7 +95,7 @@ fun KabuRideInspectionScreen(navigator: Navigator) {
                     fontWeight = FontWeight.W500,
                     bottomPadding = 16
                 )
-                InspectionHubsList()
+                InspectionHubsList(hubsList)
             }
 
             TitleText(
@@ -103,15 +110,13 @@ fun KabuRideInspectionScreen(navigator: Navigator) {
 }
 
 @Composable
-fun InspectionHubsList() {
-
-    val dataList = LocalDataSource().loadInspectionHubItems()
+fun InspectionHubsList(hubs: List<InspectionHub>) {
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
-        itemsIndexed(dataList) { index, data ->
+        itemsIndexed(hubs) { index, data ->
             InspectionHubsListItem(hubData = data)
         }
     }
@@ -119,7 +124,7 @@ fun InspectionHubsList() {
 
 
 @Composable
-private fun InspectionHubsListItem(hubData: InspectionHubData?) {
+private fun InspectionHubsListItem(hubData: InspectionHub) {
     Box(
         modifier = Modifier
             .background(
@@ -131,19 +136,19 @@ private fun InspectionHubsListItem(hubData: InspectionHubData?) {
     ) {
         Column {
             HubInspectionLazyRowItem(
-                hubData?.name ?: "",
+                hubData.name ?: "",
                 icon = Icons.Default.Person
             )
             HubInspectionLazyRowItem(
-                hubData?.address ?: "",
+                hubData.address ?: "",
                 icon = Icons.Default.Home
             )
             HubInspectionLazyRowItem(
-                hubData?.closingHour ?: "",
+                "5pm" ?: "",
                 icon = Icons.Default.DateRange
             )
             HubInspectionLazyRowItem(
-                hubData?.phoneNumber ?: "",
+                "0811111112" ?: "",
                 icon = Icons.Default.Call
             )
         }

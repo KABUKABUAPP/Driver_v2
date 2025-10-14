@@ -101,7 +101,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val response = HubApiClient.hubService.fetchHubs(state)
                 _inspectionsHubs.value = response
-                println("Hubs list is .....${inspectionsHubs.value}")
             } catch (e: Exception) {
                 Log.e("HubViewModel", "Error fetching hubs", e)
             }
