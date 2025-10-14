@@ -10,10 +10,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.TitleText
 
 @Composable
-fun KabuRidePendingAccountApprovalScreen() {
+fun KabuRidePendingAccountApprovalScreen(onNavigateToLogin: ()-> Unit) {
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -24,21 +25,29 @@ fun KabuRidePendingAccountApprovalScreen() {
                 .verticalScroll(rememberScrollState()),
         ) {
 
-            TitleText(
-                text = "Your account is pending \n approval",
-                fontSize = 25,
-                fontWeight = FontWeight.W500,
-                bottomPadding = 12,
-                topPadding = 24
+            Column {
+                TitleText(
+                    text = "Your account is pending \n approval",
+                    fontSize = 25,
+                    fontWeight = FontWeight.W500,
+                    bottomPadding = 12,
+                    topPadding = 24
+                )
+
+                TitleText(
+                    text = "We are doing background check. We will notify you immediately afterwards",
+                    bottomPadding = 16,
+                    topPadding = 8,
+                    fontWeight = FontWeight.W500,
+//                lineHeight = 20
+                )
+
+            }
+
+            KabuBottomButton("Okay",
+                onClick = onNavigateToLogin
             )
 
-            TitleText(
-                text = "We are doing background check. We will notify you immediately afterwards",
-                bottomPadding = 16,
-                topPadding = 8,
-                fontWeight = FontWeight.W500,
-//                lineHeight = 20
-            )
         }
     }
 }
