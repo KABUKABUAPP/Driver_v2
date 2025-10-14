@@ -131,7 +131,8 @@ fun SelectVehicleScreen(
                             selectedCar = it
                         },
                     )
-                } else if (hasVehicle == false && selectedCar == false) {
+                }
+                if (hasVehicle == false && selectedCar == false) {
                     TitleText(
                         "You will be enrolled in the Sharp application, once \n you qualify, a car will be presented to you",
                         maxLines = 2,
@@ -165,6 +166,7 @@ fun SelectVehicleScreen(
 
             KabuBottomButton(
                 text = "Continue",
+                isLoading = driverUiState == OnboardDriverPersonalDetailsUiState.Loading,
                 onClick = {
                     if (hasVehicle == null) {
                         context.displayToastMessage("No selection made")

@@ -120,7 +120,7 @@ fun OtpVerificationScreen(
         when (uiState) {
             is OtpUiState.Success -> {
                 Log.d("OtpVerificationScreen", "Success state detected, navigating to home")
-                Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
+//                Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
 
                 // Add a delay before navigation to ensure token is saved
                 delay(500)

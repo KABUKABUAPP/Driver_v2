@@ -354,11 +354,8 @@ private fun validateGuarantorDetails(
         isValid = false
     }
 
-    if (phoneNumber.isBlank()) {
+    if (phoneNumber.isBlank() || !Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumber)) {
         phoneNumberError.value = "Enter a valid Phone number"
-        isValid = false
-    } else if (!Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumber)) {
-        phoneNumberError.value = "Enter a valid phone number"
         isValid = false
     }
 
@@ -385,7 +382,7 @@ private fun validateGuarantorDetails(
     }
 
    if (relationship.isEmpty()) {
-        houseAddressError.value = "Select a relationship"
+        relationshipError.value = "Select a relationship"
         isValid = false
     }
 
@@ -393,7 +390,6 @@ private fun validateGuarantorDetails(
         stateError.value = "Select a State"
         isValid = false
     }
-
 
     return isValid
 }

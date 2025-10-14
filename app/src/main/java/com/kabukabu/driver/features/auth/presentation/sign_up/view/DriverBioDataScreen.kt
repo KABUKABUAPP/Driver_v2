@@ -215,25 +215,15 @@ fun DriverBioDataScreen(
                     if (isInputValidated.value) {
 
                         val driverBiodata = UploadPersonalDetailsReqBody(
-                            fullName = "Olad djei",
+                            fullName = fullName,
                             phoneNumber = phoneNumber,
-                            email = email,
-                            houseAddress = "Isolo",
-                            city = "Leventis",
-                            state = "Lagos",
+                            email = email.trim(),
+                            houseAddress = houseAddress,
+                            city = city,
+                            state = state,
                             carOwner = false,
-                            carCategory = "REGULAR"
+                            carCategory = carCategory
                         )
-                        //                    val driverBiodata = UploadPersonalDetailsReqBody(
-//                        fullName = fullName,
-//                        phoneNumber = phoneNumber,
-//                        email = email,
-//                        houseAddress = houseAddress,
-//                        city = city,
-//                        state = state,
-//                        carOwner = false,
-//                        carCategory = carCategory
-//                    )
 
 
                         //persist values locally before navigating
@@ -274,7 +264,7 @@ private fun validateDriverDetails(
     carCategoryError.value = ""
 
     if (fullName.isEmpty() || fullName.length < 6) {
-        fullNameError.value = "Fullname is not valid"
+        fullNameError.value = "Full name is not valid"
         isValid = false
     }
 
