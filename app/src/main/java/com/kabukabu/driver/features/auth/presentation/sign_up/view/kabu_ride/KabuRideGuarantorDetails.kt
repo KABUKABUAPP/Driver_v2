@@ -203,7 +203,7 @@ fun KabuRideGuarantorDetail(
                 FormTextfield(
                     title = "Phone number",
                     value = phoneNumber,
-                    hintText = "Email",
+                    hintText = "Phone number",
                     onTextChanged = {
                         if (phoneNumber.length <= 11) {
                             phoneNumber = it
@@ -277,7 +277,7 @@ fun KabuRideGuarantorDetail(
                     onClick = {
 //                        navigator.navToKabuRidePendingAccountApprovalScreen()
                         if (guarantorImageUri?.path.isNullOrEmpty()) {
-                            context.displayToastMessage("Upload an image")
+                            context.displayToastMessage("Upload your Guarantor's image")
                             return@KabuBottomButtonRowScope
                         }
                         isInputValidated.value = validateGuarantorDetails(

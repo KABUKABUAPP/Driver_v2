@@ -422,7 +422,7 @@ fun CaptureDocumentItem(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
-            .padding(bottom = 12.dp)
+            .padding(bottom = 20.dp)
     ) {
         AnnotatedTextfieldTitle(title, isCompulsoryField)
 
