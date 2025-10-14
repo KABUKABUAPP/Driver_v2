@@ -161,12 +161,15 @@ fun SelectVehicleScreen(
                         topPadding = 30
                     )
                 }
-
             }
 
             KabuBottomButton(
                 text = "Continue",
                 onClick = {
+                    if (hasVehicle == null) {
+                        context.displayToastMessage("No selection made")
+                        return@KabuBottomButton
+                    }
 
                     val driverBiodata = UploadPersonalDetailsReqBody(
                         fullName = userDetails?.fullName ?: "",

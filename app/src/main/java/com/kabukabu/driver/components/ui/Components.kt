@@ -334,9 +334,9 @@ fun KabuBottomButton(
                 color = MaterialTheme.colorScheme.onPrimary,
             )
         } else {
-            Text(
+            TitleText(
                 text = text,
-                style = MaterialTheme.typography.titleMedium
+                bottomPadding = 0,
             )
         }
     }

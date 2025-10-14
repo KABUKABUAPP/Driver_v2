@@ -35,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -106,6 +107,12 @@ fun KabuRideCarDetailsScreen(
     var selectedCarImageUriThree by remember { mutableStateOf<Uri?>(null) }
     var selectedCarImageUriFour by remember { mutableStateOf<Uri?>(null) }
 
+    val isInputValidated = remember { mutableStateOf(false) }
+    val carBrandError = remember { mutableStateOf("") }
+    val carModelError = remember { mutableStateOf("") }
+    val carYearError = remember { mutableStateOf("") }
+    val carColourError = remember { mutableStateOf("") }
+    val plateNumberError = remember { mutableStateOf("") }
 
 
     if (showCarBrandSheet) {
@@ -235,21 +242,27 @@ fun KabuRideCarDetailsScreen(
                     title = "Car Brand",
                     onClick = {
                         showCarBrandSheet = true
-                    }
+                    },
+                    validationError = carBrandError.value.isNotEmpty(),
+                    validationErrorMessage = carBrandError.value
                 )
 
                 FormTextfield(
                     value = carModel,
                     title = "Car Model",
                     hintText = "e.g Corolla",
-                    onTextChanged = { carModel = it }
+                    onTextChanged = { carModel = it },
+                    validationError = carModelError.value.isNotEmpty(),
+                    validationErrorMessage = carModelError.value
                 )
 
                 FormTextfield(
                     value = carYear,
                     title = "Car Year",
                     hintText = "e.g 2009",
-                    onTextChanged = { carYear = it }
+                    onTextChanged = { carYear = it },
+                    validationError = carYearError.value.isNotEmpty(),
+                    validationErrorMessage = carYearError.value
                 )
 
                 FormTextfieldDropdown(
@@ -257,7 +270,9 @@ fun KabuRideCarDetailsScreen(
                     title = "Car Colour",
                     onClick = {
                         showCarColourSheet = true
-                    }
+                    },
+                    validationError = carColourError.value.isNotEmpty(),
+                    validationErrorMessage = carColourError.value
                 )
 
                 FormTextfield(
@@ -266,6 +281,8 @@ fun KabuRideCarDetailsScreen(
                     hintText = "e.g ABC 123 CVGG",
                     imeAction = ImeAction.Done,
                     onTextChanged = { plateNumber = it },
+                    validationError = plateNumberError.value.isNotEmpty(),
+                    validationErrorMessage = plateNumberError.value
 
                 )
 
@@ -278,7 +295,6 @@ fun KabuRideCarDetailsScreen(
                     isLoading = uploadCarDetailsUiState == UploadCarDetailsUiState.Loading,
                     onClick = {
 //                        navigator.navToKabuDocumentsUpload()
-
                         listOf(
                             selectedCarImageUriOne,
                             selectedCarImageUriTwo,
@@ -289,6 +305,34 @@ fun KabuRideCarDetailsScreen(
                                 imagesUriList.add(uri)
                             }
                         }
+                        if (imagesUriList.size < 3){
+                            context.displayToastMessage("Select atleast 3 images")
+                            return@KabuBottomButtonRowScope
+                        }
+                        isInputValidated.value = validateCarDetails(
+                            carBrand = selectedCarBrand,
+                            carModel = carModel,
+                            carYear = carYear,
+                            carColour = carColour,
+                            plateNumber = plateNumber,
+                            carBrandError = carBrandError,
+                            carModelError = carModelError,
+                            carYearError = carYearError,
+                            carColourError = carColourError,
+                            plateNumberError = plateNumberError
+                        )
+
+
+//                        listOf(
+//                            selectedCarImageUriOne,
+//                            selectedCarImageUriTwo,
+//                            selectedCarImageUriThree,
+//                            selectedCarImageUriFour
+//                        ).forEach { uri ->
+//                            if (uri != null) {
+//                                imagesUriList.add(uri)
+//                            }
+//                        }
 
                         imagesFileList =
                             convertUrisToFiles(context = context, uris = imagesUriList as List<Uri>)
@@ -311,17 +355,51 @@ fun KabuRideCarDetailsScreen(
     }
 }
 
+private fun validateCarDetails(
+    carBrand: String,
+    carModel: String,
+    carYear: String,
+    carColour: String,
+    plateNumber: String,
+    carBrandError: MutableState<String>,
+    carModelError: MutableState<String>,
+    carYearError: MutableState<String>,
+    carColourError: MutableState<String>,
+    plateNumberError: MutableState<String>,
+): Boolean {
 
-@Composable
-internal fun TextfieldSelection(title: String, placeholderText: String) {
-    Column(modifier = Modifier.padding(bottom = 8.dp)) {
-        TitleText(title)
-        KabuOutlinedTextField(
-            placeholderText = placeholderText
-        )
+    var isValid = true
+
+    if (carBrand.isEmpty()) {
+        carBrandError.value = "Select a car brand"
+        isValid = false
     }
-}
 
+    if (carModel.isEmpty() || carModel.length < 3) {
+        carModelError.value = "Invalid car model"
+        isValid = false
+    }
+
+    if (carYear.isEmpty() || carYear.length < 4) {
+        carYearError.value = "Invalid car year"
+        isValid = false
+    }
+
+    if (carColour.isEmpty()) {
+        carColourError.value = "Select a colour"
+        isValid = false
+    }
+
+    if (plateNumber.isEmpty() || carModel.length < 5) {
+        plateNumberError.value = "Invalid plate number"
+        isValid = false
+    }
+
+
+    return isValid
+
+
+}
 
 @Composable
 fun RowScope.UploadCarImageBox(

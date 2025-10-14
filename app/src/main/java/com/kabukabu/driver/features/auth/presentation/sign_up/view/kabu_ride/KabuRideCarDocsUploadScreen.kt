@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,9 +75,7 @@ fun KabuRideCarDocumentsUploadScreen(
     var hackneyPermitUri by remember { mutableStateOf<Uri?>(null) }
 
 
-    var photoError by remember { mutableStateOf("") }
     var launchCamera by remember { mutableStateOf(false) }
-    var isPreviewVisible by remember { mutableStateOf(true) }
 
     var vehicleLicense by remember { mutableStateOf(null) }
     var driverLicense by remember { mutableStateOf(null) }
@@ -84,6 +83,13 @@ fun KabuRideCarDocumentsUploadScreen(
     var proofOfOwnershipNumber by remember { mutableStateOf(null) }
     var roadWorthinessNumber by remember { mutableStateOf(null) }
     var hackneyPermitNumber by remember { mutableStateOf(null) }
+
+    val isInputValidated = remember { mutableStateOf(false) }
+    val driverLicenseError = remember { mutableStateOf("") }
+    val carInsuranceError = remember { mutableStateOf("") }
+    val vehicleLicenseError = remember { mutableStateOf("") }
+    val proofOfOwnershipError = remember { mutableStateOf("") }
+    val roadWorthinessError = remember { mutableStateOf("") }
 
     LaunchedEffect(uploadCarDocsUiState) {
         when (uploadCarDocsUiState) {
@@ -139,7 +145,7 @@ fun KabuRideCarDocumentsUploadScreen(
                     launchCamera = false
                 },
                 onError = { error ->
-                    photoError = error
+//                    photoError = error
                     launchCamera = false
                 }
             )
@@ -226,7 +232,8 @@ fun KabuRideCarDocumentsUploadScreen(
                         imageUri = proofOfOwnershipUri,
                         onClick = {
                             selectedDocType = SelectedDoc.ProofOfOwnership
-                            launchCamera = true }
+                            launchCamera = true
+                        }
                     )
 
 //                    FormTextfield(
@@ -243,7 +250,8 @@ fun KabuRideCarDocumentsUploadScreen(
                         imageUri = roadWorthinessUri,
                         onClick = {
                             selectedDocType = SelectedDoc.RoadWorthiness
-                            launchCamera = true }
+                            launchCamera = true
+                        }
                     )
 
 //                    FormTextfield(
@@ -261,7 +269,8 @@ fun KabuRideCarDocumentsUploadScreen(
                         imageUri = hackneyPermitUri,
                         onClick = {
                             selectedDocType = SelectedDoc.HackneyPermit
-                            launchCamera = true }
+                            launchCamera = true
+                        }
                     )
 
 //                    TitleText(
@@ -296,21 +305,44 @@ fun KabuRideCarDocumentsUploadScreen(
                         onClick = {
 //                            navigation.navToKabuRideGuarantorDetailsScreen()
 
-                            val uploadCarDocsReqBody = UploadCarDocsReqBody(
-                                driverLicenceNumber = driverLicense,
-                                carInsuranceNumber = insuranceNumber,
-                                vehicleLicenceNumber = vehicleLicense,
-                                proofOfOwnershipNumber = proofOfOwnershipNumber,
-                                roadWorthinessCertificationNumber = roadWorthinessNumber,
-                                hackneyPermitNumber = hackneyPermitNumber,
-                                driverLicence = convertUriToFile(context, driverLicenseUri),
-                                vehicleLicence = convertUriToFile(context, vehicleLicenseUri),
-                                insuranceCertificate = convertUriToFile(context, insuranceUri),
-                                proofOfOwnership = convertUriToFile(context, proofOfOwnershipUri),
-                                roadWorthinessCertification = convertUriToFile(context, roadWorthinessUri),
-                                hackneyPermit = convertUriToFile(context, hackneyPermitUri),
+                            isInputValidated.value = validateCarDocs(
+                                driverLicenseUri = driverLicenseUri,
+                                carInsuranceUri = insuranceUri,
+                                vehicleLicenseUri = vehicleLicenseUri,
+                                proofOfOwnership = proofOfOwnershipUri,
+                                roadWorthinessUri = roadWorthinessUri,
+                                driverLicenseError = driverLicenseError,
+                                carInsuranceError = carInsuranceError,
+                                vehicleLicenseError = vehicleLicenseError,
+                                proofOfOwnershipError = proofOfOwnershipError,
+                                roadWorthinessError = roadWorthinessError
                             )
-                            authViewModel.uploadCarDocs(uploadCarDocsReqBody = uploadCarDocsReqBody)
+
+                            if (isInputValidated.value) {
+                                val uploadCarDocsReqBody = UploadCarDocsReqBody(
+                                    driverLicenceNumber = driverLicense,
+                                    carInsuranceNumber = insuranceNumber,
+                                    vehicleLicenceNumber = vehicleLicense,
+                                    proofOfOwnershipNumber = proofOfOwnershipNumber,
+                                    roadWorthinessCertificationNumber = roadWorthinessNumber,
+                                    hackneyPermitNumber = hackneyPermitNumber,
+                                    driverLicence = convertUriToFile(context, driverLicenseUri),
+                                    vehicleLicence = convertUriToFile(context, vehicleLicenseUri),
+                                    insuranceCertificate = convertUriToFile(context, insuranceUri),
+                                    proofOfOwnership = convertUriToFile(
+                                        context,
+                                        proofOfOwnershipUri
+                                    ),
+                                    roadWorthinessCertification = convertUriToFile(
+                                        context,
+                                        roadWorthinessUri
+                                    ),
+                                    hackneyPermit = convertUriToFile(context, hackneyPermitUri),
+                                )
+                                authViewModel.uploadCarDocs(uploadCarDocsReqBody = uploadCarDocsReqBody)
+
+                            }
+
                         }
                     )
                 }
@@ -320,6 +352,47 @@ fun KabuRideCarDocumentsUploadScreen(
 }
 
 
+private fun validateCarDocs(
+    driverLicenseUri: Uri?,
+    carInsuranceUri: Uri?,
+    vehicleLicenseUri: Uri?,
+    proofOfOwnership: Uri?,
+    roadWorthinessUri: Uri?,
+    driverLicenseError: MutableState<String>,
+    carInsuranceError: MutableState<String>,
+    vehicleLicenseError: MutableState<String>,
+    proofOfOwnershipError: MutableState<String>,
+    roadWorthinessError: MutableState<String>,
+): Boolean {
+    var isValid = true
+
+    if (driverLicenseUri.toString().isEmpty()) {
+        driverLicenseError.value = "Driver license not selected"
+        isValid = false
+    }
+
+    if (carInsuranceUri.toString().isEmpty()) {
+        carInsuranceError.value = "Car insurance certificate not selected"
+        isValid = false
+    }
+
+    if (vehicleLicenseUri.toString().isEmpty()) {
+        vehicleLicenseError.value = "Vehicle license not selected"
+        isValid = false
+    }
+
+    if (proofOfOwnership.toString().isEmpty()) {
+        proofOfOwnershipError.value = "Proof of ownership not selected"
+        isValid = false
+    }
+
+    if (roadWorthinessUri.toString().isEmpty()) {
+        driverLicenseError.value = "Road worthiness certificate not selected"
+        isValid = false
+    }
+    return isValid
+}
+
 @Composable
 fun CaptureDocumentItem(
     title: String,
@@ -327,7 +400,7 @@ fun CaptureDocumentItem(
     imageUri: Uri?,
     isCompulsoryField: Boolean = true,
     photoBoxError: String = "",
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
