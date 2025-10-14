@@ -1,4 +1,6 @@
-package com.kabukabu.driver.core.data.remote
+package com.kabukabu.driver.core.data.remote.hub
+
+import com.kabukabu.driver.core.data.remote.ApiService
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -8,9 +10,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
-object ApiClient {
-    private const val BASE_URL = "https://rideservice-dev.up.railway.app/"
-//    private const val HUB_BASE_URL = "https://hubservice.up.railway.app/"
+object HubApiClient {
+    private const val BASE_URL = "https://hubservice.up.railway.app/"
     private const val API_KEY = "3yBrArNb838bdyIPpLith6dpr0NHCcc66J4AR313"
 
     val moshi: Moshi = Moshi.Builder()
@@ -33,27 +34,15 @@ object ApiClient {
         .addInterceptor(loggingInterceptor)
         .build()
 
-    private val retrofit = Retrofit.Builder()
+
+    private val hubRetrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .client(httpClient)
         .build()
 
-//    private val hubRetrofit = Retrofit.Builder()
-//        .baseUrl(HUB_BASE_URL)
-//        .addConverterFactory(MoshiConverterFactory.create(moshi))
-//        .client(httpClient)
-//        .build()
-
-    val authService: ApiService by lazy {
-        retrofit.create(ApiService::class.java)
+    val hubService: ApiService by lazy {
+        hubRetrofit.create(ApiService::class.java)
     }
 
-    val rideService: ApiService by lazy {
-        retrofit.create(ApiService::class.java)
-    }
-//    val hubService: ApiService by lazy {
-//        hubRetrofit.create(ApiService::class.java)
-//    }
-
-} 
+}

@@ -313,7 +313,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 if (response.status == "success") {
                     uploadCarDocsUiState = UploadCarDocsUiState.Success(response)
                     userPreferences.saveOnboardingStep(5)
-
 //                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
 
                 } else {

@@ -216,6 +216,49 @@ fun DriverBioDataScreen(
 }
 
 
+
+//fun validateAirtimeInput(
+//    context: Context,
+//    phoneNumberInput: String,
+//    networkInput: String,
+//    amountInput: String,
+//    phoneNumberError: MutableState<String>,
+//    networkError: MutableState<String>,
+//    amountError: MutableState<String>
+//): Boolean {
+//    var isValid = true
+//    phoneNumberError.value = ""
+//    networkError.value = ""
+//    amountError.value = ""
+//
+//    //validate inputted phone number
+//    if (phoneNumberInput.isBlank()) {
+//        phoneNumberError.value = context.getString(R.string.please_enter_a_phone_number)
+//        isValid = false
+//    } else if (!Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumberInput)) {
+//        phoneNumberError.value = context.getString(R.string.enter_a_valid_phone_number)
+//        isValid = false
+//    }
+//
+//    //validate network input
+//    if (networkInput.isBlank()) {
+//        networkError.value = context.getString(R.string.please_select_a_network)
+//        isValid = false
+//    }
+//    //validate amount
+//    if (amountInput.isEmpty()) {
+//        amountError.value = context.getString(R.string.invalid_amount)
+//        isValid = false
+//    } else if (amountInput.toDouble() > 1000000) {
+//        amountError.value = context.getString(R.string.amount_cannot_be_greater_than_1_000_000)
+//        isValid = false
+//    } else if (amountInput.toDouble() < 50) {
+//        amountError.value = context.getString(R.string.minimum_recharge_is_50)
+//        isValid = false
+//    }
+//    return isValid
+//}
+
 @OptIn( ExperimentalMaterial3Api::class)
 @Composable
 internal fun SelectStateSheet(

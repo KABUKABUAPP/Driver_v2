@@ -1,0 +1,13 @@
+package com.kabukabu.driver.core.data.remote.hub
+
+import com.kabukabu.driver.features.auth.data.entity.response.HubListResponse
+import retrofit2.http.GET
+import retrofit2.http.Query
+
+interface HubApiService {
+
+    @GET("hub/fetch-hubs")
+    suspend fun fetchHubs(
+        @Query("state") state: String
+    ): HubListResponse
+}
