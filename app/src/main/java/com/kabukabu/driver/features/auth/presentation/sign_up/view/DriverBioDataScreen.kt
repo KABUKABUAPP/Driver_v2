@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -23,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +48,7 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDeta
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
 import org.koin.androidx.compose.koinViewModel
+import java.util.regex.Pattern
 
 
 @Composable
@@ -215,49 +218,92 @@ fun DriverBioDataScreen(
     }
 }
 
+private fun validateDriverDetails(
+    context: Context,
+    fullName: String,
+    phoneNumber: String,
+    email: String,
+    houseAddress: String,
+    city: String,
+    state: String,
+    carCategory: String,
+    fullNameError: MutableState<String>,
+    phoneNumberError: MutableState<String>,
+    emailError: MutableState<String>,
+    houseAddressError: MutableState<String>,
+    cityError: MutableState<String>,
+    stateError: MutableState<String>,
+    carCategoryError: MutableState<String>,
+
+    ): Boolean {
+
+    var isValid = true
+    fullNameError.value = ""
+    phoneNumberError.value = ""
+    emailError.value = ""
+    houseAddressError.value = ""
+    cityError.value = ""
+    stateError.value = ""
+    carCategoryError.value = ""
+
+    if(fullName.isEmpty() || fullName.length < 6) {
+        fullNameError.value = "Invalid "
+    }
+
+    //validate inputted phone number
+    if (phoneNumber.isBlank()) {
+        phoneNumberError.value = "Enter a valid Phone number"
+        isValid = false
+    } else if (!Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumber)) {
+        phoneNumberError.value = context.getString(R.string.enter_a_valid_phone_number)
+        isValid = false
+    }
+
+    return isValid
+}
 
 
-//fun validateAirtimeInput(
-//    context: Context,
-//    phoneNumberInput: String,
-//    networkInput: String,
-//    amountInput: String,
-//    phoneNumberError: MutableState<String>,
-//    networkError: MutableState<String>,
-//    amountError: MutableState<String>
-//): Boolean {
-//    var isValid = true
-//    phoneNumberError.value = ""
-//    networkError.value = ""
-//    amountError.value = ""
-//
-//    //validate inputted phone number
-//    if (phoneNumberInput.isBlank()) {
-//        phoneNumberError.value = context.getString(R.string.please_enter_a_phone_number)
-//        isValid = false
-//    } else if (!Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumberInput)) {
-//        phoneNumberError.value = context.getString(R.string.enter_a_valid_phone_number)
-//        isValid = false
-//    }
-//
-//    //validate network input
-//    if (networkInput.isBlank()) {
-//        networkError.value = context.getString(R.string.please_select_a_network)
-//        isValid = false
-//    }
-//    //validate amount
-//    if (amountInput.isEmpty()) {
-//        amountError.value = context.getString(R.string.invalid_amount)
-//        isValid = false
-//    } else if (amountInput.toDouble() > 1000000) {
-//        amountError.value = context.getString(R.string.amount_cannot_be_greater_than_1_000_000)
-//        isValid = false
-//    } else if (amountInput.toDouble() < 50) {
-//        amountError.value = context.getString(R.string.minimum_recharge_is_50)
-//        isValid = false
-//    }
-//    return isValid
-//}
+fun validateAirtimeInput(
+    context: Context,
+    phoneNumberInput: String,
+    networkInput: String,
+    amountInput: String,
+    phoneNumberError: MutableState<String>,
+    networkError: MutableState<String>,
+    amountError: MutableState<String>
+): Boolean {
+    var isValid = true
+    phoneNumberError.value = ""
+    networkError.value = ""
+    amountError.value = ""
+
+    //validate inputted phone number
+    if (phoneNumberInput.isBlank()) {
+        phoneNumberError.value = context.getString(R.string.please_enter_a_phone_number)
+        isValid = false
+    } else if (!Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumberInput)) {
+        phoneNumberError.value = context.getString(R.string.enter_a_valid_phone_number)
+        isValid = false
+    }
+
+    //validate network input
+    if (networkInput.isBlank()) {
+        networkError.value = context.getString(R.string.please_select_a_network)
+        isValid = false
+    }
+    //validate amount
+    if (amountInput.isEmpty()) {
+        amountError.value = context.getString(R.string.invalid_amount)
+        isValid = false
+    } else if (amountInput.toDouble() > 1000000) {
+        amountError.value = context.getString(R.string.amount_cannot_be_greater_than_1_000_000)
+        isValid = false
+    } else if (amountInput.toDouble() < 50) {
+        amountError.value = context.getString(R.string.minimum_recharge_is_50)
+        isValid = false
+    }
+    return isValid
+}
 
 @OptIn( ExperimentalMaterial3Api::class)
 @Composable
