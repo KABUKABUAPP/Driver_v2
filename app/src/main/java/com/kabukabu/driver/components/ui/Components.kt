@@ -337,6 +337,7 @@ fun KabuBottomButton(
             TitleText(
                 text = text,
                 bottomPadding = 0,
+                fontWeight = FontWeight.Bold
             )
         }
     }

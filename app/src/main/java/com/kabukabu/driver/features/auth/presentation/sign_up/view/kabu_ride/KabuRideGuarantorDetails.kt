@@ -204,7 +204,12 @@ fun KabuRideGuarantorDetail(
                     title = "Phone number",
                     value = phoneNumber,
                     hintText = "Email",
-                    onTextChanged = { phoneNumber = it },
+                    onTextChanged = {
+                        if (phoneNumber.length <= 11) {
+                            phoneNumber = it
+                        }
+                    },
+                    keyboardType = "number",
                     validationError = phoneNumberError.value.isNotEmpty(),
                     validationErrorMessage = phoneNumberError.value
                 )
@@ -345,7 +350,7 @@ private fun validateGuarantorDetails(
     stateError.value = ""
 
     if (fullName.isEmpty() || fullName.length < 6) {
-        fullNameError.value = "Fullname is not valid"
+        fullNameError.value = "Full name is not valid"
         isValid = false
     }
 
@@ -360,7 +365,7 @@ private fun validateGuarantorDetails(
     if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email)
             .matches()
     ) {
-        phoneNumberError.value = "Invalid email address"
+        emailError.value = "Invalid email address"
         isValid = false
     }
 
