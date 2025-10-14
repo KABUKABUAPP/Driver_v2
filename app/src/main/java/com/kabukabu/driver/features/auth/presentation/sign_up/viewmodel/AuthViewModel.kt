@@ -11,10 +11,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.kabukabu.driver.components.utils_functions.toMultipartPart
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.data.remote.ApiClient
+import com.kabukabu.driver.core.data.remote.hub.HubApiClient
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadGuarantorDetailsReqBody
+import com.kabukabu.driver.features.auth.data.entity.response.InspectionHubsResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +35,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _carBrands = MutableStateFlow<List<String>>(emptyList())
     val carBrands: StateFlow<List<String>> = _carBrands.asStateFlow()
+
+    private val _inspectionsHubs = MutableStateFlow<InspectionHubsResponse?>(null)
+    val inspectionsHubs: StateFlow<InspectionHubsResponse?> = _inspectionsHubs.asStateFlow()
 
     private val _uploadPersonalDetailsReqBody = MutableStateFlow<UploadPersonalDetailsReqBody?>(null)
     val personalDetailsReqBody: StateFlow<UploadPersonalDetailsReqBody?> = _uploadPersonalDetailsReqBody.asStateFlow()
@@ -61,6 +66,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         fetchCarBrands()
+        fetchHubs("Lagos")
     }
 
     fun setUploadUserDetailsReqBody(uploadPersonalDetailsReqBody: UploadPersonalDetailsReqBody) {
@@ -88,6 +94,18 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
         }
 
+    }
+
+    fun fetchHubs(state: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val response = HubApiClient.hubService.fetchHubs(state)
+                _inspectionsHubs.value = response
+                println("Hubs list is .....${inspectionsHubs.value}")
+            } catch (e: Exception) {
+                Log.e("HubViewModel", "Error fetching hubs", e)
+            }
+        }
     }
 
 

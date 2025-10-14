@@ -41,8 +41,8 @@ object HubApiClient {
         .client(httpClient)
         .build()
 
-    val hubService: ApiService by lazy {
-        hubRetrofit.create(ApiService::class.java)
+    val hubService: HubApiService by lazy {
+        hubRetrofit.create(HubApiService::class.java)
     }
 
 }

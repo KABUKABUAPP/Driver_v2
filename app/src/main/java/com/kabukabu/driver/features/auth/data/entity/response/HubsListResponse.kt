@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class HubListResponse(
+data class InspectionHubsResponse(
     @Json(name = "status") val status: String,
     @Json(name = "data") val data: List<Hub>,
     @Json(name = "message") val message: String
