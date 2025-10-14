@@ -165,7 +165,7 @@ fun SelectVehicleScreen(
             }
 
             KabuBottomButton(
-                text = "Continue",
+                text = "Submit",
                 isLoading = driverUiState == OnboardDriverPersonalDetailsUiState.Loading,
                 onClick = {
                     if (hasVehicle == null) {

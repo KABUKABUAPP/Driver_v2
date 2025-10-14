@@ -51,7 +51,7 @@ import java.util.regex.Pattern
 fun DriverBioDataScreen(
     navToSelectVehicleScreen: () -> Unit,
     authViewModel: AuthViewModel = koinViewModel()
-) {
+    ) {
 //    val driverUiState = authViewModel.onboardDriverBiodataUiState
 //    val context = LocalContext.current
 
