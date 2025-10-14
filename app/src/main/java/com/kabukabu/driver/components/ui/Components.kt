@@ -524,12 +524,12 @@ fun FormTextfield(
     title: String,
     value: String,
     hintText: String,
+    onTextChanged: (String) -> Unit,
     isCompulsory: Boolean = true,
     keyboardType: String = "",
     imeAction: ImeAction = ImeAction.Next,
     validationError: Boolean = false,
     validationErrorMessage: String = "",
-    onTextChanged: (String) -> Unit
 ) {
     Box(
         modifier = Modifier

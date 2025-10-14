@@ -181,7 +181,9 @@ fun KabuRideCarDocumentsUploadScreen(
                         onClick = {
                             selectedDocType = SelectedDoc.VehicleLicense
                             launchCamera = true
-                        }
+                        },
+                        validationError = vehicleLicenseError.value.isNotEmpty(),
+                        validationErrorMessage = vehicleLicenseError.value
                     )
 
 
@@ -199,7 +201,9 @@ fun KabuRideCarDocumentsUploadScreen(
                         onClick = {
                             selectedDocType = SelectedDoc.DriverLicense
                             launchCamera = true
-                        }
+                        },
+                        validationError = driverLicenseError.value.isNotEmpty(),
+                        validationErrorMessage = driverLicenseError.value
                     )
 
 //                    FormTextfield(
@@ -216,7 +220,9 @@ fun KabuRideCarDocumentsUploadScreen(
                         onClick = {
                             selectedDocType = SelectedDoc.Insurance
                             launchCamera = true
-                        }
+                        },
+                        validationError = carInsuranceError.value.isNotEmpty(),
+                        validationErrorMessage = carInsuranceError.value
                     )
 
 //                    FormTextfield(
@@ -233,7 +239,9 @@ fun KabuRideCarDocumentsUploadScreen(
                         onClick = {
                             selectedDocType = SelectedDoc.ProofOfOwnership
                             launchCamera = true
-                        }
+                        },
+                        validationError = proofOfOwnershipError.value.isNotEmpty(),
+                        validationErrorMessage = proofOfOwnershipError.value
                     )
 
 //                    FormTextfield(
@@ -251,7 +259,9 @@ fun KabuRideCarDocumentsUploadScreen(
                         onClick = {
                             selectedDocType = SelectedDoc.RoadWorthiness
                             launchCamera = true
-                        }
+                        },
+                        validationError = roadWorthinessError.value.isNotEmpty(),
+                        validationErrorMessage = roadWorthinessError.value
                     )
 
 //                    FormTextfield(
@@ -401,6 +411,8 @@ fun CaptureDocumentItem(
     isCompulsoryField: Boolean = true,
     photoBoxError: String = "",
     onClick: () -> Unit,
+    validationError: Boolean = false,
+    validationErrorMessage: String = "",
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -421,39 +433,49 @@ fun CaptureDocumentItem(
             }
 
         } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { onClick() }, // allow recapture/reupload
-                contentAlignment = Alignment.Center
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(imageUri)
-                        .crossfade(true)
-                        .size(800)
-                        .build(),
-                    contentDescription = "Captured document preview",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-
-                // Overlay a semi-transparent layer with a “Tap to change” text
+            Column {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.2f))
-                        .align(Alignment.Center)
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { onClick() }, // allow recapture/reupload
+                    contentAlignment = Alignment.Center
                 ) {
-                    TitleText(
-                        text = "Tap to reupload",
-                        color = Color.White,
-                        fontWeight = FontWeight.W500,
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(imageUri)
+                            .crossfade(true)
+                            .size(800)
+                            .build(),
+                        contentDescription = "Captured document preview",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    // Overlay a semi-transparent layer with a “Tap to change” text
+                    Box(
                         modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.2f))
                             .align(Alignment.Center)
-                            .padding(8.dp)
+                    ) {
+                        TitleText(
+                            text = "Tap to reupload",
+                            color = Color.White,
+                            fontWeight = FontWeight.W500,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(8.dp)
+                        )
+                    }
+                }
+                if (validationError) {
+                    TitleText(
+                        validationErrorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 12,
+                        topPadding = 4
                     )
                 }
             }
