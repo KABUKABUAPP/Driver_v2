@@ -1,6 +1,7 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import android.net.Uri
+import android.util.Patterns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -67,13 +68,14 @@ import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadGuarantorDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectStateSheet
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
-import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDetailsUiState
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadGuarantorDetailsUiState
+import java.util.regex.Pattern
 
 
 @Composable
-fun KabuRideGuarantorDetail(navigator: Navigator,
-                            authViewModel: AuthViewModel = viewModel()
+fun KabuRideGuarantorDetail(
+    navigator: Navigator,
+    authViewModel: AuthViewModel = viewModel()
 ) {
 
     val uploadGuarantorDetailsUiState = authViewModel.uploadGuarantorDetailsUiState
@@ -92,6 +94,16 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
     var state by remember { mutableStateOf("") }
     var guarantorRelationship by remember { mutableStateOf("") }
     var referralCode by remember { mutableStateOf("") }
+
+    val isInputValidated = remember { mutableStateOf(false) }
+    val fullNameError = remember { mutableStateOf("") }
+    val phoneNumberError = remember { mutableStateOf("") }
+    val emailError = remember { mutableStateOf("") }
+    val houseAddressError = remember { mutableStateOf("") }
+    val cityError = remember { mutableStateOf("") }
+    val stateError = remember { mutableStateOf("") }
+    val relationshipError = remember { mutableStateOf("") }
+
 
     if (showGuarantorSheet) {
         SelectGuarantorRelationshipModal(
@@ -163,7 +175,9 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
                     title = "Full Name",
                     value = fullName,
                     hintText = "John Doe",
-                    onTextChanged = { fullName = it }
+                    onTextChanged = { fullName = it },
+                    validationError = fullNameError.value.isNotEmpty(),
+                    validationErrorMessage = fullNameError.value
                 )
 
                 FormTextfieldDropdown(
@@ -172,28 +186,36 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
                     isCompulsory = false,
                     onClick = {
                         showGuarantorSheet = true
-                    }
+                    },
+                    validationError = relationshipError.value.isNotEmpty(),
+                    validationErrorMessage = relationshipError.value
                 )
 
                 FormTextfield(
                     title = "Email Address",
                     value = email,
                     hintText = "Email",
-                    onTextChanged = { email = it }
+                    onTextChanged = { email = it },
+                    validationError = emailError.value.isNotEmpty(),
+                    validationErrorMessage = emailError.value
                 )
 
                 FormTextfield(
                     title = "Phone number",
                     value = phoneNumber,
                     hintText = "Email",
-                    onTextChanged = { phoneNumber = it }
+                    onTextChanged = { phoneNumber = it },
+                    validationError = phoneNumberError.value.isNotEmpty(),
+                    validationErrorMessage = phoneNumberError.value
                 )
 
                 FormTextfield(
                     title = "House address",
                     value = houseAddress,
                     hintText = "House address",
-                    onTextChanged = { houseAddress = it }
+                    onTextChanged = { houseAddress = it },
+                    validationError = houseAddressError.value.isNotEmpty(),
+                    validationErrorMessage = houseAddressError.value
                 )
 
 
@@ -206,7 +228,9 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
                         hintText = "City here",
                         isDropdown = false,
                         onTextChanged = { city = it },
-                        imeAction = ImeAction.Done
+                        imeAction = ImeAction.Done,
+                        validationError = cityError.value.isNotEmpty(),
+                        validationErrorMessage = cityError.value
                     )
                     RowScopeFormTextfield(
                         title = "State",
@@ -214,7 +238,9 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
                         hintText = "Abia",
                         isDropdown = true,
                         onClick = { showStateSheet = true },
-                        onTextChanged = {}
+                        onTextChanged = {},
+                        validationError = stateError.value.isNotEmpty(),
+                        validationErrorMessage = stateError.value
                     )
                 }
 
@@ -223,7 +249,7 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
                     value = referralCode,
                     hintText = "Code here",
                     isCompulsory = false,
-                    onTextChanged = { referralCode = it }
+                    onTextChanged = { referralCode = it },
                 )
 
             }
@@ -245,20 +271,44 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
                     isLoading = uploadGuarantorDetailsUiState == UploadGuarantorDetailsUiState.Loading,
                     onClick = {
 //                        navigator.navToKabuRidePendingAccountApprovalScreen()
-                        val uploadGuarantorDetailsReqBody = UploadGuarantorDetailsReqBody(
-                            guarantorImage = convertUriToFile(context, guarantorImageUri),
-                            guarantorFullName = fullName,
-                            guarantorRelationship = guarantorRelationship,
-                            guarantorHouseAddress = houseAddress,
-                            guarantorCity = city,
-                            guarantorState = state,
-                            guarantorPhoneNumber = phoneNumber,
-                            guarantorEmail = email,
-                            referralCode = referralCode,
-                            sharpProgramType = "HIRE_PURCHASE"
-                            //RENTAL
+                        if (guarantorImageUri.toString().isEmpty()) {
+                            context.displayToastMessage("Upload an image")
+                            return@KabuBottomButtonRowScope
+                        }
+                        isInputValidated.value = validateGuarantorDetails(
+                            fullName = fullName,
+                            phoneNumber = phoneNumber,
+                            email = email,
+                            houseAddress = houseAddress,
+                            relationship = guarantorRelationship,
+                            city = city,
+                            state = state,
+                            fullNameError = fullNameError,
+                            phoneNumberError = phoneNumberError,
+                            emailError = emailError,
+                            houseAddressError = houseAddressError,
+                            cityError = cityError,
+                            stateError = stateError,
+                            relationshipError = relationshipError
                         )
-                        authViewModel.uploadGuarantorDetails(uploadGuarantorDetailsReqBody)
+                        if (isInputValidated.value) {
+                            val uploadGuarantorDetailsReqBody = UploadGuarantorDetailsReqBody(
+                                guarantorImage = convertUriToFile(context, guarantorImageUri),
+                                guarantorFullName = fullName,
+                                guarantorRelationship = guarantorRelationship,
+                                guarantorHouseAddress = houseAddress,
+                                guarantorCity = city,
+                                guarantorState = state,
+                                guarantorPhoneNumber = phoneNumber,
+                                guarantorEmail = email,
+                                referralCode = referralCode,
+                                sharpProgramType = "HIRE_PURCHASE"
+                                //RENTAL
+                            )
+                            authViewModel.uploadGuarantorDetails(uploadGuarantorDetailsReqBody)
+                        }
+
+
                     }
                 )
             }
@@ -273,22 +323,77 @@ private fun validateGuarantorDetails(
     phoneNumber: String,
     email: String,
     houseAddress: String,
+    relationship: String,
     city: String,
     state: String,
-    carCategory: String,
     fullNameError: MutableState<String>,
     phoneNumberError: MutableState<String>,
     emailError: MutableState<String>,
     houseAddressError: MutableState<String>,
+    relationshipError: MutableState<String>,
     cityError: MutableState<String>,
     stateError: MutableState<String>,
 ): Boolean {
-    var isValid = false
 
-    return  isValid
+    var isValid = true
+    fullNameError.value = ""
+    phoneNumberError.value = ""
+    emailError.value = ""
+    houseAddressError.value = ""
+    relationshipError.value = ""
+    cityError.value = ""
+    stateError.value = ""
+
+    if (fullName.isEmpty() || fullName.length < 6) {
+        fullNameError.value = "Fullname is not valid"
+        isValid = false
+    }
+
+    if (phoneNumber.isBlank()) {
+        phoneNumberError.value = "Enter a valid Phone number"
+        isValid = false
+    } else if (!Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumber)) {
+        phoneNumberError.value = "Enter a valid phone number"
+        isValid = false
+    }
+
+    if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email)
+            .matches()
+    ) {
+        phoneNumberError.value = "Invalid email address"
+        isValid = false
+    }
+
+    if (houseAddress.isEmpty() || houseAddress.length < 10) {
+        houseAddressError.value = "Invalid house address"
+        isValid = false
+    }
+
+    if (city.isEmpty() || city.length < 3) {
+        cityError.value = "Invalid city"
+        isValid = false
+    }
+
+    if (houseAddress.isEmpty() || houseAddress.length < 10) {
+        houseAddressError.value = "Invalid house address"
+        isValid = false
+    }
+
+   if (relationship.isEmpty()) {
+        houseAddressError.value = "Select a relationship"
+        isValid = false
+    }
+
+    if (state.isEmpty()) {
+        stateError.value = "Select a State"
+        isValid = false
+    }
+
+
+    return isValid
 }
 
-@OptIn( ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SelectGuarantorRelationshipModal(
     onDismiss: () -> Unit,

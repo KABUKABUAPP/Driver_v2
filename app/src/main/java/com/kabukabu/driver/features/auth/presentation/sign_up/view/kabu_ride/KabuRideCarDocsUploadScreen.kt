@@ -376,6 +376,12 @@ private fun validateCarDocs(
 ): Boolean {
     var isValid = true
 
+    driverLicenseError.value = ""
+    carInsuranceError.value = ""
+    vehicleLicenseError.value = ""
+    proofOfOwnershipError.value = ""
+    roadWorthinessError.value = ""
+
     if (driverLicenseUri.toString().isEmpty()) {
         driverLicenseError.value = "Driver license not selected"
         isValid = false
@@ -397,7 +403,7 @@ private fun validateCarDocs(
     }
 
     if (roadWorthinessUri.toString().isEmpty()) {
-        driverLicenseError.value = "Road worthiness certificate not selected"
+        roadWorthinessError.value = "Road worthiness certificate not selected"
         isValid = false
     }
     return isValid

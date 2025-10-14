@@ -370,6 +370,12 @@ private fun validateCarDetails(
 
     var isValid = true
 
+    carBrandError.value = ""
+    carModelError.value = ""
+    carYearError.value = ""
+    carColourError.value = ""
+    plateNumberError.value = ""
+
     if (carBrand.isEmpty()) {
         carBrandError.value = "Select a car brand"
         isValid = false
