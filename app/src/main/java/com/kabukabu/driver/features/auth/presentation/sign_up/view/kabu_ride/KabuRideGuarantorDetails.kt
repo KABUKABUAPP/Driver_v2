@@ -34,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -265,6 +266,26 @@ fun KabuRideGuarantorDetail(navigator: Navigator,
         }
 
     }
+}
+
+private fun validateGuarantorDetails(
+    fullName: String,
+    phoneNumber: String,
+    email: String,
+    houseAddress: String,
+    city: String,
+    state: String,
+    carCategory: String,
+    fullNameError: MutableState<String>,
+    phoneNumberError: MutableState<String>,
+    emailError: MutableState<String>,
+    houseAddressError: MutableState<String>,
+    cityError: MutableState<String>,
+    stateError: MutableState<String>,
+): Boolean {
+    var isValid = false
+
+    return  isValid
 }
 
 @OptIn( ExperimentalMaterial3Api::class)

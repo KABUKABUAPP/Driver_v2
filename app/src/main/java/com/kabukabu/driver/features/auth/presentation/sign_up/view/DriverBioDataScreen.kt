@@ -242,7 +242,6 @@ fun DriverBioDataScreen(
 }
 
 private fun validateDriverDetails(
-//    context: Context,
     fullName: String,
     phoneNumber: String,
     email: String,
