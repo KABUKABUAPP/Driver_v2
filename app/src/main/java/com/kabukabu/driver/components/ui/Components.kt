@@ -135,16 +135,18 @@ fun KabuOutlinedTextField(
                 OutlinedTextField(
                     value = value ?: "",
                     onValueChange = { newValue ->
-                        if (isAccountNumber) {
-                            val trimmedValue = newValue.take(12)
-                            onTextChanged(trimmedValue)
-                        } else if (isAmount) {
-                            if ((Regex("\\.").findAll(newValue).count() > 1).not()) {
-                                onTextChanged(newValue)
-                            }
-                        } else {
-                            onTextChanged(newValue)
-                        }
+                        onTextChanged(newValue)
+
+//                        if (isAccountNumber) {
+//                            val trimmedValue = newValue.take(12)
+//                            onTextChanged(trimmedValue)
+//                        } else if (isAmount) {
+//                            if ((Regex("\\.").findAll(newValue).count() > 1).not()) {
+//                                onTextChanged(newValue)
+//                            }
+//                        } else {
+//                            onTextChanged(newValue)
+//                        }
                     },
                     placeholder = {
                         Text(
@@ -173,16 +175,18 @@ fun KabuOutlinedTextField(
                 OutlinedTextField(
                     value = value ?: "",
                     onValueChange = { newValue ->
-                        if (isAccountNumber) {
-                            val trimmedValue = newValue.take(12)
-                            onTextChanged(trimmedValue)
-                        } else if (isAmount) {
-                            if ((Regex("\\.").findAll(newValue).count() > 1).not()) {
-                                onTextChanged(newValue)
-                            }
-                        } else {
-                            onTextChanged(newValue)
-                        }
+                        onTextChanged(newValue)
+
+//                        if (isAccountNumber) {
+//                            val trimmedValue = newValue.take(12)
+//                            onTextChanged(trimmedValue)
+//                        } else if (isAmount) {
+//                            if ((Regex("\\.").findAll(newValue).count() > 1).not()) {
+//                                onTextChanged(newValue)
+//                            }
+//                        } else {
+//                            onTextChanged(newValue)
+//                        }
                     },
                     placeholder = {
                         Text(
@@ -207,16 +211,18 @@ fun KabuOutlinedTextField(
                 OutlinedTextField(
                     value = value ?: "",
                     onValueChange = { newValue ->
-                        if (isAccountNumber) {
-                            val trimmedValue = newValue.take(12)
-                            onTextChanged(trimmedValue)
-                        } else if (isAmount) {
-                            if ((Regex("\\.").findAll(newValue).count() > 1).not()) {
-                                onTextChanged(newValue)
-                            }
-                        } else {
-                            onTextChanged(newValue)
-                        }
+                        onTextChanged(newValue)
+
+//                        if (isAccountNumber) {
+//                            val trimmedValue = newValue.take(12)
+//                            onTextChanged(trimmedValue)
+//                        } else if (isAmount) {
+//                            if ((Regex("\\.").findAll(newValue).count() > 1).not()) {
+//                                onTextChanged(newValue)
+//                            }
+//                        } else {
+//                            onTextChanged(newValue)
+//                        }
                     },
                     placeholder = {
                         Text(

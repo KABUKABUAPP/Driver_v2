@@ -354,7 +354,7 @@ private fun validateGuarantorDetails(
         isValid = false
     }
 
-    if (phoneNumber.isBlank() || !Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumber)) {
+    if (phoneNumber.isEmpty() || !Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumber)) {
         phoneNumberError.value = "Enter a valid Phone number"
         isValid = false
     }
