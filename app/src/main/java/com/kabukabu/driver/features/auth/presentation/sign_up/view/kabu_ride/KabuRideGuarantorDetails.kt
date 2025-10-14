@@ -205,9 +205,9 @@ fun KabuRideGuarantorDetail(
                     value = phoneNumber,
                     hintText = "Phone number",
                     onTextChanged = {
-                        if (phoneNumber.length <= 11) {
+//                        if (phoneNumber.length <= 11) {
                             phoneNumber = it
-                        }
+//                        }
                     },
                     keyboardType = "number",
                     validationError = phoneNumberError.value.isNotEmpty(),
@@ -354,7 +354,7 @@ private fun validateGuarantorDetails(
         isValid = false
     }
 
-    if (phoneNumber.isEmpty() || !Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumber)) {
+    if (phoneNumber.isEmpty() || phoneNumber.length != 11) {
         phoneNumberError.value = "Enter a valid Phone number"
         isValid = false
     }

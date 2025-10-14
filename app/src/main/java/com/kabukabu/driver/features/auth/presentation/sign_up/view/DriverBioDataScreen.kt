@@ -137,9 +137,9 @@ fun DriverBioDataScreen(
                     value = phoneNumber,
                     hintText = "08012345678",
                     onTextChanged = {
-                        if (phoneNumber.length <= 11) {
+//                        if (phoneNumber.length <= 11) {
                             phoneNumber = it
-                        }
+//                        }
                     },
                     keyboardType = "number",
                     validationError = phoneNumberError.value.isNotEmpty(),
@@ -269,7 +269,7 @@ private fun validateDriverDetails(
     }
 
     //validate inputted phone number
-    if (phoneNumber.isBlank()) {
+    if (phoneNumber.isEmpty() || phoneNumber.length != 11) {
         phoneNumberError.value = "Enter a valid Phone number"
         isValid = false
     }
