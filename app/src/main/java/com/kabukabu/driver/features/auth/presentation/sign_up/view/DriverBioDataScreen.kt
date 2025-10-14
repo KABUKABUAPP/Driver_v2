@@ -1,6 +1,7 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
 import android.content.Context
+import android.util.Patterns
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -70,22 +71,15 @@ fun DriverBioDataScreen(
     var state by remember { mutableStateOf("") }
     var carCategory by remember { mutableStateOf("") }
 
-//    LaunchedEffect(driverUiState) {
-//        when (driverUiState) {
-//            is OnboardDriverPersonalDetailsUiState.Success -> {
-//                context.displayToastMessage(driverUiState.response.message)
-//              authViewModel.resetState()
-//                navToSelectVehicleScreen()
-//            }
-//
-//            is OnboardDriverPersonalDetailsUiState.Error -> {
-//                context.displayToastMessage(driverUiState.message)
-//                authViewModel.resetState()
-//            }
-//            else -> {}
-//        }
-//    }
 
+    val isInputValidated = remember { mutableStateOf(false) }
+    val fullNameError = remember { mutableStateOf("") }
+    val phoneNumberError = remember { mutableStateOf("") }
+    val emailError = remember { mutableStateOf("") }
+    val houseAddressError = remember { mutableStateOf("") }
+    val cityError = remember { mutableStateOf("") }
+    val stateError = remember { mutableStateOf("") }
+    val carCategoryError = remember { mutableStateOf("") }
 
     if (showStateSheet) {
         SelectStateSheet(
@@ -177,7 +171,7 @@ fun DriverBioDataScreen(
                 FormTextfieldDropdown(
                     value = carCategory,
                     title = "Car Category",
-                    onClick = { showCarCategorySheet = true}
+                    onClick = { showCarCategorySheet = true }
                 )
             }
 
@@ -185,21 +179,38 @@ fun DriverBioDataScreen(
             KabuBottomButton(
                 text = "Continue",
                 isLoading = authViewModel.onboardDriverBiodataUiState ==
-                    OnboardDriverPersonalDetailsUiState.Loading,
+                        OnboardDriverPersonalDetailsUiState.Loading,
                 onClick = {
-
-                    val driverBiodata = UploadPersonalDetailsReqBody(
-                        fullName = "Olad djei",
+                    isInputValidated.value = validateDriverDetails(
+                        fullName = fullName,
                         phoneNumber = phoneNumber,
                         email = email,
-                        houseAddress = "Isolo",
-                        city = "Leventis",
-                        state = "Lagos",
-                        carOwner = false,
-                        carCategory = "REGULAR"
+                        houseAddress = houseAddress,
+                        city = city,
+                        state = state,
+                        carCategory = carCategory,
+                        fullNameError = fullNameError,
+                        phoneNumberError = TODO(),
+                        emailError = TODO(),
+                        houseAddressError = TODO(),
+                        cityError = TODO(),
+                        stateError = TODO(),
+                        carCategoryError = TODO(),
                     )
 
-//                    val driverBiodata = UploadPersonalDetailsReqBody(
+                    if (isInputValidated.value) {
+
+                        val driverBiodata = UploadPersonalDetailsReqBody(
+                            fullName = "Olad djei",
+                            phoneNumber = phoneNumber,
+                            email = email,
+                            houseAddress = "Isolo",
+                            city = "Leventis",
+                            state = "Lagos",
+                            carOwner = false,
+                            carCategory = "REGULAR"
+                        )
+                        //                    val driverBiodata = UploadPersonalDetailsReqBody(
 //                        fullName = fullName,
 //                        phoneNumber = phoneNumber,
 //                        email = email,
@@ -209,9 +220,12 @@ fun DriverBioDataScreen(
 //                        carOwner = false,
 //                        carCategory = carCategory
 //                    )
-                    //persist values locally before navigating
-                    authViewModel.setUploadUserDetailsReqBody(driverBiodata)
-                    navToSelectVehicleScreen()
+
+
+                        //persist values locally before navigating
+                        authViewModel.setUploadUserDetailsReqBody(driverBiodata)
+                        navToSelectVehicleScreen()
+                    }
                 }
             )
         }
@@ -219,7 +233,7 @@ fun DriverBioDataScreen(
 }
 
 private fun validateDriverDetails(
-    context: Context,
+//    context: Context,
     fullName: String,
     phoneNumber: String,
     email: String,
@@ -246,8 +260,9 @@ private fun validateDriverDetails(
     stateError.value = ""
     carCategoryError.value = ""
 
-    if(fullName.isEmpty() || fullName.length < 6) {
-        fullNameError.value = "Invalid "
+    if (fullName.isEmpty() || fullName.length < 6) {
+        fullNameError.value = "Fullname is not valid"
+        isValid = false
     }
 
     //validate inputted phone number
@@ -255,7 +270,39 @@ private fun validateDriverDetails(
         phoneNumberError.value = "Enter a valid Phone number"
         isValid = false
     } else if (!Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumber)) {
-        phoneNumberError.value = context.getString(R.string.enter_a_valid_phone_number)
+        phoneNumberError.value = "Enter a valid phone number"
+        isValid = false
+    }
+
+    if (email.isNotEmpty() && !Patterns.EMAIL_ADDRESS.matcher(email)
+            .matches()
+    ) {
+        phoneNumberError.value = "Invalid email address"
+        isValid = false
+    }
+
+    if (houseAddress.isEmpty() || houseAddress.length < 10) {
+        houseAddressError.value = "Invalid house address"
+        isValid = false
+    }
+
+    if (city.isEmpty() || city.length < 3) {
+        houseAddressError.value = "Invalid city"
+        isValid = false
+    }
+
+    if (houseAddress.isEmpty() || houseAddress.length < 10) {
+        houseAddressError.value = "Invalid house address"
+        isValid = false
+    }
+
+    if (state.isEmpty()) {
+        stateError.value = "Select a State"
+        isValid = false
+    }
+
+    if (carCategory.isEmpty()) {
+        carCategoryError.value = "Choose car category"
         isValid = false
     }
 
@@ -263,49 +310,49 @@ private fun validateDriverDetails(
 }
 
 
-fun validateAirtimeInput(
-    context: Context,
-    phoneNumberInput: String,
-    networkInput: String,
-    amountInput: String,
-    phoneNumberError: MutableState<String>,
-    networkError: MutableState<String>,
-    amountError: MutableState<String>
-): Boolean {
-    var isValid = true
-    phoneNumberError.value = ""
-    networkError.value = ""
-    amountError.value = ""
+//fun validateAirtimeInput(
+//    context: Context,
+//    phoneNumberInput: String,
+//    networkInput: String,
+//    amountInput: String,
+//    phoneNumberError: MutableState<String>,
+//    networkError: MutableState<String>,
+//    amountError: MutableState<String>
+//): Boolean {
+//    var isValid = true
+//    phoneNumberError.value = ""
+//    networkError.value = ""
+//    amountError.value = ""
+//
+//    //validate inputted phone number
+//    if (phoneNumberInput.isBlank()) {
+//        phoneNumberError.value = context.getString(R.string.please_enter_a_phone_number)
+//        isValid = false
+//    } else if (!Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumberInput)) {
+//        phoneNumberError.value = context.getString(R.string.enter_a_valid_phone_number)
+//        isValid = false
+//    }
+//
+//    //validate network input
+//    if (networkInput.isBlank()) {
+//        networkError.value = context.getString(R.string.please_select_a_network)
+//        isValid = false
+//    }
+//    //validate amount
+//    if (amountInput.isEmpty()) {
+//        amountError.value = context.getString(R.string.invalid_amount)
+//        isValid = false
+//    } else if (amountInput.toDouble() > 1000000) {
+//        amountError.value = context.getString(R.string.amount_cannot_be_greater_than_1_000_000)
+//        isValid = false
+//    } else if (amountInput.toDouble() < 50) {
+//        amountError.value = context.getString(R.string.minimum_recharge_is_50)
+//        isValid = false
+//    }
+//    return isValid
+//}
 
-    //validate inputted phone number
-    if (phoneNumberInput.isBlank()) {
-        phoneNumberError.value = context.getString(R.string.please_enter_a_phone_number)
-        isValid = false
-    } else if (!Pattern.matches("(0|234)[7-9][01][0-9]{8}", phoneNumberInput)) {
-        phoneNumberError.value = context.getString(R.string.enter_a_valid_phone_number)
-        isValid = false
-    }
-
-    //validate network input
-    if (networkInput.isBlank()) {
-        networkError.value = context.getString(R.string.please_select_a_network)
-        isValid = false
-    }
-    //validate amount
-    if (amountInput.isEmpty()) {
-        amountError.value = context.getString(R.string.invalid_amount)
-        isValid = false
-    } else if (amountInput.toDouble() > 1000000) {
-        amountError.value = context.getString(R.string.amount_cannot_be_greater_than_1_000_000)
-        isValid = false
-    } else if (amountInput.toDouble() < 50) {
-        amountError.value = context.getString(R.string.minimum_recharge_is_50)
-        isValid = false
-    }
-    return isValid
-}
-
-@OptIn( ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SelectStateSheet(
     onDismiss: () -> Unit,
@@ -360,7 +407,7 @@ internal fun SelectStateSheet(
 }
 
 
-@OptIn( ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SelectCarCategorySheet(
     onDismiss: () -> Unit,
