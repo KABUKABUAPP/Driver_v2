@@ -334,6 +334,7 @@ fun KabuRideCarDetailsScreen(
 //                            }
 //                        }
 
+                        if (isInputValidated.value) {
                         imagesFileList =
                             convertUrisToFiles(context = context, uris = imagesUriList as List<Uri>)
 
@@ -346,6 +347,8 @@ fun KabuRideCarDetailsScreen(
                             carImages = imagesFileList
                         )
                         authViewModel.uploadCarDetails(uploadCarDetails)
+
+                        }
                     }
                 )
             }

@@ -382,27 +382,27 @@ private fun validateCarDocs(
     proofOfOwnershipError.value = ""
     roadWorthinessError.value = ""
 
-    if (driverLicenseUri.toString().isEmpty()) {
+    if (driverLicenseUri?.path.isNullOrEmpty()) {
         driverLicenseError.value = "Driver license not selected"
         isValid = false
     }
 
-    if (carInsuranceUri.toString().isEmpty()) {
+    if (carInsuranceUri?.path.isNullOrEmpty()) {
         carInsuranceError.value = "Car insurance certificate not selected"
         isValid = false
     }
 
-    if (vehicleLicenseUri.toString().isEmpty()) {
+    if (vehicleLicenseUri?.path.isNullOrEmpty()) {
         vehicleLicenseError.value = "Vehicle license not selected"
         isValid = false
     }
 
-    if (proofOfOwnership.toString().isEmpty()) {
+    if (proofOfOwnership?.path.isNullOrEmpty()) {
         proofOfOwnershipError.value = "Proof of ownership not selected"
         isValid = false
     }
 
-    if (roadWorthinessUri.toString().isEmpty()) {
+    if (roadWorthinessUri?.path.isNullOrEmpty()) {
         roadWorthinessError.value = "Road worthiness certificate not selected"
         isValid = false
     }
@@ -422,6 +422,7 @@ fun CaptureDocumentItem(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
+            .padding(bottom = 12.dp)
     ) {
         AnnotatedTextfieldTitle(title, isCompulsoryField)
 
@@ -476,16 +477,17 @@ fun CaptureDocumentItem(
                         )
                     }
                 }
-                if (validationError) {
-                    TitleText(
-                        validationErrorMessage,
-                        color = MaterialTheme.colorScheme.error,
-                        fontSize = 12,
-                        topPadding = 4
-                    )
-                }
             }
         }
+        if (validationError) {
+            TitleText(
+                validationErrorMessage,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 12,
+                topPadding = 4
+            )
+        }
+
     }
 }
 

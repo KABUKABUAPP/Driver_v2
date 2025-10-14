@@ -276,7 +276,7 @@ fun KabuRideGuarantorDetail(
                     isLoading = uploadGuarantorDetailsUiState == UploadGuarantorDetailsUiState.Loading,
                     onClick = {
 //                        navigator.navToKabuRidePendingAccountApprovalScreen()
-                        if (guarantorImageUri.toString().isEmpty()) {
+                        if (guarantorImageUri?.path.isNullOrEmpty()) {
                             context.displayToastMessage("Upload an image")
                             return@KabuBottomButtonRowScope
                         }
