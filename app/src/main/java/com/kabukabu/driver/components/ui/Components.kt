@@ -151,7 +151,7 @@ fun KabuOutlinedTextField(
                     placeholder = {
                         Text(
                             placeholderText,
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
                         )
                     },
                     colors = noBorderColors,

@@ -12,12 +12,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -36,14 +40,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.ui.getThirtyPercentOfScreenWidth
-import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
@@ -54,15 +56,12 @@ fun SelectVehicleScreen(
     onNavToTermsAndCondition: () -> Unit,
     authViewModel: AuthViewModel = koinViewModel()
 ) {
-
     val driverUiState = authViewModel.onboardDriverBiodataUiState
     val context = LocalContext.current
-
-    val userDetails = authViewModel.personalDetailsReqBody.collectAsState().value
+    val userDetails = authViewModel.uploadPersonalDetailsReqBody.collectAsState().value
 
     var hasVehicle by remember { mutableStateOf<Boolean?>(null) }
     var selectedCar by remember { mutableStateOf<Boolean?>(null) }
-
 
     LaunchedEffect(driverUiState) {
         when (driverUiState) {
@@ -76,98 +75,19 @@ fun SelectVehicleScreen(
                 context.displayToastMessage(driverUiState.message)
                 authViewModel.resetState()
             }
+
             else -> {}
         }
     }
 
-    Scaffold { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                KabuDivider(height = 30.0.dp)
-                KabuDivider(
-                    height = 6.0.dp,
-                    width = getThirtyPercentOfScreenWidth(),
-                    color = MaterialTheme.colorScheme.primary,
-                )
-
-                TitleText(
-                    text = "Do you have a vehicle",
-                    fontSize = 24,
-                    fontWeight = FontWeight.W600,
-                    topPadding = 60,
-                    bottomPadding = 30,
-                )
-
-                TitleText(
-                    text = "This will enable us know the kind of service to offer",
-                    fontSize = 14,
-                    bottomPadding = 16,
-                    maxLines = 2
-                )
-
-                TaxiOwnershipSelector(
-                    onSelectionChanged = {
-                        hasVehicle = it
-                    },
-                    hasTaxi = hasVehicle
-                )
-
-                if (hasVehicle == true) {
-                    VehicleTypeSelector(
-                        isSelectedCar = selectedCar,
-                        onSelectionChanged = {
-                            selectedCar = it
-                        },
-                    )
-                }
-                if (hasVehicle == false && selectedCar == false) {
-                    TitleText(
-                        "You will be enrolled in the Sharp application, once \n you qualify, a car will be presented to you",
-                        maxLines = 2,
-                        textAlign = TextAlign.Center,
-                        fontSize = 15,
-                        fontWeight = FontWeight.W400,
-                        topPadding = 30
-                    )
-                }
-
-                if (selectedCar == true) {
-                    TitleText(
-                        "Driving your car on Kabukabu enrols you \n to the KabuDrive family",
-                        maxLines = 2,
-                        textAlign = TextAlign.Center,
-                        fontSize = 15,
-                        fontWeight = FontWeight.W400,
-                        topPadding = 30
-                    )
-                } else if (selectedCar == false && hasVehicle == false) {
-                    TitleText(
-                        "Driving your keke on Kabukabu enrols you \n to the KabuKeke family",
-                        maxLines = 2,
-                        textAlign = TextAlign.Center,
-                        fontSize = 15,
-                        fontWeight = FontWeight.W400,
-                        topPadding = 30
-                    )
-                }
-            }
-
+    Scaffold(
+        bottomBar = {
             KabuBottomButton(
+                modifier = Modifier.padding(16.dp),
                 text = "Submit",
                 isLoading = driverUiState == OnboardDriverPersonalDetailsUiState.Loading,
                 onClick = {
+                    println("was i clicked......")
                     if (hasVehicle == null) {
                         context.displayToastMessage("No selection made")
                         return@KabuBottomButton
@@ -185,12 +105,89 @@ fun SelectVehicleScreen(
                     )
 
                     authViewModel.uploadDriverBioData(driverPersonalDetailsReqBody = driverBiodata)
-
                 }
             )
         }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            KabuDivider(height = 30.0.dp)
+            KabuDivider(
+                height = 6.0.dp,
+                width = getThirtyPercentOfScreenWidth(),
+                color = MaterialTheme.colorScheme.primary,
+            )
+
+            TitleText(
+                text = "Do you have a vehicle",
+                fontSize = 24,
+                fontWeight = FontWeight.W600,
+                topPadding = 60,
+                bottomPadding = 30,
+            )
+
+            TitleText(
+                text = "This will enable us know the kind of service to offer",
+                fontSize = 14,
+                bottomPadding = 16,
+                maxLines = 2
+            )
+
+            TaxiOwnershipSelector(
+                onSelectionChanged = { hasVehicle = it },
+                hasTaxi = hasVehicle
+            )
+
+            if (hasVehicle == true) {
+                VehicleTypeSelector(
+                    isSelectedCar = selectedCar,
+                    onSelectionChanged = { selectedCar = it },
+                )
+            }
+
+            if (hasVehicle == false && selectedCar == false) {
+                TitleText(
+                    "You will be enrolled in the Sharp application, once \n you qualify, a car will be presented to you",
+                    maxLines = 2,
+                    textAlign = TextAlign.Center,
+                    fontSize = 15,
+                    fontWeight = FontWeight.W400,
+                    topPadding = 30
+                )
+            }
+
+            if (selectedCar == true) {
+                TitleText(
+                    "Driving your car on Kabukabu enrols you \n to the KabuDrive family",
+                    maxLines = 2,
+                    textAlign = TextAlign.Center,
+                    fontSize = 15,
+                    fontWeight = FontWeight.W400,
+                    topPadding = 30
+                )
+            } else if (selectedCar == false && hasVehicle == false) {
+                TitleText(
+                    "Driving your keke on Kabukabu enrols you \n to the KabuKeke family",
+                    maxLines = 2,
+                    textAlign = TextAlign.Center,
+                    fontSize = 15,
+                    fontWeight = FontWeight.W400,
+                    topPadding = 30
+                )
+            }
+
+            Spacer(Modifier.height(100.dp)) // small gap above button area
+        }
     }
 }
+
 
 @Composable
 fun VehicleTypeSelector(

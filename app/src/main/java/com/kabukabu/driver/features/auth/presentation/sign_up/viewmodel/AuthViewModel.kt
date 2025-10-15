@@ -40,8 +40,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     val inspectionsHubs: StateFlow<InspectionHubsResponse?> = _inspectionsHubs.asStateFlow()
 
     private val _uploadPersonalDetailsReqBody = MutableStateFlow<UploadPersonalDetailsReqBody?>(null)
-    val personalDetailsReqBody: StateFlow<UploadPersonalDetailsReqBody?> = _uploadPersonalDetailsReqBody.asStateFlow()
-
+    val uploadPersonalDetailsReqBody: StateFlow<UploadPersonalDetailsReqBody?> = _uploadPersonalDetailsReqBody.asStateFlow()
 
     var onboardDriverBiodataUiState: OnboardDriverPersonalDetailsUiState by mutableStateOf(
         OnboardDriverPersonalDetailsUiState.Idle
@@ -112,15 +111,16 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
-                Log.e("DriverViewModel", "Cannot fetch profile, token is missing.")
+                Log.e("AuthViewModel", "Cannot fetch profile, token is missing.")
                 return@launch
             }
             try {
                 onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Loading
                 val bearerToken = "Bearer $token"
-
+                //add log statement for driverPersonalDetailsReqBody here
+                Log.i("AuthViewModel", "DriverPersonalDetailsReqBody:..... $driverPersonalDetailsReqBody")
                 val textPlain = "text/plain".toMediaTypeOrNull()
-
+                Log.i("req-body", "$driverPersonalDetailsReqBody.")
                 val response = ApiClient.authService.onboardDriverPersonalDetails(
                     bearerToken = bearerToken,
                     fullName = driverPersonalDetailsReqBody.fullName.toRequestBody(textPlain),
@@ -148,7 +148,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(
                     e.message ?: "An unknown error occurred"
                 )
-                Log.e("DriverViewModel", "Error sending biodata", e)
+                Log.e("AuthViewModel", "Error sending biodata", e)
             }
         }
     }
@@ -215,7 +215,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
-                Log.e("DriverViewModel", "Cannot upload car details, token is missing.")
+                Log.e("AuthViewModel", "Cannot upload car details, token is missing.")
                 return@launch
             }
 
@@ -264,7 +264,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 uploadCarDetailsUiState = UploadCarDetailsUiState.Error(
                     e.message ?: "An unknown error occurred"
                 )
-                Log.e("DriverViewModel", "Error uploading car details", e)
+                Log.e("AuthViewModel", "Error uploading car details", e)
             }
         }
     }
@@ -273,7 +273,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
-                Log.e("DriverViewModel", "Cannot upload car docs, token is missing.")
+                Log.e("AuthViewModel", "Cannot upload car docs, token is missing.")
                 return@launch
             }
 
@@ -340,7 +340,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 uploadCarDocsUiState = UploadCarDocsUiState.Error(
                     e.message ?: "An unknown error occurred"
                 )
-                Log.e("DriverViewModel", "Error uploading car docs", e)
+                Log.e("AuthViewModel", "Error uploading car docs", e)
             }
         }
     }
@@ -349,7 +349,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
-                Log.e("DriverViewModel", "Cannot upload guarantor details, token is missing.")
+                Log.e("AuthViewModel", "Cannot upload guarantor details, token is missing.")
                 return@launch
             }
 
@@ -407,7 +407,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Error(
                     e.message ?: "An unknown error occurred"
                 )
-                Log.e("DriverViewModel", "Error uploading guarantor details", e)
+                Log.e("AuthViewModel", "Error uploading guarantor details", e)
             }
         }
     }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,21 +53,19 @@ import java.util.regex.Pattern
 fun DriverBioDataScreen(
     navToSelectVehicleScreen: () -> Unit,
     authViewModel: AuthViewModel = koinViewModel()
-    ) {
-//    val driverUiState = authViewModel.onboardDriverBiodataUiState
-//    val context = LocalContext.current
-
+) {
     var showStateSheet by remember { mutableStateOf(false) }
     var showCarCategorySheet by remember { mutableStateOf(false) }
 
-    var fullName by remember { mutableStateOf("") }
-    var phoneNumber by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var houseAddress by remember { mutableStateOf("") }
-    var city by remember { mutableStateOf("") }
-    var state by remember { mutableStateOf("") }
-    var carCategory by remember { mutableStateOf("") }
+    val uiState = authViewModel.uploadPersonalDetailsReqBody.collectAsState().value
 
+    var fullName by remember { mutableStateOf(uiState?.fullName ?: "") }
+    var phoneNumber by remember { mutableStateOf(uiState?.phoneNumber ?: "") }
+    var email by remember { mutableStateOf(uiState?.email ?: "") }
+    var houseAddress by remember { mutableStateOf(uiState?.houseAddress ?: "") }
+    var city by remember { mutableStateOf(uiState?.city ?: "") }
+    var state by remember { mutableStateOf(uiState?.state ?: "") }
+    var carCategory by remember { mutableStateOf(uiState?.carCategory ?: "") }
 
     val isInputValidated = remember { mutableStateOf(false) }
     val fullNameError = remember { mutableStateOf("") }
@@ -96,102 +96,10 @@ fun DriverBioDataScreen(
         )
     }
 
-    Scaffold { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-
-                KabuDivider(height = 24.0.dp)
-
-                ScreenTitleText(
-                    title = "Welcome",
-                    subtitle = "Tell us about you"
-                )
-
-                FormTextfield(
-                    title = "Full Name",
-                    value = fullName,
-                    hintText = "John Doe",
-                    onTextChanged = { fullName = it },
-                    validationError = fullNameError.value.isNotEmpty(),
-                    validationErrorMessage = fullNameError.value
-                )
-
-                FormTextfield(
-                    title = "Email Address",
-                    value = email,
-                    hintText = "example@gmail.com",
-                    onTextChanged = { email = it },
-                    validationError = emailError.value.isNotEmpty(),
-                    validationErrorMessage = emailError.value
-                )
-
-                FormTextfield(
-                    title = "Phone number",
-                    value = phoneNumber,
-                    hintText = "08012345678",
-                    onTextChanged = {
-//                        if (phoneNumber.length <= 11) {
-                            phoneNumber = it
-//                        }
-                    },
-                    keyboardType = "number",
-                    validationError = phoneNumberError.value.isNotEmpty(),
-                    validationErrorMessage = phoneNumberError.value
-                )
-
-                FormTextfield(
-                    title = "House Address",
-                    value = houseAddress,
-                    hintText = "House address here",
-                    onTextChanged = { houseAddress = it },
-                    validationError = houseAddressError.value.isNotEmpty(),
-                    validationErrorMessage = houseAddressError.value
-                )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
-                    RowScopeFormTextfield(
-                        title = "City",
-                        value = city,
-                        hintText = "City here",
-                        isDropdown = false,
-                        onTextChanged = { city = it },
-                        imeAction = ImeAction.Done,
-                        validationError = cityError.value.isNotEmpty(),
-                        validationErrorMessage = cityError.value
-                    )
-                    RowScopeFormTextfield(
-                        title = "State",
-                        value = state,
-                        hintText = "Abia",
-                        isDropdown = true,
-                        onClick = { showStateSheet = true },
-                        onTextChanged = {},
-                        validationError = stateError.value.isNotEmpty(),
-                        validationErrorMessage = stateError.value
-                    )
-                }
-
-                FormTextfieldDropdown(
-                    value = carCategory,
-                    title = "Car Category",
-                    onClick = { showCarCategorySheet = true },
-                    validationError = carCategoryError.value.isNotEmpty(),
-                    validationErrorMessage = carCategoryError.value
-
-                )
-            }
-
-
+    Scaffold(
+        bottomBar = {
             KabuBottomButton(
+                modifier = Modifier.padding(16.dp),
                 text = "Continue",
                 isLoading = authViewModel.onboardDriverBiodataUiState ==
                         OnboardDriverPersonalDetailsUiState.Loading,
@@ -212,8 +120,8 @@ fun DriverBioDataScreen(
                         stateError = stateError,
                         carCategoryError = carCategoryError,
                     )
-                    if (isInputValidated.value) {
 
+                    if (isInputValidated.value) {
                         val driverBiodata = UploadPersonalDetailsReqBody(
                             fullName = fullName,
                             phoneNumber = phoneNumber,
@@ -225,16 +133,105 @@ fun DriverBioDataScreen(
                             carCategory = carCategory
                         )
 
-
-                        //persist values locally before navigating
+                        // persist values locally before navigating
                         authViewModel.setUploadUserDetailsReqBody(driverBiodata)
                         navToSelectVehicleScreen()
                     }
                 }
             )
         }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Top
+        ) {
+            KabuDivider(height = 24.0.dp)
+
+            ScreenTitleText(
+                title = "Welcome",
+                subtitle = "Tell us about you"
+            )
+
+            FormTextfield(
+                title = "Full Name",
+                value = fullName,
+                hintText = "John Doe",
+                onTextChanged = { fullName = it },
+                validationError = fullNameError.value.isNotEmpty(),
+                validationErrorMessage = fullNameError.value
+            )
+
+            FormTextfield(
+                title = "Email Address",
+                value = email,
+                hintText = "example@gmail.com",
+                onTextChanged = { email = it },
+                validationError = emailError.value.isNotEmpty(),
+                validationErrorMessage = emailError.value
+            )
+
+            FormTextfield(
+                title = "Phone number",
+                value = phoneNumber,
+                hintText = "08012345678",
+                onTextChanged = { phoneNumber = it },
+                keyboardType = "number",
+                validationError = phoneNumberError.value.isNotEmpty(),
+                validationErrorMessage = phoneNumberError.value
+            )
+
+            FormTextfield(
+                title = "House Address",
+                value = houseAddress,
+                hintText = "House address here",
+                onTextChanged = { houseAddress = it },
+                validationError = houseAddressError.value.isNotEmpty(),
+                validationErrorMessage = houseAddressError.value
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                RowScopeFormTextfield(
+                    title = "City",
+                    value = city,
+                    hintText = "City here",
+                    isDropdown = false,
+                    onTextChanged = { city = it },
+                    imeAction = ImeAction.Done,
+                    validationError = cityError.value.isNotEmpty(),
+                    validationErrorMessage = cityError.value
+                )
+
+                RowScopeFormTextfield(
+                    title = "State",
+                    value = state,
+                    hintText = "Abia",
+                    isDropdown = true,
+                    onClick = { showStateSheet = true },
+                    onTextChanged = {},
+                    validationError = stateError.value.isNotEmpty(),
+                    validationErrorMessage = stateError.value
+                )
+            }
+
+            FormTextfieldDropdown(
+                value = carCategory,
+                title = "Car Category",
+                onClick = { showCarCategorySheet = true },
+                validationError = carCategoryError.value.isNotEmpty(),
+                validationErrorMessage = carCategoryError.value
+            )
+
+            // Add space so content isn't hidden behind the button
+            KabuDivider(height = 100.dp)
+        }
     }
 }
+
 
 private fun validateDriverDetails(
     fullName: String,
@@ -264,7 +261,7 @@ private fun validateDriverDetails(
     carCategoryError.value = ""
 
     if (fullName.isEmpty() || fullName.length < 6) {
-        fullNameError.value = "Full name is not valid"
+        fullNameError.value = "Full name is too short"
         isValid = false
     }
 
