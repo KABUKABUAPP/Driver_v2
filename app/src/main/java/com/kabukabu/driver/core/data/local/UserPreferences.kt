@@ -22,6 +22,7 @@ class UserPreferences(private val context: Context) {
         private val USER_ID_KEY = stringPreferencesKey("user_id")
         private val ACTIVE_ORDER_ID_KEY = stringPreferencesKey("active_order_id")
         private val ONBOARDING_STAGE = intPreferencesKey("onboarding_stage")
+        private val USER_DETAILS = intPreferencesKey("onboarding_stage")
     }
 
     /**

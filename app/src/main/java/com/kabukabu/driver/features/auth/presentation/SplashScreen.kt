@@ -36,7 +36,7 @@ import com.kabukabu.driver.features.home.presentation.DriverViewModel
 @Composable
 fun SplashScreen(
     onGetStartedClick: () -> Unit
-) {
+    ) {
     val context = LocalContext.current
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner

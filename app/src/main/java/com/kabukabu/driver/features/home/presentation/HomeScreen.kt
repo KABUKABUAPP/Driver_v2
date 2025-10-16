@@ -798,6 +798,7 @@ private fun DriverStats() {
     }
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 private fun OnlineSlider(
     isOnline: Boolean,
