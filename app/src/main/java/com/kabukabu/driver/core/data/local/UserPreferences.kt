@@ -7,6 +7,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.kabukabu.driver.features.profile.data.ProfileData
+import com.squareup.moshi.Moshi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -22,7 +24,7 @@ class UserPreferences(private val context: Context) {
         private val USER_ID_KEY = stringPreferencesKey("user_id")
         private val ACTIVE_ORDER_ID_KEY = stringPreferencesKey("active_order_id")
         private val ONBOARDING_STAGE = intPreferencesKey("onboarding_stage")
-        private val USER_DETAILS = intPreferencesKey("onboarding_stage")
+        private val USER_DETAILS = stringPreferencesKey("user_details")
     }
 
     /**
@@ -57,6 +59,14 @@ class UserPreferences(private val context: Context) {
      */
     val onboardingStep: Flow<Int?> = context.dataStore.data.map { preferences ->
         preferences[ONBOARDING_STAGE]
+    }
+
+    val userDetails: Flow<ProfileData?> = context.dataStore.data.map { preferences ->
+        preferences[USER_DETAILS]?.let { json ->
+            val moshi = Moshi.Builder().build()
+            val adapter = moshi.adapter(ProfileData::class.java)
+            adapter.fromJson(json)
+        }
     }
 
     /**
@@ -100,6 +110,18 @@ class UserPreferences(private val context: Context) {
             preferences[ONBOARDING_STAGE] = step
         }
     }
+
+
+    suspend fun saveUserDetails(profileResponse: ProfileData?) {
+        val moshi = Moshi.Builder().build()
+        val adapter = moshi.adapter(ProfileData::class.java)
+        val json = adapter.toJson(profileResponse)
+
+        context.dataStore.edit { preferences ->
+            preferences[USER_DETAILS] = json
+        }
+    }
+
 
     /**
      * Clear all user data

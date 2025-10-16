@@ -21,7 +21,11 @@ data class ProfileData(
     @Json(name = "car_details")
     val carDetails: CarDetails?,
     @Json(name = "documents")
-    val documents: List<Document>?
+    val documents: List<Document>?,
+
+    @Json(name = "active_trip")
+    val activeTrip: ActiveTrip?
+
 )
 
 @JsonClass(generateAdapter = true)
@@ -280,4 +284,30 @@ data class Document(
     val createdAt: String?,
     @Json(name = "updated_at")
     val updatedAt: String?
+)
+
+//adds on
+@JsonClass(generateAdapter = true)
+data class ActiveTrip(
+    @Json(name = "_id") val id: String,
+    @Json(name = "status") val status: String?,
+    @Json(name = "start_address") val startAddress: TripAddress?,
+    @Json(name = "end_address") val endAddress: TripAddress?,
+    @Json(name = "price") val price: Double?,
+    @Json(name = "start_point") val startPoint: List<Double>?
+)
+
+@JsonClass(generateAdapter = true)
+data class TripAddress(
+    @Json(name = "full_address") val fullAddress: String?
+)
+
+@JsonClass(generateAdapter = true)
+data class UserProfile(
+    @Json(name = "_id") val id: String,
+    @Json(name = "full_name") val fullName: String?,
+    @Json(name = "email") val email: String?,
+    @Json(name = "online_status") val onlineStatus: String?,
+    @Json(name = "profile_image") val profileImage: String?,
+    @Json(name = "average_rating") val averageRating: AverageRating?
 )

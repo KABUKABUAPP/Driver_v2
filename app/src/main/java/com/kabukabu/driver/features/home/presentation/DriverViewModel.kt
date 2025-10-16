@@ -12,10 +12,10 @@ import com.kabukabu.driver.core.data.remote.ApiClient
 import org.json.JSONObject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.kabukabu.driver.features.profile.data.ProfileData
 
 class DriverViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -29,6 +29,9 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
 
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
     val userProfile = _userProfile.asStateFlow()
+
+    private val _userDetails = MutableStateFlow<ProfileData?>(null)
+    val userDetails = _userProfile.asStateFlow()
     
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
@@ -56,8 +59,10 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
                     if (rawResponse != null) {
                         val moshi = ApiClient.moshi
                         val adapter = moshi.adapter(ProfileResponse::class.java)
+
                         val parsedResponse = adapter.fromJson(rawResponse)
                         val user = parsedResponse?.data?.user
+                        val userDetails = parsedResponse?.data
                         val onlineStatus = user?.onlineStatus
                         _isOnline.value = onlineStatus == "online"
                         Log.d("DriverViewModel", "Driver online status updated to: ${isOnline.value}")
@@ -67,7 +72,10 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
                         Log.d("DriverViewModel", "Active trip updated: ${_activeTrip.value}")
 
                         // Update user profile
-                        _userProfile.value = user
+//                        _userProfile.value = user
+
+                        _userDetails.value = userDetails
+                        userPreferences.saveUserDetails(userDetails)
                         Log.d("DriverViewModel", "User profile updated: ${_userProfile.value}")
                     }
                 } else {

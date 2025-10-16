@@ -60,12 +60,12 @@ fun AppNavigation() {
                 "Auth token found: ${authToken?.take(10)}..., navigating to home"
             )
             // Add a delay to ensure the NavHost is fully set up
-//            navigateBasedOnStatus(navigation)
             delay(500)
+            navigateBasedOnStatus(navigation)
             // User is logged in, navigate to home screen
-            navController.navigate(Screen.Home.route) {
-                popUpTo(navController.graph.id) { inclusive = true }
-            }
+//            navController.navigate(Screen.Home.route) {
+//                popUpTo(navController.graph.id) { inclusive = true }
+//            }
         } else {
             //navigate to Login because authToken is not found, and restart proccess.
             navController.navigate(Screen.Login.route) {
