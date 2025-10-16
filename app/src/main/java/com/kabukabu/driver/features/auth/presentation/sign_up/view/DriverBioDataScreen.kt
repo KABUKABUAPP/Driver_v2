@@ -107,7 +107,7 @@ fun DriverBioDataScreen(
                     isInputValidated.value = validateDriverDetails(
                         fullName = fullName,
                         phoneNumber = phoneNumber,
-                        email = email,
+                        email = email.trim(),
                         houseAddress = houseAddress,
                         city = city,
                         state = state,
@@ -227,7 +227,7 @@ fun DriverBioDataScreen(
             )
 
             // Add space so content isn't hidden behind the button
-            KabuDivider(height = 100.dp)
+//            KabuDivider(height = 100.dp)
         }
     }
 }

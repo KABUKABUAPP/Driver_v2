@@ -30,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,10 +56,11 @@ import org.koin.androidx.compose.koinViewModel
 fun SelectVehicleScreen(
     onNavToTermsAndCondition: () -> Unit,
     authViewModel: AuthViewModel = koinViewModel()
-) {
+    ) {
     val driverUiState = authViewModel.onboardDriverBiodataUiState
     val context = LocalContext.current
     val userDetails = authViewModel.uploadPersonalDetailsReqBody.collectAsState().value
+    val currentUserDetails by rememberUpdatedState(userDetails)
 
     var hasVehicle by remember { mutableStateOf<Boolean?>(null) }
     var selectedCar by remember { mutableStateOf<Boolean?>(null) }
@@ -87,24 +89,29 @@ fun SelectVehicleScreen(
                 text = "Submit",
                 isLoading = driverUiState == OnboardDriverPersonalDetailsUiState.Loading,
                 onClick = {
-                    println("was i clicked......")
+                    println("was i clicked......1")
                     if (hasVehicle == null) {
                         context.displayToastMessage("No selection made")
                         return@KabuBottomButton
                     }
 
                     val driverBiodata = UploadPersonalDetailsReqBody(
-                        fullName = userDetails?.fullName ?: "",
-                        phoneNumber = userDetails?.phoneNumber ?: "",
-                        email = userDetails?.email ?: "",
-                        houseAddress = userDetails?.houseAddress ?: "",
-                        city = userDetails?.city ?: "",
-                        state = userDetails?.state ?: "",
+                        fullName = currentUserDetails?.fullName ?: "",
+                        phoneNumber = currentUserDetails?.phoneNumber ?: "",
+                        email = currentUserDetails?.email ?: "",
+                        houseAddress = currentUserDetails?.houseAddress ?: "",
+                        city = currentUserDetails?.city ?: "",
+                        state = currentUserDetails?.state ?: "",
                         carOwner = hasVehicle,
-                        carCategory = userDetails?.carCategory ?: "REGULAR"
+                        carCategory = currentUserDetails?.carCategory ?: "REGULAR"
                     )
 
-                    authViewModel.uploadDriverBioData(driverPersonalDetailsReqBody = driverBiodata)
+                    println("was i clicked......2")
+                    println(authViewModel.onboardDriverBiodataUiState)
+                    println( driverBiodata)
+
+                    authViewModel.uploadDriverBioData(driverBiodata)
+
                 }
             )
         }

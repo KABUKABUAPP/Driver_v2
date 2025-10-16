@@ -69,7 +69,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setUploadUserDetailsReqBody(uploadPersonalDetailsReqBody: UploadPersonalDetailsReqBody) {
-        _uploadPersonalDetailsReqBody.value = uploadPersonalDetailsReqBody
+        _uploadPersonalDetailsReqBody.value = uploadPersonalDetailsReqBody.copy()
     }
 
     //fetch car brands from firebase
@@ -108,7 +108,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
 
     fun uploadDriverBioData(driverPersonalDetailsReqBody: UploadPersonalDetailsReqBody) {
-        viewModelScope.launch(Dispatchers.IO) {
+        Log.i("AuthViewModel", "uploadDriverBioData called..........")
+        viewModelScope.launch(Dispatchers.Main) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
                 Log.e("AuthViewModel", "Cannot fetch profile, token is missing.")

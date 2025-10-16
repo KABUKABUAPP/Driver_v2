@@ -399,7 +399,7 @@ private fun validateCarDetails(
         isValid = false
     }
 
-    if (plateNumber.isEmpty() || carModel.length < 5) {
+    if (plateNumber.isEmpty() || plateNumber.length < 5) {
         plateNumberError.value = "Invalid plate number"
         isValid = false
     }
