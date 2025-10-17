@@ -191,12 +191,41 @@ fun AppNavigation() {
         }
 
         composable(Screen.KabuRideAccountDeclined.route) {
-            KabuRideAccountDeclinedScreen()
+            KabuRideAccountDeclinedScreen(
+                navigation
+            )
         }
 
-        composable(Screen.KabuRideDocumentsReUpload.route) {
-            KabuRideDocumentsReUploadScreen(navigation)
+        composable(Screen.KabuRideDocReUpload.route + "/{id}",
+            arguments = listOf(navArgument("id") {
+                type = NavType.StringType
+            })
+        ) { arg ->
+            val docId = arg.arguments?.getString("id")
+            KabuRideDocumentsReUploadScreen(
+                id = docId ?: "",
+                navigator = navigation,
+            )
         }
+
+//        composable(
+//            Routes.TransactionsHistory.route + "/{walletNumber}",
+//            arguments = listOf(navArgument("walletNumber") {
+//                type = NavType.StringType
+//            })
+//        ) { args ->
+//            val state = args.arguments?.getString("walletNumber")
+//            TransactionsHistory(
+//                navigation = navigation,
+//                kegowViewModel = kegowViewModel,
+//                walletNumber = state,
+//
+//                )
+//        }
+
+//        composable(Screen.KabuRideDocReUpload.route) {
+//            KabuRideDocumentsReUploadScreen(navigation)
+//        }
 
         composable(Screen.KabuRideInspection.route) {
             InspectionHubsScreen(navigation)
@@ -312,9 +341,11 @@ private fun navigateBasedOnOnboardingStatus(
                         ApprovalStatus.pending.name -> {
                             navigator.navToKabuRidePendingAccountApprovalScreen()
                         }
+
                         ApprovalStatus.declined.name -> {
                             navigator.navToKabuRideAccountDeclinedScreen()
                         }
+
                         ApprovalStatus.approved.name -> {
                             val approvalStatus = userDetails.user.driver.approvalStatus
                             if (approvalStatus == ApprovalStatus.active.name) {

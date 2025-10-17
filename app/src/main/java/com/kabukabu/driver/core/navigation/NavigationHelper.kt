@@ -30,8 +30,8 @@ class Navigator(private val navController: NavHostController) {
         navController.navigate(Screen.KabuRideAccountDeclined.route)
     }
 
-    fun navToKabuRideDocumentsReuploadScreen() {
-        navController.navigate(Screen.KabuRideDocumentsReUpload.route)
+    fun navToKabuRideDocumentsReuploadScreen(id: String) {
+        navController.navigate(Screen.KabuRideDocReUpload.route+"/$id")
     }
 
     fun navToKabuRideInspection() {

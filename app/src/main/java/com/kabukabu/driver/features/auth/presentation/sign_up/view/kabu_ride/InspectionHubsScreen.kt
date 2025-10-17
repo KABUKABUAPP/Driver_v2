@@ -120,7 +120,7 @@ fun InspectionHubsScreen(navigator: Navigator,
 }
 
 @Composable
-fun InspectionHubsList(hubs: List<InspectionHub>) {
+private fun InspectionHubsList(hubs: List<InspectionHub>) {
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
