@@ -3,6 +3,7 @@ package com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel
 import com.kabukabu.driver.features.auth.data.entity.response.UploadGuarantorDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.DriverPersonalDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.EditDriverProfileResponse
+import com.kabukabu.driver.features.auth.data.entity.response.ReUploadDocumentResponse
 import com.kabukabu.driver.features.auth.data.entity.response.ReuploadGuarantorDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDocsResponse
@@ -54,7 +55,7 @@ sealed class ReUploadGuarantorDetailsUiState {
 sealed class ReUploadDocUiState {
     object Idle : ReUploadDocUiState()
     object Loading : ReUploadDocUiState()
-    data class Success(val response: UploadGuarantorDetailsResponse) : ReUploadDocUiState()
+    data class Success(val response: ReUploadDocumentResponse) : ReUploadDocUiState()
     data class Error(val message: String) : ReUploadDocUiState()
 }
 

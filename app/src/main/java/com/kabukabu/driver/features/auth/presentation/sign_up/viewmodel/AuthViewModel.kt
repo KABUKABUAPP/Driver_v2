@@ -12,6 +12,7 @@ import com.kabukabu.driver.components.utils_functions.toMultipartPart
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.data.remote.ApiClient
 import com.kabukabu.driver.core.data.remote.hub.HubApiClient
+import com.kabukabu.driver.features.auth.data.entity.req_body.ReUploadDocumentReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBody
@@ -475,8 +476,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     guarantorState = guarantorState,
                     guarantorPhoneNumber = guarantorPhoneNumber,
                     guarantorEmail = guarantorEmail,
-                    referralCode = referralCode,
-                    sharpProgramType = sharpProgramType,
                     guarantorImage = guarantorImage!!
                 )
 
@@ -499,6 +498,53 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun reUploadDocument(reuploadDocumentReqBody: ReUploadDocumentReqBody, id: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val token = userPreferences.authToken.firstOrNull()
+            if (token.isNullOrBlank()) {
+                Log.e("AuthViewModel", "Cannot re-upload document, token is missing.")
+                return@launch
+            }
+
+            try {
+                reUploadDocUiState = ReUploadDocUiState.Loading
+                val bearerToken = "Bearer $token"
+                val textPlain = "text/plain".toMediaTypeOrNull()
+
+                // Prepare text part
+                val docNumberBody = reuploadDocumentReqBody.docNumber.toRequestBody(textPlain)
+
+                // Prepare file part
+                val filePart = MultipartBody.Part.createFormData(
+                    "file",
+                    reuploadDocumentReqBody.file.name,
+                    reuploadDocumentReqBody.file.asRequestBody("image/*".toMediaType())
+                )
+
+                // Make network call
+                val response = ApiClient.authService.reUploadDocument(
+                    bearerToken = bearerToken,
+                    id = id,
+                    docNumber = docNumberBody,
+                    file = filePart
+                )
+
+                if (response.status == "success") {
+                    reUploadDocUiState = ReUploadDocUiState.Success(response)
+                    Log.d("AuthViewModel", "Document re-upload successful.")
+                } else {
+                    reUploadDocUiState = ReUploadDocUiState.Error(response.status)
+                    Log.e("AuthViewModel", "Document re-upload failed: ${response.status}")
+                }
+
+            } catch (e: Exception) {
+                reUploadDocUiState = ReUploadDocUiState.Error(
+                    e.message ?: "An unknown error occurred"
+                )
+                Log.e("AuthViewModel", "Error re-uploading document", e)
+            }
+        }
+    }
 
     fun resetState() {
         onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Idle

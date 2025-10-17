@@ -5,7 +5,7 @@ import com.squareup.moshi.JsonClass
 import java.io.File
 
 @JsonClass(generateAdapter = true)
-data class ReuploadDocumentReqBody(
+data class ReUploadDocumentReqBody(
     @Json(name = "doc_number")
     val docNumber: String,
     @Json(name = "file")
