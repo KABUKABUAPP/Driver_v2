@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -31,6 +32,7 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.Kab
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideSelfieVerificationScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideTermsAndConditionsScreen
 import com.kabukabu.driver.features.home.presentation.HomeScreen
+import com.kabukabu.driver.features.profile.data.ProfileData
 import com.kabukabu.driver.features.profile.presentation.ProfileScreen
 import com.kabukabu.driver.features.promotions.presentation.PromotionsScreen
 import com.kabukabu.driver.features.repair_loan.presentation.RepairLoanScreen
@@ -48,6 +50,7 @@ fun AppNavigation() {
 
     val navController = rememberNavController()
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
+    val userDetails by userPreferences.userDetails.collectAsState(initial = null)
     val authToken by userPreferences.authToken.collectAsState(initial = null)
 //    val coroutineScope = rememberCoroutineScope()
     val navigation = Navigator(navController)
@@ -61,7 +64,7 @@ fun AppNavigation() {
             )
             // Add a delay to ensure the NavHost is fully set up
             delay(500)
-            navigateBasedOnStatus(navigation)
+            navigateBasedOnStatus(navigation, navController, userDetails)
             // User is logged in, navigate to home screen
 //            navController.navigate(Screen.Home.route) {
 //                popUpTo(navController.graph.id) { inclusive = true }
@@ -124,9 +127,9 @@ fun AppNavigation() {
                 onNavigateToHome = {
                     Log.d("AppNavigation", "Navigating to home from OTP screen")
 //                    coroutineScope.launch {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(0) { inclusive = true }
-                        }
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
 //                    }
                 },
                 onNavigateToLogin = {
@@ -160,7 +163,7 @@ fun AppNavigation() {
 
         composable(Screen.KabuRideTAndC.route) {
             KabuRideTermsAndConditionsScreen(
-                onNavToSelfieVerification = {  navController.navigate(Screen.KabuRideSelfieVerificationScreen.route) }
+                onNavToSelfieVerification = { navController.navigate(Screen.KabuRideSelfieVerificationScreen.route) }
             )
         }
 
@@ -183,7 +186,7 @@ fun AppNavigation() {
         }
 
         composable(Screen.KabuRidePendingApproval.route) {
-            KabuRidePendingAccountApprovalScreen(onNavigateToLogin = {navController.navigate(Screen.Login.route) }
+            KabuRidePendingAccountApprovalScreen(onNavigateToLogin = { navController.navigate(Screen.Login.route) }
             )
         }
 
@@ -274,7 +277,7 @@ fun AppNavigation() {
             )
         }
         composable(Screen.About.route) {
-            AboutScreen(onBack = { navController.popBackStack() } )
+            AboutScreen(onBack = { navController.popBackStack() })
         }
         composable(Screen.RepairLoan.route) {
             RepairLoanScreen(onBack = { navController.popBackStack() })
@@ -285,8 +288,52 @@ fun AppNavigation() {
     }
 }
 
-fun navigateBasedOnStatus(navigator: Navigator,) {
+fun navigateBasedOnStatus(
+    navigator: Navigator,
+    navController: NavHostController,
+    userDetails: ProfileData?
+) {
 
-    navigator.navToKabuRideGuarantorDetailsScreen()
+    if (userDetails?.user?.isOnboardingComplete == true) {
+        navController.navigate(Screen.Home.route) {
+            popUpTo(navController.graph.id) { inclusive = true }
+        }
+        return
+    }
+
+    userDetails?.user?.onboardingStep?.let {
+        if (it > 5) {  // user is awaiting admin approval checks
+            if (userDetails.user.driver == null) { //user is a driver (not keke)
+                if (userDetails.user.driver?.carOwner == true) { //user is has car
+
+                } else { //user is on KabuSharp
+
+                }
+            }
+
+
+        } else {
+            //user is yet to get to final admin approval
+            when (userDetails.user.onboardingStep) {
+                0 -> navController.navigate(Screen.DriverBioDataScreen.route)
+
+                1 -> navController.navigate(Screen.KabuRideTAndC.route)
+
+                2 -> navigator.navToKabuRideCarDetails()
+
+                3 -> navigator.navToKabuRideCarDocsUpload()
+
+                4 -> navigator.navToKabuRideCarDocsUpload()
+
+                5 -> navigator.navToKabuRideGuarantorDetailsScreen()
+
+                6 -> navigator.navToKabuRidePendingAccountApprovalScreen()
+
+            }
+        }
+    }
+
+
+//    navigator.navToKabuRideGuarantorDetailsScreen()
 
 }
