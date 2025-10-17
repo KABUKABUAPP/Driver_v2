@@ -50,6 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -71,6 +72,7 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.UploadGuarantorDet
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectStateSheet
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadGuarantorDetailsUiState
+import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import java.util.regex.Pattern
 
 
@@ -79,6 +81,12 @@ fun KabuRideGuarantorDetail(
     navigator: Navigator,
     authViewModel: AuthViewModel = viewModel()
 ) {
+    val context = LocalContext.current
+
+
+    val activityOwner = context as ViewModelStoreOwner
+
+    val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
 
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
 //
@@ -94,7 +102,7 @@ fun KabuRideGuarantorDetail(
 
     val uploadGuarantorDetailsUiState = authViewModel.uploadGuarantorDetailsUiState
 
-    val context = LocalContext.current
+//    val context = LocalContext.current
 
     var showStateSheet by remember { mutableStateOf(false) }
     var showGuarantorSheet by remember { mutableStateOf(false) }
