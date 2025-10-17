@@ -41,6 +41,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuDivider
@@ -50,6 +52,7 @@ import com.kabukabu.driver.components.ui.getThirtyPercentOfScreenWidth
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
+import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -57,8 +60,14 @@ fun SelectVehicleScreen(
     onNavToTermsAndCondition: () -> Unit,
     authViewModel: AuthViewModel = koinViewModel()
     ) {
-    val driverUiState = authViewModel.onboardDriverBiodataUiState
+
     val context = LocalContext.current
+    // Create DriverViewModel at Activity scope so it's shared across Splash and Home
+    val activityOwner = context as ViewModelStoreOwner
+    val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+
+    val driverUiState = authViewModel.onboardDriverBiodataUiState
+//    val context = LocalContext.current
     val userDetails = authViewModel.uploadPersonalDetailsReqBody.collectAsState().value
     val currentUserDetails by rememberUpdatedState(userDetails)
 

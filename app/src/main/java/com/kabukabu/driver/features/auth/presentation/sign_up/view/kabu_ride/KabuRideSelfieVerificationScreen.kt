@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
@@ -37,6 +38,7 @@ import com.kabukabu.driver.components.utils_functions.convertUriToFile
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.EditDriverProfileUiState
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadGuarantorDetailsUiState
+import com.kabukabu.driver.features.home.presentation.DriverViewModel
 
 @Composable
 fun KabuRideSelfieVerificationScreen(
@@ -44,8 +46,13 @@ fun KabuRideSelfieVerificationScreen(
     authViewModel: AuthViewModel = viewModel()
     ) {
 
-    val uiState = authViewModel.editDriverProfileUiState
     val context = LocalContext.current
+    // Create DriverViewModel at Activity scope so it's shared across Splash and Home
+    val activityOwner = context as ViewModelStoreOwner
+    val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+
+    val uiState = authViewModel.editDriverProfileUiState
+//    val context = LocalContext.current
 
     var selfieUri by remember { mutableStateOf<Uri?>(null) }
     var photoError by remember { mutableStateOf<String?>(null) }

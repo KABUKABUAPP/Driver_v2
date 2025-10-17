@@ -32,9 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.KabuBottomButton
@@ -45,6 +48,7 @@ import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
+import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 import java.util.regex.Pattern
 
@@ -54,6 +58,12 @@ fun DriverBioDataScreen(
     navToSelectVehicleScreen: () -> Unit,
     authViewModel: AuthViewModel = koinViewModel()
 ) {
+
+    val context = LocalContext.current
+    // Create DriverViewModel at Activity scope so it's shared across Splash and Home
+    val activityOwner = context as ViewModelStoreOwner
+    val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+
     var showStateSheet by remember { mutableStateOf(false) }
     var showCarCategorySheet by remember { mutableStateOf(false) }
 

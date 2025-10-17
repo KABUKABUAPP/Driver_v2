@@ -29,9 +29,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.ScreenTitleText
@@ -39,6 +42,7 @@ import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.response.InspectionHub
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
+import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -46,6 +50,12 @@ import org.koin.androidx.compose.koinViewModel
 fun InspectionHubsScreen(navigator: Navigator,
                          authViewModel: AuthViewModel = koinViewModel()
 ) {
+
+    val context = LocalContext.current
+    // Create DriverViewModel at Activity scope so it's shared across Splash and Home
+    val activityOwner = context as ViewModelStoreOwner
+    val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+
     val hubsList = authViewModel.inspectionsHubs.collectAsState().value?.data ?: emptyList()
 
     Scaffold { paddingValues ->

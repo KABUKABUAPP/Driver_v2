@@ -35,6 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -54,6 +55,7 @@ import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDocsUiState
+import com.kabukabu.driver.features.home.presentation.DriverViewModel
 
 private enum class SelectedDoc { VehicleLicense, DriverLicense, Insurance, ProofOfOwnership, RoadWorthiness, HackneyPermit }
 
@@ -63,8 +65,13 @@ fun KabuRideCarDocumentsUploadScreen(
     authViewModel: AuthViewModel = viewModel()
 ) {
 
-    val uploadCarDocsUiState = authViewModel.uploadCarDocsUiState
     val context = LocalContext.current
+    // Create DriverViewModel at Activity scope so it's shared across Splash and Home
+    val activityOwner = context as ViewModelStoreOwner
+    val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+
+    val uploadCarDocsUiState = authViewModel.uploadCarDocsUiState
+//    val context = LocalContext.current
 
     var selectedDocType by remember { mutableStateOf(SelectedDoc.VehicleLicense) }
     var vehicleLicenseUri by remember { mutableStateOf<Uri?>(null) }

@@ -51,6 +51,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -71,6 +72,7 @@ import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDetailsUiState
+import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import java.io.File
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -79,6 +81,11 @@ fun KabuRideCarDetailsScreen(
     navigator: Navigator,
     authViewModel: AuthViewModel = viewModel()
 ) {
+
+    val context = LocalContext.current
+    // Create DriverViewModel at Activity scope so it's shared across Splash and Home
+    val activityOwner = context as ViewModelStoreOwner
+    val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
 
     val uploadCarDetailsUiState = authViewModel.uploadCarDetailsUiState
 
@@ -90,7 +97,7 @@ fun KabuRideCarDetailsScreen(
     var imagesFileList: List<File>
     val carBrands = authViewModel.carBrands.collectAsState().value
 
-    val context = LocalContext.current
+//    val context = LocalContext.current
 
     var showCarBrandSheet by remember { mutableStateOf(false) }
     var showCarColourSheet by remember { mutableStateOf(false) }
@@ -384,7 +391,7 @@ private fun validateCarDetails(
         isValid = false
     }
 
-    if (carModel.isEmpty() || carModel.length < 3) {
+    if (carModel.length < 3) {
         carModelError.value = "Invalid car model"
         isValid = false
     }

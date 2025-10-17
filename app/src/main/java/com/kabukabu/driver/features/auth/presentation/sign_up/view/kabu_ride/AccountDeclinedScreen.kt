@@ -15,15 +15,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.TitleText
+import com.kabukabu.driver.features.home.presentation.DriverViewModel
 
 @Composable
 fun KabuRideAccountDeclinedScreen() {
+
+    val context = LocalContext.current
+    // Create DriverViewModel at Activity scope so it's shared across Splash and Home
+    val activityOwner = context as ViewModelStoreOwner
+    val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
