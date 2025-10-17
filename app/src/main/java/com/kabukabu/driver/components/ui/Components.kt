@@ -483,10 +483,11 @@ internal fun ScreenTitleText(
     titleFontSize: Int = 20,
     subtitleFontSize: Int = 15,
     bottomPadding: Int = 0,
-    topPadding: Int = 0
+    topPadding: Int = 0,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(top = topPadding.dp, bottom = bottomPadding.dp)
     ) {

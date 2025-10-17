@@ -15,11 +15,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.features.profile.data.ProfileData
 
 class DriverViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val userPreferences = UserPreferences(application)
+//    private val userPreferences = UserPreferences(application)
+
+    val userPreferences = KabukabuDriverApp.getInstance().userPreferences
+
 
     private val _isOnline = MutableStateFlow(false)
     val isOnline = _isOnline.asStateFlow()
@@ -39,6 +43,13 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
     init {
         // Fetch early so UI like the drawer can consume cached state immediately
         fetchUserProfile()
+
+        viewModelScope.launch {
+            userPreferences.userDetails.collect {
+                Log.i("DataStoreDebug", "userDetails emitted: $it")
+            }
+        }
+
     }
 
     fun fetchUserProfile() {
@@ -75,7 +86,10 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
 //                        _userProfile.value = user
 
                         _userDetails.value = userDetails
+                        println("saveing data to driver fullname.....${userDetails?.user?.fullName}")
                         userPreferences.saveUserDetails(userDetails)
+
+                        userPreferences.saveFullName(userDetails?.user?.fullName ?: "")
                         Log.d("DriverViewModel", "User profile updated: ${_userProfile.value}")
                     }
                 } else {

@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
 import com.kabukabu.driver.components.ui.FormTextfield
@@ -77,6 +79,18 @@ fun KabuRideGuarantorDetail(
     navigator: Navigator,
     authViewModel: AuthViewModel = viewModel()
 ) {
+
+    val userPreferences = KabukabuDriverApp.getInstance().userPreferences
+//
+//    LaunchedEffect(Unit) {
+//
+//    val userDetails by userPreferences.getUserDetails
+//    }
+
+    val userDetails by userPreferences.userDetails.collectAsState(initial = null)
+
+
+
 
     val uploadGuarantorDetailsUiState = authViewModel.uploadGuarantorDetailsUiState
 
@@ -160,8 +174,12 @@ fun KabuRideGuarantorDetail(
 
             ScreenTitleText(
                 title = "Guarantor Details",
-                subtitle = "Tell us about your guarantors",
-                bottomPadding = 16
+                subtitle = userDetails?.user?.fullName ?: "Not found",
+//                    "Tell us about your guarantors",
+                bottomPadding = 16,
+                modifier = Modifier.clickable{
+
+                }
             )
 
             GrayBackgroundContainer {
