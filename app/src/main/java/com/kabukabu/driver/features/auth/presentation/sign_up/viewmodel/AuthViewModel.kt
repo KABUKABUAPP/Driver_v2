@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -62,6 +63,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         UploadGuarantorDetailsUiState.Idle
     )
         private set
+
+    var reUploadGuarantorDetailsUiState: ReUploadGuarantorDetailsUiState by mutableStateOf(ReUploadGuarantorDetailsUiState.Idle)
+        private set
+
+    var reUploadDocUiState: ReUploadDocUiState by mutableStateOf(ReUploadDocUiState.Idle)
+        private set
+
 
     init {
         fetchCarBrands()
@@ -409,6 +417,84 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     e.message ?: "An unknown error occurred"
                 )
                 Log.e("AuthViewModel", "Error uploading guarantor details", e)
+            }
+        }
+    }
+
+
+
+    fun reUploadGuarantorDetails(uploadGuarantorDetailsReqBody: UploadGuarantorDetailsReqBody) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val token = userPreferences.authToken.firstOrNull()
+            if (token.isNullOrBlank()) {
+                Log.e("AuthViewModel", "Cannot re-upload guarantor details, token is missing.")
+                return@launch
+            }
+
+            try {
+                reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Loading
+                val bearerToken = "Bearer $token"
+                val textPlain = "text/plain".toMediaTypeOrNull()
+
+                // Prepare text fields
+                val guarantorFullName =
+                    uploadGuarantorDetailsReqBody.guarantorFullName.toRequestBody(textPlain)
+                val guarantorRelationship =
+                    uploadGuarantorDetailsReqBody.guarantorRelationship.toRequestBody(textPlain)
+                val guarantorHouseAddress =
+                    uploadGuarantorDetailsReqBody.guarantorHouseAddress.toRequestBody(textPlain)
+                val guarantorCity =
+                    uploadGuarantorDetailsReqBody.guarantorCity.toRequestBody(textPlain)
+                val guarantorState =
+                    uploadGuarantorDetailsReqBody.guarantorState.toRequestBody(textPlain)
+                val guarantorPhoneNumber =
+                    uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain)
+                val guarantorEmail =
+                    uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain)
+                val referralCode =
+                    uploadGuarantorDetailsReqBody.referralCode?.toRequestBody(textPlain)
+                val sharpProgramType =
+                    uploadGuarantorDetailsReqBody.sharpProgramType?.toRequestBody(textPlain)
+
+                // Prepare file part
+                val guarantorImage = uploadGuarantorDetailsReqBody.guarantorImage?.let {
+                    MultipartBody.Part.createFormData(
+                        "guarantor_image",
+                        it.name,
+                        it.asRequestBody("image/*".toMediaType())
+                    )
+                }
+
+                // Make the network call
+                val response = ApiClient.authService.reUploadGuarantorDetails(
+                    bearerToken = bearerToken,
+                    guarantorFullName = guarantorFullName,
+                    guarantorRelationship = guarantorRelationship,
+                    guarantorHouseAddress = guarantorHouseAddress,
+                    guarantorCity = guarantorCity,
+                    guarantorState = guarantorState,
+                    guarantorPhoneNumber = guarantorPhoneNumber,
+                    guarantorEmail = guarantorEmail,
+                    referralCode = referralCode,
+                    sharpProgramType = sharpProgramType,
+                    guarantorImage = guarantorImage!!
+                )
+
+                if (response.status == "success") {
+                    reUploadGuarantorDetailsUiState =
+                        ReUploadGuarantorDetailsUiState.Success(response)
+                    Log.d("AuthViewModel", "Guarantor re-upload successful.")
+                } else {
+                    reUploadGuarantorDetailsUiState =
+                        ReUploadGuarantorDetailsUiState.Error(response.status)
+                    Log.e("AuthViewModel", "Guarantor re-upload failed: ${response.status}")
+                }
+
+            } catch (e: Exception) {
+                reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Error(
+                    e.message ?: "An unknown error occurred"
+                )
+                Log.e("AuthViewModel", "Error re-uploading guarantor details", e)
             }
         }
     }

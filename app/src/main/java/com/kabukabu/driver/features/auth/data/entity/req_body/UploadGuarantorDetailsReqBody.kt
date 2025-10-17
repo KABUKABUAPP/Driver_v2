@@ -21,8 +21,8 @@ data class UploadGuarantorDetailsReqBody(
     val guarantorPhoneNumber: String,
     @Json(name = "guarantor_email")
     val guarantorEmail: String,
-//    @Json(name = "referral_code")
-//    val referralCode: String ?= "",
-//    @Json(name = "sharp_program_type")
-//    val sharpProgramType: String ?= ""
+    @Json(name = "referral_code")
+    val referralCode: String ?= "",
+    @Json(name = "sharp_program_type")
+    val sharpProgramType: String ?= ""
 )

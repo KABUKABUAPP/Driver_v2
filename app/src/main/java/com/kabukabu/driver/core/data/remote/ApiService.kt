@@ -25,6 +25,8 @@ import com.kabukabu.driver.features.analytics.data.DriverAnalysisResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadGuarantorDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.DriverPersonalDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.EditDriverProfileResponse
+import com.kabukabu.driver.features.auth.data.entity.response.ReUploadDocumentResponse
+import com.kabukabu.driver.features.auth.data.entity.response.ReuploadGuarantorDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDocsResponse
 import com.kabukabu.driver.features.trips.data.TripHistoryResponse
@@ -127,6 +129,30 @@ interface ApiService {
         @Part guarantorImage: MultipartBody.Part
     ): UploadGuarantorDetailsResponse
 
+    @Multipart
+    @PUT("driver/reupload-guarantor")
+    suspend fun reUploadGuarantorDetails(
+        @Header("Authorization") bearerToken: String,
+        @Part("guarantor_full_name") guarantorFullName: RequestBody,
+        @Part("guarantor_relationship") guarantorRelationship: RequestBody,
+        @Part("guarantor_house_address") guarantorHouseAddress: RequestBody,
+        @Part("guarantor_city") guarantorCity: RequestBody,
+        @Part("guarantor_state") guarantorState: RequestBody,
+        @Part("guarantor_phone_number") guarantorPhoneNumber: RequestBody,
+        @Part("guarantor_email") guarantorEmail: RequestBody,
+        @Part("referral_code") referralCode: RequestBody?,
+        @Part("sharp_program_type") sharpProgramType: RequestBody?,
+        @Part guarantorImage: MultipartBody.Part
+    ): ReuploadGuarantorDetailsResponse
+
+    @Multipart
+    @PUT("driver/reupload-doc/{id}")
+    suspend fun reUploadDocument(
+        @Header("Authorization") bearerToken: String,
+        @Path("id") id: String,
+        @Part("doc_number") docNumber: RequestBody,
+        @Part file: MultipartBody.Part
+    ): ReUploadDocumentResponse
 
 
     @GET("user/profile")
