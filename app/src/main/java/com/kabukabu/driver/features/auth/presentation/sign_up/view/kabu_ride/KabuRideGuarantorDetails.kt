@@ -182,8 +182,7 @@ fun KabuRideGuarantorDetail(
 
             ScreenTitleText(
                 title = "Guarantor Details",
-                subtitle = userDetails?.user?.fullName ?: "Not found",
-//                    "Tell us about your guarantors",
+                subtitle = "Tell us about your guarantors",
                 bottomPadding = 16,
                 modifier = Modifier.clickable{
 

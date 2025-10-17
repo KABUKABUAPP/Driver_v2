@@ -303,11 +303,20 @@ fun navigateBasedOnStatus(
 
     userDetails?.user?.onboardingStep?.let {
         if (it > 5) {  // user is awaiting admin approval checks
-            if (userDetails.user.driver == null) { //user is a driver (not keke)
-                if (userDetails.user.driver?.carOwner == true) { //user is has car
-
-                } else { //user is on KabuSharp
-
+            if (userDetails.user.driver != null) {  /**user is a driver not rider*/
+                if (userDetails.user.driver.carOwner == true) { /**user has car, KabuRide*/
+                    if (userDetails.user.driver.approvalStatus?.lowercase() == ApprovalStatus.pending.name) {
+                        navigator.navToKabuRidePendingAccountApprovalScreen()
+                    } else if (userDetails.user.driver.approvalStatus?.lowercase() == ApprovalStatus.declined.name) {
+                        navigator.navToKabuRideAccountDeclinedScreen()
+                    }
+                } else { /**user doesn't have car; KabuSharp*/
+                    if (userDetails.user.driver.sharpApprovalStatus?.lowercase() == ApprovalStatus.declined.name){
+                            //
+                    } else if (userDetails.user.driver.sharpApprovalStatus?.lowercase() == ApprovalStatus.declined.name){
+                        //
+                    }
+                //user is on KabuSharp
                 }
             }
 
@@ -334,6 +343,12 @@ fun navigateBasedOnStatus(
     }
 
 
-//    navigator.navToKabuRideGuarantorDetailsScreen()
+}
 
+
+enum class ApprovalStatus {
+    pending,
+    declined,
+    approved,
+    active
 }
