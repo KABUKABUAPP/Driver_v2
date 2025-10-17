@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.TitleText
@@ -33,6 +36,17 @@ fun KabuRideAccountDeclinedScreen() {
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+    val userPreferences = KabukabuDriverApp.getInstance().userPreferences
+    val userDetails by userPreferences.userDetails.collectAsState(initial = null)
+    val declinedTitles = userDetails.let { it ->
+        it?.documents
+            ?.filter { it.status == "DECLINED" }
+            ?.map { it.title } ?: emptyList()
+    }
+
+
+    println(declinedTitles) // Output: [VEHICLE_LICENSE]
+
 
     Scaffold { paddingValues ->
         Column(

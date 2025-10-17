@@ -64,7 +64,7 @@ fun AppNavigation() {
             )
             // Add a delay to ensure the NavHost is fully set up
             delay(500)
-            navigateBasedOnStatus(navigation, navController, userDetails)
+            navigateBasedOnOnboardingStatus(navigation, navController, userDetails)
             // User is logged in, navigate to home screen
 //            navController.navigate(Screen.Home.route) {
 //                popUpTo(navController.graph.id) { inclusive = true }
@@ -288,7 +288,7 @@ fun AppNavigation() {
     }
 }
 
-fun navigateBasedOnStatus(
+private fun navigateBasedOnOnboardingStatus(
     navigator: Navigator,
     navController: NavHostController,
     userDetails: ProfileData?
@@ -303,20 +303,38 @@ fun navigateBasedOnStatus(
 
     userDetails?.user?.onboardingStep?.let {
         if (it > 5) {  // user is awaiting admin approval checks
-            if (userDetails.user.driver != null) {  /**user is a driver not rider*/
-                if (userDetails.user.driver.carOwner == true) { /**user has car, KabuRide*/
-                    if (userDetails.user.driver.approvalStatus?.lowercase() == ApprovalStatus.pending.name) {
-                        navigator.navToKabuRidePendingAccountApprovalScreen()
-                    } else if (userDetails.user.driver.approvalStatus?.lowercase() == ApprovalStatus.declined.name) {
-                        navigator.navToKabuRideAccountDeclinedScreen()
+            if (userDetails.user.driver != null) {
+                /**user is a driver not rider*/
+                if (userDetails.user.driver.carOwner == true) {
+                    /**user has car, KabuRide*/
+                    val adminApprovalStatus = userDetails.user.driver.adminApproval?.lowercase()
+                    when (adminApprovalStatus) {
+                        ApprovalStatus.pending.name -> {
+                            navigator.navToKabuRidePendingAccountApprovalScreen()
+                        }
+                        ApprovalStatus.declined.name -> {
+                            navigator.navToKabuRideAccountDeclinedScreen()
+                        }
+                        ApprovalStatus.approved.name -> {
+                            val approvalStatus = userDetails.user.driver.approvalStatus
+                            if (approvalStatus == ApprovalStatus.active.name) {
+                                navController.navigate(Screen.Home.route) {
+                                    popUpTo(navController.graph.id) { inclusive = true }
+                                }
+                            } else if (approvalStatus == ApprovalStatus.pending.name) {
+                                navigator.navToKabuRideInspection()
+                            }
+                            navigator.navToKabuRideAccountDeclinedScreen()
+                        }
                     }
-                } else { /**user doesn't have car; KabuSharp*/
-                    if (userDetails.user.driver.sharpApprovalStatus?.lowercase() == ApprovalStatus.declined.name){
-                            //
-                    } else if (userDetails.user.driver.sharpApprovalStatus?.lowercase() == ApprovalStatus.declined.name){
+                } else {
+                    /**user doesn't have car; KabuSharp*/
+                    if (userDetails.user.driver.sharpApprovalStatus?.lowercase() == ApprovalStatus.declined.name) {
                         //
+                    } else if (userDetails.user.driver.sharpApprovalStatus?.lowercase() == ApprovalStatus.declined.name) {
+                        //..
                     }
-                //user is on KabuSharp
+                    //user is on KabuSharp
                 }
             }
 
