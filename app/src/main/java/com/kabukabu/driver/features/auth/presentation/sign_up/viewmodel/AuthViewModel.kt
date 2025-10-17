@@ -13,6 +13,7 @@ import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.data.remote.ApiClient
 import com.kabukabu.driver.core.data.remote.hub.HubApiClient
 import com.kabukabu.driver.features.auth.data.entity.req_body.ReUploadDocumentReqBody
+import com.kabukabu.driver.features.auth.data.entity.req_body.ReUploadGuarantorDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBody
@@ -424,7 +425,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
 
 
-    fun reUploadGuarantorDetails(uploadGuarantorDetailsReqBody: UploadGuarantorDetailsReqBody) {
+    fun reUploadGuarantorDetails(uploadGuarantorDetailsReqBody: ReUploadGuarantorDetailsReqBody) {
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {

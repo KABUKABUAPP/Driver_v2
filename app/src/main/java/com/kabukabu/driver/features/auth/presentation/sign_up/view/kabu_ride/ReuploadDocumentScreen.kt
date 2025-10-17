@@ -123,7 +123,7 @@ fun KabuRideDocumentsReUploadScreen(
                             file = convertUriToFile(context, selectedImageUri)
                         )
                         authViewModel.reUploadDocument(
-                            reqBody, ""
+                            reqBody, id
                         )
                     }
                 )
