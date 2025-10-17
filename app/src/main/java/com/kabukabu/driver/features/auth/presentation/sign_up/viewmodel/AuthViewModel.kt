@@ -514,11 +514,17 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 // Prepare text part
                 val docNumberBody = reuploadDocumentReqBody.docNumber.toRequestBody(textPlain)
 
-                // Prepare file part
+                // Prepare file part safely
+                val file = reuploadDocumentReqBody.file
+                if (file == null || !file.exists()) {
+                    reUploadDocUiState = ReUploadDocUiState.Error("File not found or invalid")
+                    return@launch
+                }
+
                 val filePart = MultipartBody.Part.createFormData(
                     "file",
-                    reuploadDocumentReqBody.file.name,
-                    reuploadDocumentReqBody.file.asRequestBody("image/*".toMediaType())
+                    file.name,
+                    file.asRequestBody("image/*".toMediaType())
                 )
 
                 // Make network call

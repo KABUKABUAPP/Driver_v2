@@ -9,5 +9,5 @@ data class ReUploadDocumentReqBody(
     @Json(name = "doc_number")
     val docNumber: String,
     @Json(name = "file")
-    val file: File
+    val file: File?
 )
