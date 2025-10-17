@@ -38,6 +38,7 @@ fun KabuRideAccountDeclinedScreen() {
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
+
     val declinedTitles = userDetails.let { it ->
         it?.documents
             ?.filter { it.status == "DECLINED" }
@@ -93,7 +94,10 @@ fun KabuRideAccountDeclinedScreen() {
 
             KabuBottomButton(
                 text = "Resubmit",
-                onClick = {}
+                onClick = {
+                    println("docs size is ${userDetails?.documents?.size}")
+                    println("docs size is ${userDetails?.documents}")
+                }
             )
         }
     }

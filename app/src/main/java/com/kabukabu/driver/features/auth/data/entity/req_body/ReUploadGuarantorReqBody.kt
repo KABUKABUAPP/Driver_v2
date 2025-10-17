@@ -1,10 +1,11 @@
 package com.kabukabu.driver.features.auth.data.entity.req_body
+
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import java.io.File
 
 @JsonClass(generateAdapter = true)
-data class UploadGuarantorDetailsReqBody(
+data class ReUploadGuarantorDetailsReqBody(
     @Json(name = "guarantor_image")
     val guarantorImage: File?,
     @Json(name = "guarantor_full_name")
