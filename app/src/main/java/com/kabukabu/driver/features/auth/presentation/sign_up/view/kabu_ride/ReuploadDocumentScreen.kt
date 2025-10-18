@@ -114,6 +114,7 @@ fun KabuRideDocumentsReUploadScreen(
 
                 KabuBottomButton(
                     "Submit",
+                    isLoading = uiState == ReUploadDocUiState.Loading,
                     onClick = {
                         if (selectedImageUri?.path.isNullOrEmpty()){
                             return@KabuBottomButton

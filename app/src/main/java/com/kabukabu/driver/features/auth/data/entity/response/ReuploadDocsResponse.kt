@@ -15,13 +15,12 @@ data class ReUploadDocumentResponse(
 data class DocumentData(
     @Json(name = "_id") val id: String,
     @Json(name = "title") val title: String,
-    @Json(name = "doc_number") val docNumber: String,
     @Json(name = "url") val url: String,
     @Json(name = "status") val status: String,
     @Json(name = "owner") val owner: String,
     @Json(name = "created_at") val createdAt: String,
     @Json(name = "updated_at") val updatedAt: String,
-    @Json(name = "__v") val version: Int,
-    @Json(name = "approved_by") val approvedBy: String
+    @Json(name = "approved_by") val approvedBy: String,
+    @Json(name = "doc_number") val docNumber: String
 )
 

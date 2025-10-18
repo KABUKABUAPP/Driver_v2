@@ -453,10 +453,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain)
                 val guarantorEmail =
                     uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain)
-                val referralCode =
-                    uploadGuarantorDetailsReqBody.referralCode?.toRequestBody(textPlain)
-                val sharpProgramType =
-                    uploadGuarantorDetailsReqBody.sharpProgramType?.toRequestBody(textPlain)
+//                val referralCode =
+//                    uploadGuarantorDetailsReqBody.referralCode?.toRequestBody(textPlain)
+//                val sharpProgramType =
+//                    uploadGuarantorDetailsReqBody.sharpProgramType?.toRequestBody(textPlain)
 
                 // Prepare file part
                 val guarantorImage = uploadGuarantorDetailsReqBody.guarantorImage?.let {
