@@ -73,14 +73,15 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsRe
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDetailsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import org.koin.androidx.compose.koinViewModel
 import java.io.File
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun KabuRideCarDetailsScreen(
     navigator: Navigator,
-    authViewModel: AuthViewModel = viewModel()
 ) {
+   val authViewModel = AuthViewModel()
 
     val context = LocalContext.current
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
@@ -88,10 +89,6 @@ fun KabuRideCarDetailsScreen(
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
 
     val uploadCarDetailsUiState = authViewModel.uploadCarDetailsUiState
-
-    LaunchedEffect(Unit) {
-        authViewModel.fetchCarBrands()
-    }
 
     val imagesUriList = mutableListOf<Uri?>()
     var imagesFileList: List<File>

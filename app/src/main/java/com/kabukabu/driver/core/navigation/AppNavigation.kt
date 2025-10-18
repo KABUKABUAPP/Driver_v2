@@ -70,6 +70,7 @@ fun AppNavigation() {
 //                popUpTo(navController.graph.id) { inclusive = true }
 //            }
         } else {
+            delay(500)
             //navigate to Login because authToken is not found, and restart proccess.
             navController.navigate(Screen.Login.route) {
                 popUpTo(Screen.Splash.route) { inclusive = true }

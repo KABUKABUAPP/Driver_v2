@@ -86,7 +86,6 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
 //                        _userProfile.value = user
 
                         _userDetails.value = userDetails
-                        println("saveing data to driver fullname.....${userDetails?.user?.fullName}")
                         userPreferences.saveUserDetails(userDetails)
 
                         userPreferences.saveFullName(userDetails?.user?.fullName ?: "")

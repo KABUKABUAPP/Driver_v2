@@ -6,8 +6,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
+import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.components.utils_functions.toMultipartPart
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.data.remote.ApiClient
@@ -32,9 +34,10 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
-class AuthViewModel(application: Application) : AndroidViewModel(application) {
+class AuthViewModel : ViewModel() {
 
-    private val userPreferences = UserPreferences(application)
+//    private val userPreferences = UserPreferences(application)
+    val userPreferences = KabukabuDriverApp.getInstance().userPreferences
 
     private val _carBrands = MutableStateFlow<List<String>>(emptyList())
     val carBrands: StateFlow<List<String>> = _carBrands.asStateFlow()
