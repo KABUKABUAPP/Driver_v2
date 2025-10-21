@@ -197,32 +197,24 @@ fun AppNavigation() {
             )
         }
 
-        composable(Screen.KabuRideDocReUpload.route + "/{id}",
-            arguments = listOf(navArgument("id") {
-                type = NavType.StringType
-            })
+        composable(
+            route = Screen.KabuRideDocReUpload.route + "/{id}/{title}",
+            arguments = listOf(
+                navArgument("id") { type = NavType.StringType },
+                navArgument("title") { type = NavType.StringType }
+            )
         ) { arg ->
-            val docId = arg.arguments?.getString("id")
+            val docId = arg.arguments?.getString("id") ?: ""
+            val title = arg.arguments?.getString("title") ?: ""
+
             KabuRideDocumentsReUploadScreen(
-                id = docId ?: "",
+                id = docId,
+                title = title,
                 navigator = navigation,
             )
         }
 
-//        composable(
-//            Routes.TransactionsHistory.route + "/{walletNumber}",
-//            arguments = listOf(navArgument("walletNumber") {
-//                type = NavType.StringType
-//            })
-//        ) { args ->
-//            val state = args.arguments?.getString("walletNumber")
-//            TransactionsHistory(
-//                navigation = navigation,
-//                kegowViewModel = kegowViewModel,
-//                walletNumber = state,
-//
-//                )
-//        }
+
 
 //        composable(Screen.KabuRideDocReUpload.route) {
 //            KabuRideDocumentsReUploadScreen(navigation)

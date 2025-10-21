@@ -30,8 +30,10 @@ class Navigator(private val navController: NavHostController) {
         navController.navigate(Screen.KabuRideAccountDeclined.route)
     }
 
-    fun navToKabuRideDocumentsReuploadScreen(id: String) {
-        navController.navigate(Screen.KabuRideDocReUpload.route+"/$id")
+    fun navToKabuRideDocumentsReuploadScreen(id: String, title: String) {
+        // Make sure to encode the title if it contains spaces or special chars
+        val encodedTitle = java.net.URLEncoder.encode(title, "UTF-8")
+        navController.navigate("${Screen.KabuRideDocReUpload.route}/$id/$encodedTitle")
     }
 
     fun navToKabuRideInspection() {

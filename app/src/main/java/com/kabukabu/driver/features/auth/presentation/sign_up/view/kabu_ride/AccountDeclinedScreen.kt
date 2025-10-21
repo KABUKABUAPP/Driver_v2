@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,7 +43,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun KabuRideAccountDeclinedScreen(
     navigator: Navigator,
-    authViewModel: AuthViewModel = koinViewModel()
+//    authViewModel: AuthViewModel = koinViewModel()
 ) {
 
     val context = LocalContext.current
@@ -121,21 +122,25 @@ private fun DeclinedDocs(
 
     ) {
 
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    LazyColumn (
         modifier = Modifier.fillMaxWidth()
-//        contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
         itemsIndexed(declinedTitles) { index, data ->
             ReasonForApprovalDeclineCard(
                 document = data,
-                onClick = { navigator.navToKabuRideDocumentsReuploadScreen(data.id ?: "") }
+                onClick = {
+                    navigator.navToKabuRideDocumentsReuploadScreen(
+                        data.id ?: "",
+                        data.title ?: "" // pass your title here
+                    )
+                }
             )
+
         }
     }
 }
 
-private fun formatDeclinedDocument(text: String): String {
+internal fun formatDeclinedDocument(text: String): String {
     return when (text.lowercase()) {
         "vehicle_license" -> "Vehicle License"
         "insurance_certificate" -> "Insurance Certificate"
@@ -150,8 +155,6 @@ private fun formatDeclinedDocument(text: String): String {
 
 @Composable
 private fun ReasonForApprovalDeclineCard(
-//    title: String,
-//    subtitle: String,
     document: Document,
     onClick: () -> Unit
 ) {

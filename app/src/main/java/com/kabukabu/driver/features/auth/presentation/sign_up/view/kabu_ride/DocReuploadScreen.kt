@@ -28,7 +28,6 @@ import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.req_body.ReUploadDocumentReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.ReUploadDocUiState
-import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDocsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -36,6 +35,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun KabuRideDocumentsReUploadScreen(
     id: String,
+    title: String,
     navigator: Navigator,
     authViewModel: AuthViewModel = koinViewModel()
 ) {
@@ -103,7 +103,7 @@ fun KabuRideDocumentsReUploadScreen(
                     GrayBackgroundContainer {
 
                         CaptureDocumentItem(
-                            title = "Vehicle License",
+                            title = formatDeclinedDocument(title),
                             label = "Tap here to capture",
                             imageUri = selectedImageUri,
                             onClick = { launchCamera = true }
