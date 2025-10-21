@@ -30,12 +30,17 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import com.kabukabu.driver.R
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun LoginScreen(
     onNavigateToOtp: (String) -> Unit,
-    viewModel: LoginViewModel = viewModel()
+    viewModel: LoginViewModel = viewModel(),
+    authViewModel: AuthViewModel = koinViewModel()
 ) {
     var email by remember { mutableStateOf(TextFieldValue()) }
     var isError by remember { mutableStateOf(false) }
@@ -181,4 +186,6 @@ fun LoginScreen(
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
     }
-} 
+}
+
+

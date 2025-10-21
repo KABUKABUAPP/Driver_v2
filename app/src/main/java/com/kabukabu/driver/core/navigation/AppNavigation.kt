@@ -23,7 +23,7 @@ import com.kabukabu.driver.features.auth.presentation.SplashScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.DriverBioDataScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectVehicleScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideAccountDeclinedScreen
-import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideCarDetailsScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.KabuRideCarDetailsScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideCarDocumentsUploadScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideDocumentsReUploadScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideGuarantorDetail

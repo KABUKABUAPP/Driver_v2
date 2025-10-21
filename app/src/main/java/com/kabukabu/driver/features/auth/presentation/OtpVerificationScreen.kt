@@ -35,6 +35,8 @@ import com.kabukabu.driver.core.utils.LoginUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.util.Log
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.navigation.Navigator
@@ -244,15 +246,17 @@ fun OtpVerificationScreen(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                Text(
-                    text = "An OTP has been sent to $email\nEnter the code to validate your number",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.W700,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    ),
-                    textAlign = TextAlign.Start
-                )
+                OTPInstructionText(email)
+
+//                Text(
+//                    text = "An OTP has been sent to $email\nEnter the code to validate your number",
+//                    style = MaterialTheme.typography.bodyMedium.copy(
+//                        fontWeight = FontWeight.W700,
+//                        fontSize = 14.sp,
+//                        color = MaterialTheme.colorScheme.onBackground
+//                    ),
+//                    textAlign = TextAlign.Start
+//                )
             }
 
             // OTP Pin Fields
@@ -442,4 +446,26 @@ fun OtpVerificationScreen(
             )
         }
     }
-} 
+}
+
+
+@Composable
+private fun OTPInstructionText(email: String) {
+    val text = buildAnnotatedString {
+        append("An OTP has been sent to ")
+
+        // Highlighted email
+        pushStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black))
+        append(email)
+        pop() // end of email style
+
+        append("\nEnter the code to validate your number")
+    }
+
+    Text(
+        text = text,
+        fontSize = 16.sp,
+        color = Color.Black,
+        lineHeight = 22.sp
+    )
+}

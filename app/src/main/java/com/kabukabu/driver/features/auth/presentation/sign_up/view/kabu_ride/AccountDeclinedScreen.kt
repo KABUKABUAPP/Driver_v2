@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +39,7 @@ import com.kabukabu.driver.features.auth.data.entity.response.InspectionHub
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import com.kabukabu.driver.features.profile.data.Document
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -52,6 +54,9 @@ fun KabuRideAccountDeclinedScreen(
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
+
+    //disables back button
+    BackHandler(enabled = true) {}
 
     val declinedDocuments = userDetails?.documents
         ?.filter { it.status == "DECLINED" }

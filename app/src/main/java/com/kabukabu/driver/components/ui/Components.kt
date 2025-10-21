@@ -636,7 +636,7 @@ internal fun AnnotatedTextfieldTitle(title: String, isCompulsory: Boolean = true
             TitleText(
                 "*",
                 fontSize = 14,
-                fontWeight = FontWeight.W500,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.error
             )
 
