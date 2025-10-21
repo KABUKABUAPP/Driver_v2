@@ -126,6 +126,7 @@ fun KabuRideDocumentsReUploadScreen(
                         authViewModel.reUploadDocument(
                             reqBody, id
                         )
+
                     }
                 )
 

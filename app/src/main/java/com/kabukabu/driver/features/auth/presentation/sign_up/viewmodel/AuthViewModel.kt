@@ -13,6 +13,7 @@ import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.components.utils_functions.toMultipartPart
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.data.remote.ApiClient
+import com.kabukabu.driver.core.data.remote.HttpExceptionUtil
 import com.kabukabu.driver.core.data.remote.hub.HubApiClient
 import com.kabukabu.driver.features.auth.data.entity.req_body.ReUploadDocumentReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.ReUploadGuarantorDetailsReqBody
@@ -32,6 +33,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.HttpException
 import java.io.File
 
 class AuthViewModel : ViewModel() {
@@ -428,6 +430,80 @@ class AuthViewModel : ViewModel() {
 
 
 
+//    fun reUploadGuarantorDetails(uploadGuarantorDetailsReqBody: ReUploadGuarantorDetailsReqBody) {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            val token = userPreferences.authToken.firstOrNull()
+//            if (token.isNullOrBlank()) {
+//                Log.e("AuthViewModel", "Cannot re-upload guarantor details, token is missing.")
+//                return@launch
+//            }
+//
+//            try {
+//                reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Loading
+//                val bearerToken = "Bearer $token"
+//                val textPlain = "text/plain".toMediaTypeOrNull()
+//
+//                // Prepare text fields
+//                val guarantorFullName =
+//                    uploadGuarantorDetailsReqBody.guarantorFullName.toRequestBody(textPlain)
+//                val guarantorRelationship =
+//                    uploadGuarantorDetailsReqBody.guarantorRelationship.toRequestBody(textPlain)
+//                val guarantorHouseAddress =
+//                    uploadGuarantorDetailsReqBody.guarantorHouseAddress.toRequestBody(textPlain)
+//                val guarantorCity =
+//                    uploadGuarantorDetailsReqBody.guarantorCity.toRequestBody(textPlain)
+//                val guarantorState =
+//                    uploadGuarantorDetailsReqBody.guarantorState.toRequestBody(textPlain)
+//                val guarantorPhoneNumber =
+//                    uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain)
+//                val guarantorEmail =
+//                    uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain)
+////                val referralCode =
+////                    uploadGuarantorDetailsReqBody.referralCode?.toRequestBody(textPlain)
+////                val sharpProgramType =
+////                    uploadGuarantorDetailsReqBody.sharpProgramType?.toRequestBody(textPlain)
+//
+//                // Prepare file part
+//                val guarantorImage = uploadGuarantorDetailsReqBody.guarantorImage?.let {
+//                    MultipartBody.Part.createFormData(
+//                        "guarantor_image",
+//                        it.name,
+//                        it.asRequestBody("image/*".toMediaType())
+//                    )
+//                }
+//
+//                // Make the network call
+//                val response = ApiClient.authService.reUploadGuarantorDetails(
+//                    bearerToken = bearerToken,
+//                    guarantorFullName = guarantorFullName,
+//                    guarantorRelationship = guarantorRelationship,
+//                    guarantorHouseAddress = guarantorHouseAddress,
+//                    guarantorCity = guarantorCity,
+//                    guarantorState = guarantorState,
+//                    guarantorPhoneNumber = guarantorPhoneNumber,
+//                    guarantorEmail = guarantorEmail,
+//                    guarantorImage = guarantorImage!!
+//                )
+//
+//                if (response.status == "success") {
+//                    reUploadGuarantorDetailsUiState =
+//                        ReUploadGuarantorDetailsUiState.Success(response)
+//                    Log.d("AuthViewModel", "Guarantor re-upload successful.")
+//                } else {
+//                    reUploadGuarantorDetailsUiState =
+//                        ReUploadGuarantorDetailsUiState.Error(response.status)
+//                    Log.e("AuthViewModel", "Guarantor re-upload failed: ${response.status}")
+//                }
+//
+//            } catch (e: Exception) {
+//                reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Error(
+//                    e.message ?: "An unknown error occurred"
+//                )
+//                Log.e("AuthViewModel", "Error re-uploading guarantor details", e)
+//            }
+//        }
+//    }
+
     fun reUploadGuarantorDetails(uploadGuarantorDetailsReqBody: ReUploadGuarantorDetailsReqBody) {
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
@@ -442,24 +518,13 @@ class AuthViewModel : ViewModel() {
                 val textPlain = "text/plain".toMediaTypeOrNull()
 
                 // Prepare text fields
-                val guarantorFullName =
-                    uploadGuarantorDetailsReqBody.guarantorFullName.toRequestBody(textPlain)
-                val guarantorRelationship =
-                    uploadGuarantorDetailsReqBody.guarantorRelationship.toRequestBody(textPlain)
-                val guarantorHouseAddress =
-                    uploadGuarantorDetailsReqBody.guarantorHouseAddress.toRequestBody(textPlain)
-                val guarantorCity =
-                    uploadGuarantorDetailsReqBody.guarantorCity.toRequestBody(textPlain)
-                val guarantorState =
-                    uploadGuarantorDetailsReqBody.guarantorState.toRequestBody(textPlain)
-                val guarantorPhoneNumber =
-                    uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain)
-                val guarantorEmail =
-                    uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain)
-//                val referralCode =
-//                    uploadGuarantorDetailsReqBody.referralCode?.toRequestBody(textPlain)
-//                val sharpProgramType =
-//                    uploadGuarantorDetailsReqBody.sharpProgramType?.toRequestBody(textPlain)
+                val guarantorFullName = uploadGuarantorDetailsReqBody.guarantorFullName.toRequestBody(textPlain)
+                val guarantorRelationship = uploadGuarantorDetailsReqBody.guarantorRelationship.toRequestBody(textPlain)
+                val guarantorHouseAddress = uploadGuarantorDetailsReqBody.guarantorHouseAddress.toRequestBody(textPlain)
+                val guarantorCity = uploadGuarantorDetailsReqBody.guarantorCity.toRequestBody(textPlain)
+                val guarantorState = uploadGuarantorDetailsReqBody.guarantorState.toRequestBody(textPlain)
+                val guarantorPhoneNumber = uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain)
+                val guarantorEmail = uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain)
 
                 // Prepare file part
                 val guarantorImage = uploadGuarantorDetailsReqBody.guarantorImage?.let {
@@ -484,15 +549,17 @@ class AuthViewModel : ViewModel() {
                 )
 
                 if (response.status == "success") {
-                    reUploadGuarantorDetailsUiState =
-                        ReUploadGuarantorDetailsUiState.Success(response)
+                    reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Success(response)
                     Log.d("AuthViewModel", "Guarantor re-upload successful.")
                 } else {
-                    reUploadGuarantorDetailsUiState =
-                        ReUploadGuarantorDetailsUiState.Error(response.status)
-                    Log.e("AuthViewModel", "Guarantor re-upload failed: ${response.status}")
+                    reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Error(response.message ?: "Unknown error")
+                    Log.e("AuthViewModel", "Guarantor re-upload failed: ${response.message}")
                 }
 
+            } catch (e: HttpException) {
+                val errorMessage = HttpExceptionUtil.parseHttpError(e)
+                reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Error(errorMessage)
+                Log.e("AuthViewModel", "HTTP error re-uploading guarantor details: $errorMessage")
             } catch (e: Exception) {
                 reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Error(
                     e.message ?: "An unknown error occurred"
@@ -501,6 +568,7 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
+
 
     fun reUploadDocument(reuploadDocumentReqBody: ReUploadDocumentReqBody, id: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -518,7 +586,7 @@ class AuthViewModel : ViewModel() {
                 // Prepare text part
                 val docNumberBody = reuploadDocumentReqBody.docNumber.toRequestBody(textPlain)
 
-                // Prepare file part safely
+                // Validate file
                 val file = reuploadDocumentReqBody.file
                 if (file == null || !file.exists()) {
                     reUploadDocUiState = ReUploadDocUiState.Error("File not found or invalid")
@@ -543,9 +611,14 @@ class AuthViewModel : ViewModel() {
                     reUploadDocUiState = ReUploadDocUiState.Success(response)
                     Log.d("AuthViewModel", "Document re-upload successful.")
                 } else {
-                    reUploadDocUiState = ReUploadDocUiState.Error(response.status)
-                    Log.e("AuthViewModel", "Document re-upload failed: ${response.status}")
+                    reUploadDocUiState = ReUploadDocUiState.Error(response.message ?: "Unknown error")
+                    Log.e("AuthViewModel", "Document re-upload failed: ${response.message}")
                 }
+
+            } catch (e: HttpException) {
+                val errorMessage = HttpExceptionUtil.parseHttpError(e)
+                reUploadDocUiState = ReUploadDocUiState.Error(errorMessage)
+                Log.e("AuthViewModel", "HTTP error re-uploading document: $errorMessage")
 
             } catch (e: Exception) {
                 reUploadDocUiState = ReUploadDocUiState.Error(

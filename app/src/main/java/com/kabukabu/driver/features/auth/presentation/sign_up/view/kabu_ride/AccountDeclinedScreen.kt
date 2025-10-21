@@ -34,12 +34,15 @@ import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.response.InspectionHub
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import com.kabukabu.driver.features.profile.data.Document
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun KabuRideAccountDeclinedScreen(
-    navigator: Navigator
+    navigator: Navigator,
+    authViewModel: AuthViewModel = koinViewModel()
 ) {
 
     val context = LocalContext.current
