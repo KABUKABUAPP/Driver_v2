@@ -175,7 +175,7 @@ fun AppNavigation() {
         }
 
         composable(Screen.KabuRideCarDetails.route) {
-            KabuRideCarDetailsScreen(navigation)
+            KabuRideCarDetailsScreen()
         }
 
         composable(Screen.KabuRideCarDocsUpload.route) {

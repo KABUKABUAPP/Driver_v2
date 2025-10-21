@@ -109,10 +109,10 @@ fun KabuOutlinedTextField(
     placeholderText: String = "",
     bottomPadding: Int = 15,
     isClickable: Boolean = true,
-    isAccountNumber: Boolean = false,
+//    isAccountNumber: Boolean = false,
     focusable: Boolean? = false,
     isValidationError: Boolean = false,
-    isAmount: Boolean = false,
+//    isAmount: Boolean = false,
     imeAction: ImeAction = ImeAction.Next,
     textFieldColors: TextFieldColors = TextFieldDefaults.colors()
 ) {
@@ -136,29 +136,15 @@ fun KabuOutlinedTextField(
                     value = value ?: "",
                     onValueChange = { newValue ->
                         onTextChanged(newValue)
-
-//                        if (isAccountNumber) {
-//                            val trimmedValue = newValue.take(12)
-//                            onTextChanged(trimmedValue)
-//                        } else if (isAmount) {
-//                            if ((Regex("\\.").findAll(newValue).count() > 1).not()) {
-//                                onTextChanged(newValue)
-//                            }
-//                        } else {
-//                            onTextChanged(newValue)
-//                        }
                     },
                     placeholder = {
                         Text(
                             placeholderText,
                             fontSize = 14.sp,
+                            color = Color(0xFF9A9A9A)
                         )
                     },
                     colors = noBorderColors,
-                    visualTransformation = {
-                        priceFilter(it, isAmount)
-                    },
-                    singleLine = true,
                     isError = isValidationError,
                     enabled = isClickable,
                     modifier = Modifier
@@ -176,22 +162,12 @@ fun KabuOutlinedTextField(
                     value = value ?: "",
                     onValueChange = { newValue ->
                         onTextChanged(newValue)
-
-//                        if (isAccountNumber) {
-//                            val trimmedValue = newValue.take(12)
-//                            onTextChanged(trimmedValue)
-//                        } else if (isAmount) {
-//                            if ((Regex("\\.").findAll(newValue).count() > 1).not()) {
-//                                onTextChanged(newValue)
-//                            }
-//                        } else {
-//                            onTextChanged(newValue)
-//                        }
                     },
                     placeholder = {
                         Text(
                             placeholderText,
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            color = Color(0xFF9A9A9A)
                         )
                     },
                     enabled = isClickable,
@@ -212,22 +188,12 @@ fun KabuOutlinedTextField(
                     value = value ?: "",
                     onValueChange = { newValue ->
                         onTextChanged(newValue)
-
-//                        if (isAccountNumber) {
-//                            val trimmedValue = newValue.take(12)
-//                            onTextChanged(trimmedValue)
-//                        } else if (isAmount) {
-//                            if ((Regex("\\.").findAll(newValue).count() > 1).not()) {
-//                                onTextChanged(newValue)
-//                            }
-//                        } else {
-//                            onTextChanged(newValue)
-//                        }
                     },
                     placeholder = {
                         Text(
                             placeholderText,
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            color = Color(0xFF9A9A9A)
                         )
                     },
                     enabled = isClickable,
@@ -256,7 +222,9 @@ fun KabuOutlinedTextFieldWithTrailingIconButton(
     onClick: () -> Unit = {},
     isError: Boolean = false,
     onTextChanged: (text: String) -> Unit = {},
-    textFieldColors: TextFieldColors = TextFieldDefaults.colors()
+    textFieldColors: TextFieldColors = TextFieldDefaults.colors(
+        disabledTextColor = Color.Black
+    )
 ) {
     val noBorderColors = textFieldColors.copy(
         focusedIndicatorColor = Color.Transparent,
@@ -264,7 +232,6 @@ fun KabuOutlinedTextFieldWithTrailingIconButton(
         disabledIndicatorColor = Color.Transparent,
         errorIndicatorColor = Color.Transparent,
         disabledContainerColor = Color(0xFFF1F1F1),
-
         )
 
     Box(
@@ -284,7 +251,8 @@ fun KabuOutlinedTextFieldWithTrailingIconButton(
             placeholder = {
                 Text(
                     text = placeholderText,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    color = Color(0xFF9A9A9A)
                 )
             },
             singleLine = true,
@@ -663,13 +631,11 @@ fun FormTextfieldDropdown(
             isError = validationError,
         )
         if (validationError) {
-            if (validationError) {
-                TitleText(
-                    validationErrorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 12
-                )
-            }
+            TitleText(
+                validationErrorMessage,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 12
+            )
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
+package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
 import android.annotation.SuppressLint
 import android.net.Uri
@@ -63,23 +63,19 @@ import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuDivider
-import com.kabukabu.driver.components.ui.KabuOutlinedTextField
-import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.utils_functions.convertUrisToFiles
 import com.kabukabu.driver.core.data.local.LocalDataSource
-import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDetailsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
-import org.koin.androidx.compose.koinViewModel
 import java.io.File
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun KabuRideCarDetailsScreen(
-    navigator: Navigator,
+//    navigator: Navigator,
 ) {
    val authViewModel = AuthViewModel()
 
@@ -146,7 +142,7 @@ fun KabuRideCarDetailsScreen(
             is UploadCarDetailsUiState.Success -> {
                 context.displayToastMessage(uploadCarDetailsUiState.response.message)
                 authViewModel.resetState()
-                navigator.navToKabuRideCarDocsUpload()
+//                navigator.navToKabuRideCarDocsUpload()
             }
 
             is UploadCarDetailsUiState.Error -> {
