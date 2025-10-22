@@ -150,9 +150,9 @@ fun AppNavigation() {
 
         composable(Screen.DriverBioDataScreen.route) {
             DriverBioDataScreen(
-                navToSelectVehicleScreen = {
-                    navController.navigate(Screen.SelectVehicleScreen.route)
-                }
+//                navToSelectVehicleScreen = {
+//                    navController.navigate(Screen.SelectVehicleScreen.route)
+//                }
             )
         }
 

@@ -140,7 +140,8 @@ fun KabuOutlinedTextField(
                     placeholder = {
                         Text(
                             placeholderText,
-                            fontSize = 14.sp,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.W500,
                             color = Color(0xFF9A9A9A)
                         )
                     },
@@ -166,7 +167,8 @@ fun KabuOutlinedTextField(
                     placeholder = {
                         Text(
                             placeholderText,
-                            fontSize = 14.sp,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.W500,
                             color = Color(0xFF9A9A9A)
                         )
                     },
@@ -192,7 +194,8 @@ fun KabuOutlinedTextField(
                     placeholder = {
                         Text(
                             placeholderText,
-                            fontSize = 14.sp,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.W500,
                             color = Color(0xFF9A9A9A)
                         )
                     },
@@ -232,7 +235,7 @@ fun KabuOutlinedTextFieldWithTrailingIconButton(
         disabledIndicatorColor = Color.Transparent,
         errorIndicatorColor = Color.Transparent,
         disabledContainerColor = Color(0xFFF1F1F1),
-        )
+    )
 
     Box(
         modifier = Modifier
@@ -251,7 +254,8 @@ fun KabuOutlinedTextFieldWithTrailingIconButton(
             placeholder = {
                 Text(
                     text = placeholderText,
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.W500,
                     color = Color(0xFF9A9A9A)
                 )
             },
@@ -259,9 +263,9 @@ fun KabuOutlinedTextFieldWithTrailingIconButton(
             shape = RoundedCornerShape(10),
             trailingIcon = {
                 Icon(
-                    painter = painterResource(id = R.drawable.chevron_down),
+                    painter = painterResource(id = R.drawable.caret_down),
                     tint = iconTint,
-                    contentDescription = null
+                    contentDescription = "Dropdown button",
                 )
             },
             modifier = Modifier
@@ -294,7 +298,7 @@ fun KabuBottomButton(
             .height(53.dp),
         onClick = { onClick() },
         enabled = enabled,
-        shape = RoundedCornerShape(6.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors().copy(
             disabledContainerColor = Color(0xFFB2D5C7),
             disabledContentColor = Color(0xFFE6E6E6),
@@ -567,6 +571,7 @@ internal fun RowScope.RowScopeFormTextfield(
                     textFieldColors = TextFieldDefaults.colors(
                         unfocusedContainerColor = Color(0xFFF1F1F1),
                         focusedContainerColor = Color(0xFFF1F1F1),
+                        disabledTextColor = Color.Black
                     )
                 )
             } else {
@@ -578,6 +583,7 @@ internal fun RowScope.RowScopeFormTextfield(
                     textFieldColors = TextFieldDefaults.colors(
                         unfocusedContainerColor = Color(0xFFF1F1F1),
                         focusedContainerColor = Color(0xFFF1F1F1),
+                        disabledTextColor = Color.Black
                     )
                 )
             }
@@ -596,16 +602,18 @@ internal fun RowScope.RowScopeFormTextfield(
 
 @Composable
 internal fun AnnotatedTextfieldTitle(title: String, isCompulsory: Boolean = true) {
-    Row(
-//        modifier = Modifier.padding()
-    ) {
-        TitleText(title, endPadding = 3, fontSize = 15)
+    Row {
+        TitleText(
+            title,
+            fontWeight = FontWeight.W500,
+            endPadding = 3, fontSize = 13
+        )
         if (isCompulsory)
             TitleText(
                 "*",
-                fontSize = 14,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error
+                fontSize = 12,
+                fontWeight = FontWeight.W500,
+                color = Color(0xFFEF2C5B)
             )
 
     }
