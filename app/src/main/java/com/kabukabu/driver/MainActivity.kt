@@ -26,8 +26,8 @@ class MainActivity : ComponentActivity() {
                         .navigationBarsPadding(), // Respect bottom safe area only
                     color = MaterialTheme.colorScheme.background
                 ) {
-//                    DriverBioDataScreen()
-                    KabuRideCarDetailsScreen()
+                    DriverBioDataScreen()
+//                    KabuRideCarDetailsScreen()
 //                    AppNavigation()
                 }
             }

@@ -168,14 +168,18 @@ fun DriverBioDataScreen(
 
             ScreenTitleText(
                 title = "Welcome",
-                subtitle = "Tell us about you"
+                subtitle = "Tell us about you",
+                bottomPadding = 16
             )
 
             FormTextfield(
                 title = "Full Name",
                 value = fullName,
                 hintText = "John Doe",
-                onTextChanged = { fullName = it },
+                onTextChanged = { newText ->
+                    val filtered = newText.filter { it.isLetter() }
+                    fullName = filtered
+                },
                 validationError = fullNameError.value.isNotEmpty(),
                 validationErrorMessage = fullNameError.value
             )
@@ -193,8 +197,13 @@ fun DriverBioDataScreen(
                 title = "Phone number",
                 value = phoneNumber,
                 hintText = "08012345678",
-                onTextChanged = { phoneNumber = it },
-                keyboardType = "number",
+                keyboardType = "phone number",
+                onTextChanged = { newText ->
+                    val filtered = newText.filter { it.isDigit() }
+                    if (filtered.length <= 11) {
+                        phoneNumber = filtered
+                    }
+                },
                 validationError = phoneNumberError.value.isNotEmpty(),
                 validationErrorMessage = phoneNumberError.value
             )
@@ -277,7 +286,11 @@ private fun validateDriverDetails(
     if (fullName.isEmpty() || fullName.length < 6) {
         fullNameError.value = "Full name is too short"
         isValid = false
+    } else if (!fullName.matches(Regex("^[A-Za-z\\s]+\$"))) {
+        fullNameError.value = "Full name must contain only letters"
+        isValid = false
     }
+
 
     //validate inputted phone number
     if (phoneNumber.isEmpty() || phoneNumber.length != 11) {
@@ -293,7 +306,7 @@ private fun validateDriverDetails(
     }
 
     if (houseAddress.isEmpty() || houseAddress.length < 10) {
-        houseAddressError.value = "Invalid house address"
+        houseAddressError.value = "House address is too short"
         isValid = false
     }
 
@@ -302,10 +315,6 @@ private fun validateDriverDetails(
         isValid = false
     }
 
-    if (houseAddress.isEmpty() || houseAddress.length < 10) {
-        houseAddressError.value = "Invalid house address"
-        isValid = false
-    }
 
     if (state.isEmpty()) {
         stateError.value = "Select a State"

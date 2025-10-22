@@ -47,6 +47,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -82,8 +83,9 @@ fun KabuRideGuarantorDetail(
     navigator: Navigator,
     authViewModel: AuthViewModel = koinViewModel()
 ) {
-    val context = LocalContext.current
 
+    val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
 
     val activityOwner = context as ViewModelStoreOwner
 
@@ -97,8 +99,6 @@ fun KabuRideGuarantorDetail(
 //    }
 
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
-
-
 
 
     val uploadGuarantorDetailsUiState = authViewModel.uploadGuarantorDetailsUiState
@@ -134,6 +134,7 @@ fun KabuRideGuarantorDetail(
             onSelectRelationship = { guarantor ->
                 guarantorRelationship = guarantor
                 showStateSheet = false
+                focusManager.clearFocus()
             }
         )
     }
@@ -185,7 +186,7 @@ fun KabuRideGuarantorDetail(
                 title = "Guarantor Details",
                 subtitle = "Tell us about your guarantors",
                 bottomPadding = 16,
-                modifier = Modifier.clickable{
+                modifier = Modifier.clickable {
 
                 }
             )
@@ -201,7 +202,10 @@ fun KabuRideGuarantorDetail(
                     title = "Full Name",
                     value = fullName,
                     hintText = "John Doe",
-                    onTextChanged = { fullName = it },
+                    onTextChanged = { newText ->
+                        val filtered = newText.filter { it.isLetter() }
+                        fullName = filtered
+                    },
                     validationError = fullNameError.value.isNotEmpty(),
                     validationErrorMessage = fullNameError.value
                 )
@@ -230,12 +234,13 @@ fun KabuRideGuarantorDetail(
                     title = "Phone number",
                     value = phoneNumber,
                     hintText = "Phone number",
-                    onTextChanged = {
-//                        if (phoneNumber.length <= 11) {
-                            phoneNumber = it
-//                        }
+                    keyboardType = "phone number",
+                    onTextChanged = { newText ->
+                        val filtered = newText.filter { it.isDigit() }
+                        if (filtered.length <= 11) {
+                            phoneNumber = filtered
+                        }
                     },
-                    keyboardType = "number",
                     validationError = phoneNumberError.value.isNotEmpty(),
                     validationErrorMessage = phoneNumberError.value
                 )
@@ -251,7 +256,7 @@ fun KabuRideGuarantorDetail(
 
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    horizontalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     RowScopeFormTextfield(
                         title = "City",
@@ -376,7 +381,10 @@ internal fun validateGuarantorDetails(
     stateError.value = ""
 
     if (fullName.isEmpty() || fullName.length < 6) {
-        fullNameError.value = "Full name is not valid"
+        fullNameError.value = "Full name is too short"
+        isValid = false
+    } else if (!fullName.matches(Regex("^[A-Za-z\\s]+\$"))) {
+        fullNameError.value = "Full name must contain only letters"
         isValid = false
     }
 
@@ -407,7 +415,7 @@ internal fun validateGuarantorDetails(
         isValid = false
     }
 
-   if (relationship.isEmpty()) {
+    if (relationship.isEmpty()) {
         relationshipError.value = "Select a relationship"
         isValid = false
     }

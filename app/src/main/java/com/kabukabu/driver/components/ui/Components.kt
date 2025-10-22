@@ -158,6 +158,39 @@ fun KabuOutlinedTextField(
                 )
             }
 
+            "phone number" -> {
+                OutlinedTextField(
+                    value = value ?: "",
+                    onValueChange = { newValue ->
+                        val filtered = newValue.filter { it.isDigit() }
+                        if (filtered.length <= 11) {
+                            onTextChanged(filtered)
+                        } else {
+                            onTextChanged(filtered.take(11))
+                        }
+                    },
+                    placeholder = {
+                        Text(
+                            placeholderText,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.W500,
+                            color = Color(0xFF9A9A9A)
+                        )
+                    },
+                    colors = noBorderColors,
+                    isError = isValidationError,
+                    enabled = isClickable,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = imeAction
+                    ),
+                )
+            }
+
+
             "number password" -> {
                 OutlinedTextField(
                     value = value ?: "",
@@ -514,7 +547,7 @@ fun FormTextfield(
     Box(
         modifier = Modifier
             .background(color = Color(0x4DF1F1F1))
-            .padding(vertical = 12.dp)
+            .padding(vertical = 6.dp)
             .fillMaxWidth()
     ) {
         Column {
