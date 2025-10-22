@@ -6,14 +6,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -32,15 +30,10 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.R
-import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.core.navigation.Navigator
-import com.kabukabu.driver.features.auth.data.entity.response.InspectionHub
-import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import com.kabukabu.driver.features.profile.data.Document
-import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun KabuRideAccountDeclinedScreen(
@@ -145,7 +138,7 @@ private fun DeclinedDocs(
     }
 }
 
-internal fun formatDeclinedDocument(text: String): String {
+internal fun formatDeclinedDocumentName(text: String): String {
     return when (text.lowercase()) {
         "vehicle_license" -> "Vehicle License"
         "insurance_certificate" -> "Insurance Certificate"
@@ -188,7 +181,7 @@ private fun ReasonForApprovalDeclineCard(
             modifier = Modifier.padding(all = 16.dp)
         ) {
             TitleText(
-                text = formatDeclinedDocument(document.title ?: ""),
+                text = formatDeclinedDocumentName(document.title ?: ""),
                 fontWeight = FontWeight.W500,
                 fontSize = 16, topPadding = 0,
                 bottomPadding = 0

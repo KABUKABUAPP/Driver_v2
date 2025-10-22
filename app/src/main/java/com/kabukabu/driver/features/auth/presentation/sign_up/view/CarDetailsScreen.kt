@@ -2,9 +2,6 @@ package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -59,6 +56,7 @@ import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
 import com.kabukabu.driver.components.ui.GrayBackgroundContainer
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.R
+import com.kabukabu.driver.components.ui.CameraXCaptureImage
 import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
@@ -71,6 +69,8 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthView
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDetailsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import java.io.File
+
+private enum class CarImageIndex { One, Two, Three, Four }
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
@@ -92,6 +92,8 @@ fun KabuRideCarDetailsScreen(
 
 //    val context = LocalContext.current
 
+    var launchCamera by remember { mutableStateOf(false) }
+
     var showCarBrandSheet by remember { mutableStateOf(false) }
     var showCarColourSheet by remember { mutableStateOf(false) }
 
@@ -101,7 +103,7 @@ fun KabuRideCarDetailsScreen(
     var carColour by remember { mutableStateOf("") }
     var plateNumber by remember { mutableStateOf("") }
 
-
+    var selectedCarImageIndex by remember { mutableStateOf(CarImageIndex.One) }
     var selectedCarImageUriOne by remember { mutableStateOf<Uri?>(null) }
     var selectedCarImageUriTwo by remember { mutableStateOf<Uri?>(null) }
     var selectedCarImageUriThree by remember { mutableStateOf<Uri?>(null) }
@@ -155,6 +157,38 @@ fun KabuRideCarDetailsScreen(
     }
 
     Scaffold { paddingValues ->
+        if (launchCamera) {
+            // Show the camera view
+            CameraXCaptureImage(
+                onImageCaptured = { uri ->
+                    if (uri != null) {
+                        when (selectedCarImageIndex) {
+                            CarImageIndex.One -> {
+                                selectedCarImageUriOne = uri
+                            }
+
+                            CarImageIndex.Two -> {
+                                selectedCarImageUriTwo = uri
+                            }
+
+                            CarImageIndex.Three -> {
+                                selectedCarImageUriThree = uri
+                            }
+
+                            CarImageIndex.Four -> {
+                                selectedCarImageUriFour = uri
+                            }
+
+                        }
+                    }
+                    launchCamera = false
+                },
+                onError = { error ->
+                    launchCamera = false
+                }
+            )
+        }
+        else {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -192,33 +226,35 @@ fun KabuRideCarDetailsScreen(
                         .fillMaxWidth()
                         .background(Color.White)
                 ) {
+
                     UploadCarImageBox(
                         selectedImageUri = selectedCarImageUriOne,
-                        onImageSelected = { uri ->
-                            selectedCarImageUriOne = uri
-//                            imagesList.add(uri)
+                        onClick = {
+                            selectedCarImageIndex = CarImageIndex.One
+                            launchCamera = true
                         }
                     )
+
+
                     UploadCarImageBox(
                         selectedImageUri = selectedCarImageUriTwo,
-                        onImageSelected = {
-                            selectedCarImageUriTwo = it
-//                            imagesList.add(it)
+                        onClick = {
+                            selectedCarImageIndex = CarImageIndex.Two
+                            launchCamera = true
                         }
                     )
                     UploadCarImageBox(
                         selectedImageUri = selectedCarImageUriThree,
-                        onImageSelected = {
-                            selectedCarImageUriThree = it
-//                            imagesList.add(it)
-
+                        onClick = {
+                            selectedCarImageIndex = CarImageIndex.Three
+                            launchCamera = true
                         }
                     )
                     UploadCarImageBox(
                         selectedImageUri = selectedCarImageUriFour,
-                        onImageSelected = {
-                            selectedCarImageUriFour = it
-//                            imagesList.add(it)
+                        onClick = {
+                            selectedCarImageIndex = CarImageIndex.Four
+                            launchCamera = true
                         }
                     )
 
@@ -355,6 +391,8 @@ fun KabuRideCarDetailsScreen(
 
         }
 
+        }
+
     }
 }
 
@@ -412,19 +450,20 @@ private fun validateCarDetails(
 
 @Composable
 fun RowScope.UploadCarImageBox(
+    modifier: Modifier = Modifier,
     selectedImageUri: Uri?,
-    onImageSelected: (Uri?) -> Unit,
-    showImageSelection: Boolean = true,
-    modifier: Modifier = Modifier
-) {
+//    onImageSelected: (Uri?) -> Unit,
+//    showImageSelection: Boolean = true,
+    onClick: () -> Unit,
+    ) {
     val context = LocalContext.current
 
-    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri ->
-            onImageSelected(uri)
-        }
-    )
+//    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.PickVisualMedia(),
+//        onResult = { uri ->
+//            onImageSelected(uri)
+//        }
+//    )
 
     if (selectedImageUri == null || selectedImageUri == Uri.EMPTY) {
         Box(
@@ -433,15 +472,7 @@ fun RowScope.UploadCarImageBox(
                 .weight(1f)
                 .clip(RoundedCornerShape(6.dp))
                 .background(Color(0xFFF1F1F1))
-                .clickable {
-                    if (showImageSelection) {
-                        singlePhotoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    } else {
-                        context.displayToastMessage("Please fill all required fields before uploading.")
-                    }
-                },
+                .clickable { onClick() },
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -456,11 +487,7 @@ fun RowScope.UploadCarImageBox(
                 .height(75.dp)
                 .weight(1f)
                 .clip(RoundedCornerShape(6.dp))
-                .clickable {
-                    singlePhotoPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
-                }
+                .clickable { onClick() }
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)

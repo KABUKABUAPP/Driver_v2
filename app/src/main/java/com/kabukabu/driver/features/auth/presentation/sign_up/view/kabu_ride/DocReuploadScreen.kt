@@ -103,7 +103,7 @@ fun KabuRideDocumentsReUploadScreen(
                     GrayBackgroundContainer {
 
                         CaptureDocumentItem(
-                            title = formatDeclinedDocument(title),
+                            title = formatDeclinedDocumentName(title),
                             label = "Tap here to capture",
                             imageUri = selectedImageUri,
                             onClick = { launchCamera = true }
