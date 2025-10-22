@@ -10,6 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.kabukabu.driver.core.theme.KabukabuDriverTheme
 import androidx.core.view.WindowCompat
+import com.kabukabu.driver.core.navigation.AppNavigation
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.DriverBioDataScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.KabuRideCarDetailsScreen
 
@@ -26,9 +27,7 @@ class MainActivity : ComponentActivity() {
                         .navigationBarsPadding(), // Respect bottom safe area only
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    DriverBioDataScreen()
-//                    KabuRideCarDetailsScreen()
-//                    AppNavigation()
+                    AppNavigation()
                 }
             }
         }
