@@ -30,7 +30,7 @@ fun KabuRidePendingAccountApprovalScreen(onNavigateToLogin: ()-> Unit) {
         bottomBar = {
             KabuBottomButton(
                 text = "Okay",
-                onClick = onNavigateToLogin,
+                onClick = { onNavigateToLogin },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 24.dp)
