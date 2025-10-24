@@ -118,42 +118,41 @@ fun DriverBioDataScreen(
                 isLoading = authViewModel.onboardDriverBiodataUiState ==
                         OnboardDriverPersonalDetailsUiState.Loading,
                 onClick = {
-                    navToSelectVehicleScreen()
+//                    navToSelectVehicleScreen()
 
+                    isInputValidated.value = validateDriverDetails(
+                        fullName = fullName,
+                        phoneNumber = phoneNumber,
+                        email = email.trim(),
+                        houseAddress = houseAddress,
+                        city = city,
+                        state = state,
+                        carCategory = carCategory,
+                        fullNameError = fullNameError,
+                        phoneNumberError = phoneNumberError,
+                        emailError = emailError,
+                        houseAddressError = houseAddressError,
+                        cityError = cityError,
+                        stateError = stateError,
+                        carCategoryError = carCategoryError,
+                    )
 
-//                    isInputValidated.value = validateDriverDetails(
-//                        fullName = fullName,
-//                        phoneNumber = phoneNumber,
-//                        email = email.trim(),
-//                        houseAddress = houseAddress,
-//                        city = city,
-//                        state = state,
-//                        carCategory = carCategory,
-//                        fullNameError = fullNameError,
-//                        phoneNumberError = phoneNumberError,
-//                        emailError = emailError,
-//                        houseAddressError = houseAddressError,
-//                        cityError = cityError,
-//                        stateError = stateError,
-//                        carCategoryError = carCategoryError,
-//                    )
-//
-//                    if (isInputValidated.value) {
-//                        val driverBiodata = UploadPersonalDetailsReqBody(
-//                            fullName = fullName,
-//                            phoneNumber = phoneNumber,
-//                            email = email.trim(),
-//                            houseAddress = houseAddress,
-//                            city = city,
-//                            state = state,
-//                            carOwner = false,
-//                            carCategory = carCategory
-//                        )
-//
-//                        // persist values locally before navigating
-//                        authViewModel.setUploadUserDetailsReqBody(driverBiodata)
-//                        navToSelectVehicleScreen()
-//                    }
+                    if (isInputValidated.value) {
+                        val driverBiodata = UploadPersonalDetailsReqBody(
+                            fullName = fullName,
+                            phoneNumber = phoneNumber,
+                            email = email.trim(),
+                            houseAddress = houseAddress,
+                            city = city,
+                            state = state,
+                            carOwner = false,
+                            carCategory = carCategory
+                        )
+
+                        // persist values locally before navigating
+                        authViewModel.setUploadUserDetailsReqBody(driverBiodata)
+                        navToSelectVehicleScreen()
+                    }
                 }
             )
         }
@@ -180,8 +179,8 @@ fun DriverBioDataScreen(
                 value = fullName,
                 hintText = "John Doe",
                 onTextChanged = { newText ->
-                    val filtered = newText.filter { it.isLetter() }
-                    fullName = filtered
+//                    val filtered = newText.filter { it.isLetter() }
+                    fullName = newText
                 },
                 validationError = fullNameError.value.isNotEmpty(),
                 validationErrorMessage = fullNameError.value

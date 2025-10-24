@@ -30,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -53,19 +54,21 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDeta
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SelectVehicleScreen(
     onNavToTermsAndCondition: () -> Unit,
     authViewModel: AuthViewModel = koinViewModel()
-    ) {
+) {
 
     val context = LocalContext.current
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
-
+    val coroutineScope = rememberCoroutineScope()
     val driverUiState = authViewModel.onboardDriverBiodataUiState
 //    val context = LocalContext.current
     val userDetails = authViewModel.uploadPersonalDetailsReqBody.collectAsState().value
@@ -99,30 +102,29 @@ fun SelectVehicleScreen(
                 isLoading = driverUiState == OnboardDriverPersonalDetailsUiState.Loading,
                 onClick = {
 
-                    onNavToTermsAndCondition()
+                    if (hasVehicle == null) {
+                        context.displayToastMessage("No selection made")
+                        return@KabuBottomButton
+                    }
 
-//                    println("was i clicked......1")
-//                    if (hasVehicle == null) {
-//                        context.displayToastMessage("No selection made")
-//                        return@KabuBottomButton
-//                    }
-//
-//                    val driverBiodata = UploadPersonalDetailsReqBody(
-//                        fullName = currentUserDetails?.fullName ?: "",
-//                        phoneNumber = currentUserDetails?.phoneNumber ?: "",
-//                        email = currentUserDetails?.email ?: "",
-//                        houseAddress = currentUserDetails?.houseAddress ?: "",
-//                        city = currentUserDetails?.city ?: "",
-//                        state = currentUserDetails?.state ?: "",
-//                        carOwner = hasVehicle,
-//                        carCategory = currentUserDetails?.carCategory ?: "REGULAR"
-//                    )
-//
-//                    println("was i clicked......2")
-//                    println(authViewModel.onboardDriverBiodataUiState)
-//                    println( driverBiodata)
-//
-//                    authViewModel.uploadDriverBioData(driverBiodata)
+                    val driverBiodata = UploadPersonalDetailsReqBody(
+                        fullName = currentUserDetails?.fullName ?: "",
+                        phoneNumber = currentUserDetails?.phoneNumber ?: "",
+                        email = currentUserDetails?.email ?: "",
+                        houseAddress = currentUserDetails?.houseAddress ?: "",
+                        city = currentUserDetails?.city ?: "",
+                        state = currentUserDetails?.state ?: "",
+                        carOwner = hasVehicle,
+                        carCategory = currentUserDetails?.carCategory ?: "REGULAR"
+                    )
+
+                    println(authViewModel.onboardDriverBiodataUiState)
+                    println(driverBiodata)
+
+                    coroutineScope.launch {
+                        authViewModel.uploadDriverBioData(driverBiodata)
+                    }
+
 
                 }
             )

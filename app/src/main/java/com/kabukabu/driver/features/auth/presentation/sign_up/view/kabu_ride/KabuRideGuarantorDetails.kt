@@ -101,10 +101,7 @@ fun KabuRideGuarantorDetail(
 
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
 
-
     val uploadGuarantorDetailsUiState = authViewModel.uploadGuarantorDetailsUiState
-
-//    val context = LocalContext.current
 
     var showStateSheet by remember { mutableStateOf(false) }
     var showGuarantorSheet by remember { mutableStateOf(false) }
@@ -205,8 +202,7 @@ fun KabuRideGuarantorDetail(
                     value = fullName,
                     hintText = "John Doe",
                     onTextChanged = { newText ->
-                        val filtered = newText.filter { it.isLetter() }
-                        fullName = filtered
+                        fullName = newText
                     },
                     validationError = fullNameError.value.isNotEmpty(),
                     validationErrorMessage = fullNameError.value
@@ -308,43 +304,43 @@ fun KabuRideGuarantorDetail(
                     icon = R.drawable.arrow_right,
                     isLoading = uploadGuarantorDetailsUiState == UploadGuarantorDetailsUiState.Loading,
                     onClick = {
-                        navigator.navToKabuRidePendingAccountApprovalScreen()
-//                        if (guarantorImageUri?.path.isNullOrEmpty()) {
-//                            context.displayToastMessage("Upload your Guarantor's image")
-//                            return@KabuBottomButtonRowScope
-//                        }
-//                        isInputValidated.value = validateGuarantorDetails(
-//                            fullName = fullName,
-//                            phoneNumber = phoneNumber,
-//                            email = email,
-//                            houseAddress = houseAddress,
-//                            relationship = guarantorRelationship,
-//                            city = city,
-//                            state = state,
-//                            fullNameError = fullNameError,
-//                            phoneNumberError = phoneNumberError,
-//                            emailError = emailError,
-//                            houseAddressError = houseAddressError,
-//                            cityError = cityError,
-//                            stateError = stateError,
-//                            relationshipError = relationshipError
-//                        )
-//                        if (isInputValidated.value) {
-//                            val uploadGuarantorDetailsReqBody = UploadGuarantorDetailsReqBody(
-//                                guarantorImage = convertUriToFile(context, guarantorImageUri),
-//                                guarantorFullName = fullName,
-//                                guarantorRelationship = guarantorRelationship,
-//                                guarantorHouseAddress = houseAddress,
-//                                guarantorCity = city,
-//                                guarantorState = state,
-//                                guarantorPhoneNumber = phoneNumber,
-//                                guarantorEmail = email,
-//                                referralCode = referralCode,
-//                                sharpProgramType = "HIRE_PURCHASE"
-//                                //RENTAL
-//                            )
-//                            authViewModel.uploadGuarantorDetails(uploadGuarantorDetailsReqBody)
-//                        }
+//                        navigator.navToKabuRidePendingAccountApprovalScreen()
+                        if (guarantorImageUri?.path.isNullOrEmpty()) {
+                            context.displayToastMessage("Upload your Guarantor's image")
+                            return@KabuBottomButtonRowScope
+                        }
+                        isInputValidated.value = validateGuarantorDetails(
+                            fullName = fullName,
+                            phoneNumber = phoneNumber,
+                            email = email,
+                            houseAddress = houseAddress,
+                            relationship = guarantorRelationship,
+                            city = city,
+                            state = state,
+                            fullNameError = fullNameError,
+                            phoneNumberError = phoneNumberError,
+                            emailError = emailError,
+                            houseAddressError = houseAddressError,
+                            cityError = cityError,
+                            stateError = stateError,
+                            relationshipError = relationshipError
+                        )
+                        if (isInputValidated.value) {
+                            val uploadGuarantorDetailsReqBody = UploadGuarantorDetailsReqBody(
+                                guarantorImage = convertUriToFile(context, guarantorImageUri),
+                                guarantorFullName = fullName,
+                                guarantorRelationship = guarantorRelationship,
+                                guarantorHouseAddress = houseAddress,
+                                guarantorCity = city,
+                                guarantorState = state,
+                                guarantorPhoneNumber = phoneNumber,
+                                guarantorEmail = email,
+                                referralCode = referralCode,
+                                sharpProgramType = "HIRE_PURCHASE"
+                                //RENTAL
+                            )
+                            authViewModel.uploadGuarantorDetails(uploadGuarantorDetailsReqBody)
+                        }
 
 
                     }

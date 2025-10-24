@@ -123,9 +123,9 @@ fun KabuRideSelfieVerificationScreen(
                 text = "Continue",
                 isLoading = uiState == EditDriverProfileUiState.Loading,
                 onClick = {
-                    onNavToKabuCarDetailsScreen()
+//                    onNavToKabuCarDetailsScreen()
 
-//                    authViewModel.updateUserImage(convertUriToFile(context, selfieUri))
+                    authViewModel.updateUserImage(convertUriToFile(context, selfieUri))
                 },
                 enabled = selfieUri != null
             )
