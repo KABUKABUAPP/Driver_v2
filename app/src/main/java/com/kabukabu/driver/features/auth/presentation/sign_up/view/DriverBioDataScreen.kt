@@ -161,8 +161,8 @@ fun DriverBioDataScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .imePadding()
                 .padding(paddingValues)
+                .imePadding()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Top

@@ -120,9 +120,6 @@ fun SelectVehicleScreen(
                         carCategory = currentUserDetails?.carCategory ?: "REGULAR"
                     )
 
-                    println(authViewModel.onboardDriverBiodataUiState)
-                    println(driverBiodata)
-
                     coroutineScope.launch {
                         authViewModel.uploadDriverBioData(driverBiodata)
                     }

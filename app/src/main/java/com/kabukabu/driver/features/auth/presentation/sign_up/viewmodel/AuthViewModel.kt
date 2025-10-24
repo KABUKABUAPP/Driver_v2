@@ -151,7 +151,6 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
 
                 if (response.status == "success") {
                     onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Success(response)
-                    userPreferences.saveOnboardingStep(2)
                 } else {
                     onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(response.message)
                 }

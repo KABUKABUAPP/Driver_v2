@@ -4,7 +4,6 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthView
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-val dataPersistenceModule = module {
-    single { DataPersistenceViewModel() }
-//    viewModel { AuthViewModel(get()) } // inject DataPersistenceViewModel into AuthViewModel
-}
+//val dataPersistenceModule = module {
+//    single { DataPersistenceViewModel() }
+//}

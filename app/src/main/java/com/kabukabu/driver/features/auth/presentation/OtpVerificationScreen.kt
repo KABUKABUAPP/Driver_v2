@@ -79,8 +79,8 @@ fun OtpVerificationScreen(
     // Request focus when the screen is first displayed
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
-        onboardingStep = UserPreferences(context).onboardingStep.firstOrNull()
-        println("current onboarding step is..........${UserPreferences(context).onboardingStep.firstOrNull()}")
+//        onboardingStep = UserPreferences(context).onboardingStep.firstOrNull()
+//        println("current onboarding step is..........${UserPreferences(context).onboardingStep.firstOrNull()}")
     }
 
 
@@ -171,12 +171,12 @@ fun OtpVerificationScreen(
                         }
 
                     }
-                    context.displayToastMessage("Continue to Onboarding")
+//                    context.displayToastMessage("Continue to Onboarding")
                 }
                 // Navigate to home
 
                 // Add a longer delay before resetting state
-                delay(1000)
+                delay(400)
                 viewModel.resetState()
             }
 
