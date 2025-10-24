@@ -64,6 +64,7 @@ fun KabuRideAccountDeclinedScreen(
             when (document.status) {
                 "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
                 "APPROVED" -> navigator.navToKabuRideInspection()
+                else -> navigator.navToKabuRidePendingAccountApprovalScreen()
             }
         }
     }

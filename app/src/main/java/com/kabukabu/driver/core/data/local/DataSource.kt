@@ -56,7 +56,7 @@ class LocalDataSource {
         "Taraba",
         "Yobe",
         "Zamfara",
-//        "Federal Capital Territory"
+        "Federal Capital Territory"
     )
 
     val carCategories = listOf(

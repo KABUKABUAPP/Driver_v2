@@ -50,7 +50,8 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun InspectionHubsScreen(onNavToInspectionScreen: () -> Unit,
-                         authViewModel: AuthViewModel = koinViewModel()
+
+//                         authViewModel: AuthViewModel = koinViewModel()
 ) {
 
     val context = LocalContext.current

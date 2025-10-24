@@ -1,6 +1,5 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -51,11 +50,10 @@ import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.ui.getThirtyPercentOfScreenWidth
-import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
+import com.kabukabu.driver.features.auth.data.entity.req_body.DriverDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -72,7 +70,7 @@ fun SelectVehicleScreen(
     val coroutineScope = rememberCoroutineScope()
     val driverUiState = authViewModel.onboardDriverBiodataUiState
 //    val context = LocalContext.current
-    val userDetails = authViewModel.uploadPersonalDetailsReqBody.collectAsState().value
+    val userDetails = authViewModel.driverDetailsReqBody.collectAsState().value
     val currentUserDetails by rememberUpdatedState(userDetails)
 
     var hasVehicle by remember { mutableStateOf<Boolean?>(null) }
@@ -109,7 +107,7 @@ fun SelectVehicleScreen(
                         return@KabuBottomButton
                     }
 
-                    val driverBiodata = UploadPersonalDetailsReqBody(
+                    val driverBiodata = DriverDetailsReqBody(
                         fullName = currentUserDetails?.fullName ?: "",
                         phoneNumber = currentUserDetails?.phoneNumber ?: "",
                         email = currentUserDetails?.email ?: "",

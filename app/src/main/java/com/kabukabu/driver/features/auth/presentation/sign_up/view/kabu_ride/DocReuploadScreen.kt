@@ -39,14 +39,12 @@ fun KabuRideDocumentsReUploadScreen(
     navigator: Navigator,
     authViewModel: AuthViewModel = koinViewModel()
 ) {
-//    println("document id.........$id")
     val context = LocalContext.current
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
 
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-    val photoError = remember { mutableStateOf("") }
     var launchCamera by remember { mutableStateOf(false) }
     val uiState = authViewModel.reUploadDocUiState
 
@@ -70,7 +68,6 @@ fun KabuRideDocumentsReUploadScreen(
     Scaffold { paddingValues ->
 
         if (launchCamera) {
-            // Show the camera view
             CameraXCaptureImage(
                 onImageCaptured = { uri ->
                     selectedImageUri = uri
@@ -86,8 +83,6 @@ fun KabuRideDocumentsReUploadScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .padding(top = 30.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
-
-//                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {

@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class UploadPersonalDetailsReqBody(
+data class DriverDetailsReqBody(
     @Json(name = "full_name") val fullName: String,
     @Json(name = "phone_number") val phoneNumber: String,
     @Json(name = "email") val email: String,
