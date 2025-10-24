@@ -42,6 +42,7 @@ import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
+import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
 import com.kabukabu.driver.features.auth.data.entity.response.InspectionHub
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
@@ -50,7 +51,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun InspectionHubsScreen(onNavToInspectionScreen: () -> Unit,
-
+dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
 //                         authViewModel: AuthViewModel = koinViewModel()
 ) {
 
@@ -59,7 +60,7 @@ fun InspectionHubsScreen(onNavToInspectionScreen: () -> Unit,
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
 
-    val hubsList = authViewModel.inspectionsHubs.collectAsState().value?.data ?: emptyList()
+    val hubsList = dataPersistenceViewModel.inspectionsHubs.collectAsState().value?.data ?: emptyList()
 
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)

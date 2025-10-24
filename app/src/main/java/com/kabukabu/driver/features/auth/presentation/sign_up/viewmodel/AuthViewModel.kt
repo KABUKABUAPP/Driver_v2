@@ -1,24 +1,22 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel
 
-import android.app.Application
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.components.utils_functions.toMultipartPart
-import com.kabukabu.driver.core.data.local.UserPreferences
+import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
 import com.kabukabu.driver.core.data.remote.ApiClient
 import com.kabukabu.driver.core.data.remote.HttpExceptionUtil
 import com.kabukabu.driver.core.data.remote.hub.HubApiClient
 import com.kabukabu.driver.features.auth.data.entity.req_body.ReUploadDocumentReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.ReUploadGuarantorDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
-import com.kabukabu.driver.features.auth.data.entity.req_body.UploadPersonalDetailsReqBody
+import com.kabukabu.driver.features.auth.data.entity.req_body.DriverDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadGuarantorDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.response.InspectionHubsResponse
@@ -33,22 +31,24 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.koin.androidx.compose.koinViewModel
 import retrofit2.HttpException
 import java.io.File
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewModel
+) : ViewModel() {
 
 //    private val userPreferences = UserPreferences(application)
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
 
-    private val _carBrands = MutableStateFlow<List<String>>(emptyList())
-    val carBrands: StateFlow<List<String>> = _carBrands.asStateFlow()
+//    private val _carBrands = MutableStateFlow<List<String>>(emptyList())
+//    val carBrands: StateFlow<List<String>> = _carBrands.asStateFlow()
 
-    private val _inspectionsHubs = MutableStateFlow<InspectionHubsResponse?>(null)
-    val inspectionsHubs: StateFlow<InspectionHubsResponse?> = _inspectionsHubs.asStateFlow()
+//    private val _inspectionsHubs = MutableStateFlow<InspectionHubsResponse?>(null)
+//    val inspectionsHubs: StateFlow<InspectionHubsResponse?> = _inspectionsHubs.asStateFlow()
 
-    private val _uploadPersonalDetailsReqBody = MutableStateFlow<UploadPersonalDetailsReqBody?>(null)
-    val uploadPersonalDetailsReqBody: StateFlow<UploadPersonalDetailsReqBody?> = _uploadPersonalDetailsReqBody.asStateFlow()
+//    private val _driverDetailsReqBody = MutableStateFlow<DriverDetailsReqBody?>(null)
+//    val driverDetailsReqBody: StateFlow<DriverDetailsReqBody?> = _driverDetailsReqBody.asStateFlow()
 
     var onboardDriverBiodataUiState: OnboardDriverPersonalDetailsUiState by mutableStateOf(
         OnboardDriverPersonalDetailsUiState.Idle
@@ -83,8 +83,9 @@ class AuthViewModel : ViewModel() {
         fetchHubs("Lagos")
     }
 
-    fun setUploadUserDetailsReqBody(uploadPersonalDetailsReqBody: UploadPersonalDetailsReqBody) {
-        _uploadPersonalDetailsReqBody.value = uploadPersonalDetailsReqBody.copy()
+    fun setUploadUserDetailsReqBody(driverDetailsReqBody: DriverDetailsReqBody) {
+        dataPersistenceViewModel.setDriverDetailsReqBody(driverDetailsReqBody.copy())
+//        _driverDetailsReqBody.value = driverDetailsReqBody.copy()
     }
 
     //fetch car brands from firebase
@@ -98,8 +99,9 @@ class AuthViewModel : ViewModel() {
                     if (document.exists()) {
                         val brands = document.get("branditems") as? List<String>
                         brands?.let {
-                            _carBrands.value = it
-                            println("car brands are ${_carBrands.value}")
+                            dataPersistenceViewModel.setCarBrands(it)
+//                            _carBrands.value = it
+//                            println("car brands are ${_carBrands.value}")
                         }
                     }
                 }
@@ -115,14 +117,15 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = HubApiClient.hubService.fetchHubs(state)
-                _inspectionsHubs.value = response
+                dataPersistenceViewModel.setInspectionHubs(response)
+//                _inspectionsHubs.value = response
             } catch (e: Exception) {
                 Log.e("HubViewModel", "Error fetching hubs", e)
             }
         }
     }
 
-    fun uploadDriverBioData(driverPersonalDetailsReqBody: UploadPersonalDetailsReqBody) {
+    fun uploadDriverBioData(driverPersonalDetailsReqBody: DriverDetailsReqBody) {
         viewModelScope.launch(Dispatchers.Main) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
@@ -488,6 +491,8 @@ class AuthViewModel : ViewModel() {
         uploadCarDocsUiState = UploadCarDocsUiState.Idle
         uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Idle
         editDriverProfileUiState = EditDriverProfileUiState.Idle
+        reUploadDocUiState = ReUploadDocUiState.Idle
+        reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Idle
     }
 
 

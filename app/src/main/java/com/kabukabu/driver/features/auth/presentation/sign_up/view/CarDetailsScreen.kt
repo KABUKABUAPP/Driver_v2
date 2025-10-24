@@ -65,6 +65,7 @@ import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.utils_functions.convertUrisToFiles
+import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
 import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsReqBody
@@ -80,7 +81,8 @@ private enum class CarImageIndex { One, Two, Three, Four }
 @Composable
 fun KabuRideCarDetailsScreen(
     navigator: Navigator,
-    authViewModel: AuthViewModel = koinViewModel()
+    authViewModel: AuthViewModel = koinViewModel(),
+    dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
 ) {
 
     val context = LocalContext.current
@@ -97,7 +99,7 @@ fun KabuRideCarDetailsScreen(
 
     val imagesUriList = mutableListOf<Uri?>()
     var imagesFileList: List<File>
-    val carBrands = authViewModel.carBrands.collectAsState().value
+    val carBrands = dataPersistenceViewModel.carBrands.collectAsState().value
 
 //    val context = LocalContext.current
 

@@ -73,12 +73,11 @@ fun AppNavigation() {
 //                popUpTo(navController.graph.id) { inclusive = true }
 //            }
         } else {
-            delay(700)
-            navController.navigate(Screen.DriverBioDataScreen.route)
+            delay(500)
             //navigate to Login because authToken is not found, and restart proccess.
-//            navController.navigate(Screen.Login.route) {
-//                popUpTo(Screen.Splash.route) { inclusive = true }
-//            }
+            navController.navigate(Screen.Login.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
+            }
             Log.d("AppNavigation", "No auth token found")
         }
     }

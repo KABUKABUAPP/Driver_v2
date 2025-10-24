@@ -50,6 +50,7 @@ import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.ui.getThirtyPercentOfScreenWidth
+import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
@@ -60,7 +61,9 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SelectVehicleScreen(
     onNavToTermsAndCondition: () -> Unit,
-    authViewModel: AuthViewModel = koinViewModel()
+    authViewModel: AuthViewModel = koinViewModel(),
+    dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
+
 ) {
 
     val context = LocalContext.current
@@ -69,8 +72,7 @@ fun SelectVehicleScreen(
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
     val coroutineScope = rememberCoroutineScope()
     val driverUiState = authViewModel.onboardDriverBiodataUiState
-//    val context = LocalContext.current
-    val userDetails = authViewModel.driverDetailsReqBody.collectAsState().value
+    val userDetails = dataPersistenceViewModel.driverDetailsReqBody.collectAsState().value
     val currentUserDetails by rememberUpdatedState(userDetails)
 
     var hasVehicle by remember { mutableStateOf<Boolean?>(null) }

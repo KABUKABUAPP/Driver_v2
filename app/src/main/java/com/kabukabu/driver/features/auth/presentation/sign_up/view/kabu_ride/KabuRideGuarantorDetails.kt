@@ -94,11 +94,7 @@ fun KabuRideGuarantorDetail(
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
 
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
-//
-//    LaunchedEffect(Unit) {
-//
-//    val userDetails by userPreferences.getUserDetails
-//    }
+
 
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
 

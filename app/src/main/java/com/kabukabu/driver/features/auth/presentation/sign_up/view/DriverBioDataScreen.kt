@@ -45,6 +45,7 @@ import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.RowScopeFormTextfield
 import com.kabukabu.driver.components.ui.ScreenTitleText
+import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
 import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
@@ -56,7 +57,8 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun DriverBioDataScreen(
     navToSelectVehicleScreen: () -> Unit,
-    authViewModel: AuthViewModel = koinViewModel()
+    authViewModel: AuthViewModel = koinViewModel(),
+    dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
 ) {
 
     val context = LocalContext.current
@@ -68,7 +70,7 @@ fun DriverBioDataScreen(
     var showStateSheet by remember { mutableStateOf(false) }
     var showCarCategorySheet by remember { mutableStateOf(false) }
 
-    val uiState = authViewModel.driverDetailsReqBody.collectAsState().value
+    val uiState = dataPersistenceViewModel.driverDetailsReqBody.collectAsState().value
 
     var fullName by remember { mutableStateOf(uiState?.fullName ?: "") }
     var phoneNumber by remember { mutableStateOf(uiState?.phoneNumber ?: "") }
