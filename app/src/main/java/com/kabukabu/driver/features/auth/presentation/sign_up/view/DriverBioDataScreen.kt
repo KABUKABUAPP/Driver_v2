@@ -118,39 +118,42 @@ fun DriverBioDataScreen(
                 isLoading = authViewModel.onboardDriverBiodataUiState ==
                         OnboardDriverPersonalDetailsUiState.Loading,
                 onClick = {
-                    isInputValidated.value = validateDriverDetails(
-                        fullName = fullName,
-                        phoneNumber = phoneNumber,
-                        email = email.trim(),
-                        houseAddress = houseAddress,
-                        city = city,
-                        state = state,
-                        carCategory = carCategory,
-                        fullNameError = fullNameError,
-                        phoneNumberError = phoneNumberError,
-                        emailError = emailError,
-                        houseAddressError = houseAddressError,
-                        cityError = cityError,
-                        stateError = stateError,
-                        carCategoryError = carCategoryError,
-                    )
+                    navToSelectVehicleScreen()
 
-                    if (isInputValidated.value) {
-                        val driverBiodata = UploadPersonalDetailsReqBody(
-                            fullName = fullName,
-                            phoneNumber = phoneNumber,
-                            email = email.trim(),
-                            houseAddress = houseAddress,
-                            city = city,
-                            state = state,
-                            carOwner = false,
-                            carCategory = carCategory
-                        )
 
-                        // persist values locally before navigating
-                        authViewModel.setUploadUserDetailsReqBody(driverBiodata)
-                        navToSelectVehicleScreen()
-                    }
+//                    isInputValidated.value = validateDriverDetails(
+//                        fullName = fullName,
+//                        phoneNumber = phoneNumber,
+//                        email = email.trim(),
+//                        houseAddress = houseAddress,
+//                        city = city,
+//                        state = state,
+//                        carCategory = carCategory,
+//                        fullNameError = fullNameError,
+//                        phoneNumberError = phoneNumberError,
+//                        emailError = emailError,
+//                        houseAddressError = houseAddressError,
+//                        cityError = cityError,
+//                        stateError = stateError,
+//                        carCategoryError = carCategoryError,
+//                    )
+//
+//                    if (isInputValidated.value) {
+//                        val driverBiodata = UploadPersonalDetailsReqBody(
+//                            fullName = fullName,
+//                            phoneNumber = phoneNumber,
+//                            email = email.trim(),
+//                            houseAddress = houseAddress,
+//                            city = city,
+//                            state = state,
+//                            carOwner = false,
+//                            carCategory = carCategory
+//                        )
+//
+//                        // persist values locally before navigating
+//                        authViewModel.setUploadUserDetailsReqBody(driverBiodata)
+//                        navToSelectVehicleScreen()
+//                    }
                 }
             )
         }

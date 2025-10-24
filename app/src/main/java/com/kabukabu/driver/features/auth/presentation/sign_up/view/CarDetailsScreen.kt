@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -194,6 +195,7 @@ fun KabuRideCarDetailsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
                 .padding(top = 30.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
@@ -331,49 +333,50 @@ fun KabuRideCarDetailsScreen(
                     "Next", icon = R.drawable.arrow_right,
                     isLoading = uploadCarDetailsUiState == UploadCarDetailsUiState.Loading,
                     onClick = {
-//                        navigator.navToKabuDocumentsUpload()
-                        listOf(
-                            selectedCarImageUriOne,
-                            selectedCarImageUriTwo,
-                            selectedCarImageUriThree,
-                            selectedCarImageUriFour
-                        ).forEach { uri ->
-                            if (uri != null) {
-                                imagesUriList.add(uri)
-                            }
-                        }
-                        if (imagesUriList.size < 3){
-                            context.displayToastMessage("Select atleast 3 images")
-                            return@KabuBottomButtonRowScope
-                        }
-                        isInputValidated.value = validateCarDetails(
-                            carBrand = selectedCarBrand,
-                            carModel = carModel,
-                            carYear = carYear,
-                            carColour = carColour,
-                            plateNumber = plateNumber,
-                            carBrandError = carBrandError,
-                            carModelError = carModelError,
-                            carYearError = carYearError,
-                            carColourError = carColourError,
-                            plateNumberError = plateNumberError
-                        )
+                        navigator.navToKabuRideCarDocsUpload()
 
-                        if (isInputValidated.value) {
-                        imagesFileList =
-                            convertUrisToFiles(context = context, uris = imagesUriList as List<Uri>)
-
-                        val uploadCarDetails = UploadCarDetailsReqBody(
-                            carBrand = selectedCarBrand,
-                            carModel = carModel,
-                            carYear = carYear,
-                            carColor = carColour,
-                            carPlateNumber = plateNumber,
-                            carImages = imagesFileList
-                        )
-                        authViewModel.uploadCarDetails(uploadCarDetails)
-
-                        }
+//                        listOf(
+//                            selectedCarImageUriOne,
+//                            selectedCarImageUriTwo,
+//                            selectedCarImageUriThree,
+//                            selectedCarImageUriFour
+//                        ).forEach { uri ->
+//                            if (uri != null) {
+//                                imagesUriList.add(uri)
+//                            }
+//                        }
+//                        if (imagesUriList.size < 3){
+//                            context.displayToastMessage("Select atleast 3 images")
+//                            return@KabuBottomButtonRowScope
+//                        }
+//                        isInputValidated.value = validateCarDetails(
+//                            carBrand = selectedCarBrand,
+//                            carModel = carModel,
+//                            carYear = carYear,
+//                            carColour = carColour,
+//                            plateNumber = plateNumber,
+//                            carBrandError = carBrandError,
+//                            carModelError = carModelError,
+//                            carYearError = carYearError,
+//                            carColourError = carColourError,
+//                            plateNumberError = plateNumberError
+//                        )
+//
+//                        if (isInputValidated.value) {
+//                        imagesFileList =
+//                            convertUrisToFiles(context = context, uris = imagesUriList as List<Uri>)
+//
+//                        val uploadCarDetails = UploadCarDetailsReqBody(
+//                            carBrand = selectedCarBrand,
+//                            carModel = carModel,
+//                            carYear = carYear,
+//                            carColor = carColour,
+//                            carPlateNumber = plateNumber,
+//                            carImages = imagesFileList
+//                        )
+//                        authViewModel.uploadCarDetails(uploadCarDetails)
+//
+//                        }
                     }
                 )
             }

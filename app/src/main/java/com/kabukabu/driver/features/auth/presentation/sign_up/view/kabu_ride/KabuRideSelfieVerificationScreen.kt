@@ -3,7 +3,6 @@ package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 import android.net.Uri
 import androidx.camera.core.CameraSelector
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.kabukabu.driver.components.ui.CameraXCaptureImage
 import com.kabukabu.driver.components.ui.KabuBottomButton
@@ -37,12 +34,11 @@ import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.utils_functions.convertUriToFile
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.EditDriverProfileUiState
-import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadGuarantorDetailsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 
 @Composable
 fun KabuRideSelfieVerificationScreen(
-    onNavToTermsAndCondition: () -> Unit,
+    onNavToKabuCarDetailsScreen: () -> Unit,
     authViewModel: AuthViewModel = viewModel()
     ) {
 
@@ -64,7 +60,7 @@ fun KabuRideSelfieVerificationScreen(
             is EditDriverProfileUiState.Success -> {
                 context.displayToastMessage(uiState.response.message)
                 authViewModel.resetState()
-                onNavToTermsAndCondition()
+                onNavToKabuCarDetailsScreen()
 
             }
 
@@ -127,7 +123,9 @@ fun KabuRideSelfieVerificationScreen(
                 text = "Continue",
                 isLoading = uiState == EditDriverProfileUiState.Loading,
                 onClick = {
-                    authViewModel.updateUserImage(convertUriToFile(context, selfieUri))
+                    onNavToKabuCarDetailsScreen()
+
+//                    authViewModel.updateUserImage(convertUriToFile(context, selfieUri))
                 },
                 enabled = selfieUri != null
             )

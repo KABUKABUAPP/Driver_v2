@@ -98,28 +98,31 @@ fun SelectVehicleScreen(
                 text = "Submit",
                 isLoading = driverUiState == OnboardDriverPersonalDetailsUiState.Loading,
                 onClick = {
-                    println("was i clicked......1")
-                    if (hasVehicle == null) {
-                        context.displayToastMessage("No selection made")
-                        return@KabuBottomButton
-                    }
 
-                    val driverBiodata = UploadPersonalDetailsReqBody(
-                        fullName = currentUserDetails?.fullName ?: "",
-                        phoneNumber = currentUserDetails?.phoneNumber ?: "",
-                        email = currentUserDetails?.email ?: "",
-                        houseAddress = currentUserDetails?.houseAddress ?: "",
-                        city = currentUserDetails?.city ?: "",
-                        state = currentUserDetails?.state ?: "",
-                        carOwner = hasVehicle,
-                        carCategory = currentUserDetails?.carCategory ?: "REGULAR"
-                    )
+                    onNavToTermsAndCondition()
 
-                    println("was i clicked......2")
-                    println(authViewModel.onboardDriverBiodataUiState)
-                    println( driverBiodata)
-
-                    authViewModel.uploadDriverBioData(driverBiodata)
+//                    println("was i clicked......1")
+//                    if (hasVehicle == null) {
+//                        context.displayToastMessage("No selection made")
+//                        return@KabuBottomButton
+//                    }
+//
+//                    val driverBiodata = UploadPersonalDetailsReqBody(
+//                        fullName = currentUserDetails?.fullName ?: "",
+//                        phoneNumber = currentUserDetails?.phoneNumber ?: "",
+//                        email = currentUserDetails?.email ?: "",
+//                        houseAddress = currentUserDetails?.houseAddress ?: "",
+//                        city = currentUserDetails?.city ?: "",
+//                        state = currentUserDetails?.state ?: "",
+//                        carOwner = hasVehicle,
+//                        carCategory = currentUserDetails?.carCategory ?: "REGULAR"
+//                    )
+//
+//                    println("was i clicked......2")
+//                    println(authViewModel.onboardDriverBiodataUiState)
+//                    println( driverBiodata)
+//
+//                    authViewModel.uploadDriverBioData(driverBiodata)
 
                 }
             )

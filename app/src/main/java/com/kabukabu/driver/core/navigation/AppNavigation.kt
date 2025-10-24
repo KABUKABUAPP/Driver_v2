@@ -65,17 +65,20 @@ fun AppNavigation() {
             )
             // Add a delay to ensure the NavHost is fully set up
             delay(500)
-            navigateBasedOnOnboardingStatus(navigation, navController, userDetails)
+            navController.navigate(Screen.DriverBioDataScreen.route)
+
+//            navigateBasedOnOnboardingStatus(navigation, navController, userDetails)
             // User is logged in, navigate to home screen
 //            navController.navigate(Screen.Home.route) {
 //                popUpTo(navController.graph.id) { inclusive = true }
 //            }
         } else {
             delay(700)
+            navController.navigate(Screen.DriverBioDataScreen.route)
             //navigate to Login because authToken is not found, and restart proccess.
-            navController.navigate(Screen.Login.route) {
-                popUpTo(Screen.Splash.route) { inclusive = true }
-            }
+//            navController.navigate(Screen.Login.route) {
+//                popUpTo(Screen.Splash.route) { inclusive = true }
+//            }
             Log.d("AppNavigation", "No auth token found")
         }
     }
@@ -171,7 +174,7 @@ fun AppNavigation() {
 
         composable(Screen.KabuRideSelfieVerificationScreen.route) {
             KabuRideSelfieVerificationScreen(
-                onNavToTermsAndCondition = { navController.navigate(Screen.KabuRideCarDetails.route) }
+                onNavToKabuCarDetailsScreen = { navController.navigate(Screen.KabuRideCarDetails.route) }
             )
         }
 
