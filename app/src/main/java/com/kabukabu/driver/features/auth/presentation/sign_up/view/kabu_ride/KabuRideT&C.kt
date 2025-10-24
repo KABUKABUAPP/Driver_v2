@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -26,6 +27,9 @@ fun KabuRideTermsAndConditionsScreen(onNavToSelfieVerification: () -> Unit) {
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+
+    BackHandler { true }
+
 
     Scaffold(
     ) { paddingValues ->

@@ -1,6 +1,7 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -98,6 +99,9 @@ fun KabuRideCarDocumentsUploadScreen(
     val vehicleLicenseError = remember { mutableStateOf("") }
     val proofOfOwnershipError = remember { mutableStateOf("") }
     val roadWorthinessError = remember { mutableStateOf("") }
+
+    BackHandler { true }
+
 
     LaunchedEffect(uploadCarDocsUiState) {
         when (uploadCarDocsUiState) {

@@ -65,9 +65,9 @@ fun AppNavigation() {
             )
             // Add a delay to ensure the NavHost is fully set up
             delay(500)
-            navController.navigate(Screen.DriverBioDataScreen.route)
 
-//            navigateBasedOnOnboardingStatus(navigation, navController, userDetails)
+            navigateBasedOnOnboardingStatus(navigation, navController, userDetails)
+
             // User is logged in, navigate to home screen
 //            navController.navigate(Screen.Home.route) {
 //                popUpTo(navController.graph.id) { inclusive = true }

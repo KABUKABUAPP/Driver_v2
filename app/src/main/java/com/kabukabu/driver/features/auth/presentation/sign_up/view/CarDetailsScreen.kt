@@ -2,6 +2,7 @@ package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -70,6 +71,7 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsRe
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDetailsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import org.koin.androidx.compose.koinViewModel
 import java.io.File
 
 private enum class CarImageIndex { One, Two, Three, Four }
@@ -78,10 +80,15 @@ private enum class CarImageIndex { One, Two, Three, Four }
 @Composable
 fun KabuRideCarDetailsScreen(
     navigator: Navigator,
+    authViewModel: AuthViewModel = koinViewModel()
 ) {
-   val authViewModel: AuthViewModel = AuthViewModel()
 
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        authViewModel.fetchCarBrands()
+    }
+
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
@@ -93,6 +100,9 @@ fun KabuRideCarDetailsScreen(
     val carBrands = authViewModel.carBrands.collectAsState().value
 
 //    val context = LocalContext.current
+
+
+    BackHandler { true }
 
     var launchCamera by remember { mutableStateOf(false) }
 
@@ -189,199 +199,201 @@ fun KabuRideCarDetailsScreen(
                     launchCamera = false
                 }
             )
-        }
-        else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .imePadding()
-                .padding(top = 30.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .imePadding()
+                    .padding(top = 30.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
 
-            CustomLinearProgressIndicator(
-                progress = 0.34f,
-                modifier = Modifier.padding(bottom = 50.dp)
-            )
-
-            ScreenTitleText(
-                title = "Car Details",
-                subtitle = "Give us more information about your car",
-                bottomPadding = 16
-            )
-
-            GrayBackgroundContainer {
-
-                ScreenTitleText(
-                    title = "Car Images",
-                    subtitle = "Upload at least 3 images of your car",
-                    titleFontSize = 16,
-                    subtitleFontSize = 13,
-                    bottomPadding = 20
+                CustomLinearProgressIndicator(
+                    progress = 0.34f,
+                    modifier = Modifier.padding(bottom = 50.dp)
                 )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                ) {
-
-                    UploadCarImageBox(
-                        selectedImageUri = selectedCarImageUriOne,
-                        onClick = {
-                            selectedCarImageIndex = CarImageIndex.One
-                            launchCamera = true
-                        }
-                    )
-
-
-                    UploadCarImageBox(
-                        selectedImageUri = selectedCarImageUriTwo,
-                        onClick = {
-                            selectedCarImageIndex = CarImageIndex.Two
-                            launchCamera = true
-                        }
-                    )
-                    UploadCarImageBox(
-                        selectedImageUri = selectedCarImageUriThree,
-                        onClick = {
-                            selectedCarImageIndex = CarImageIndex.Three
-                            launchCamera = true
-                        }
-                    )
-                    UploadCarImageBox(
-                        selectedImageUri = selectedCarImageUriFour,
-                        onClick = {
-                            selectedCarImageIndex = CarImageIndex.Four
-                            launchCamera = true
-                        }
-                    )
-
-                }
-            }
-
-            KabuDivider(height = 16.dp)
-
-            GrayBackgroundContainer {
 
                 ScreenTitleText(
                     title = "Car Details",
                     subtitle = "Give us more information about your car",
-                    titleFontSize = 16,
-                    subtitleFontSize = 13,
                     bottomPadding = 16
                 )
 
-                FormTextfieldDropdown(
-                    value = selectedCarBrand,
-                    title = "Car Brand",
-                    onClick = {
-                        showCarBrandSheet = true
-                    },
-                    validationError = carBrandError.value.isNotEmpty(),
-                    validationErrorMessage = carBrandError.value
-                )
+                GrayBackgroundContainer {
 
-                FormTextfield(
-                    value = carModel,
-                    title = "Car Model",
-                    hintText = "e.g Corolla",
-                    onTextChanged = { carModel = it },
-                    validationError = carModelError.value.isNotEmpty(),
-                    validationErrorMessage = carModelError.value
-                )
+                    ScreenTitleText(
+                        title = "Car Images",
+                        subtitle = "Upload at least 3 images of your car",
+                        titleFontSize = 16,
+                        subtitleFontSize = 13,
+                        bottomPadding = 20
+                    )
 
-                FormTextfield(
-                    value = carYear,
-                    title = "Car Year",
-                    hintText = "e.g 2009",
-                    onTextChanged = { carYear = it },
-                    validationError = carYearError.value.isNotEmpty(),
-                    validationErrorMessage = carYearError.value
-                )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White)
+                    ) {
 
-                FormTextfieldDropdown(
-                    value = carColour,
-                    title = "Car Colour",
-                    onClick = {
-                        showCarColourSheet = true
-                    },
-                    validationError = carColourError.value.isNotEmpty(),
-                    validationErrorMessage = carColourError.value
-                )
+                        UploadCarImageBox(
+                            selectedImageUri = selectedCarImageUriOne,
+                            onClick = {
+                                selectedCarImageIndex = CarImageIndex.One
+                                launchCamera = true
+                            }
+                        )
 
-                FormTextfield(
-                    value = plateNumber,
-                    title = "Plate Number",
-                    hintText = "e.g ABC 123 CVGG",
-                    imeAction = ImeAction.Done,
-                    onTextChanged = { plateNumber = it },
-                    validationError = plateNumberError.value.isNotEmpty(),
-                    validationErrorMessage = plateNumberError.value
 
-                )
+                        UploadCarImageBox(
+                            selectedImageUri = selectedCarImageUriTwo,
+                            onClick = {
+                                selectedCarImageIndex = CarImageIndex.Two
+                                launchCamera = true
+                            }
+                        )
+                        UploadCarImageBox(
+                            selectedImageUri = selectedCarImageUriThree,
+                            onClick = {
+                                selectedCarImageIndex = CarImageIndex.Three
+                                launchCamera = true
+                            }
+                        )
+                        UploadCarImageBox(
+                            selectedImageUri = selectedCarImageUriFour,
+                            onClick = {
+                                selectedCarImageIndex = CarImageIndex.Four
+                                launchCamera = true
+                            }
+                        )
 
-            }
-
-            Row {
-                Spacer(modifier = Modifier.weight(1f))
-                KabuBottomButtonRowScope(
-                    "Next", icon = R.drawable.arrow_right,
-                    isLoading = uploadCarDetailsUiState == UploadCarDetailsUiState.Loading,
-                    onClick = {
-                        navigator.navToKabuRideCarDocsUpload()
-
-//                        listOf(
-//                            selectedCarImageUriOne,
-//                            selectedCarImageUriTwo,
-//                            selectedCarImageUriThree,
-//                            selectedCarImageUriFour
-//                        ).forEach { uri ->
-//                            if (uri != null) {
-//                                imagesUriList.add(uri)
-//                            }
-//                        }
-//                        if (imagesUriList.size < 3){
-//                            context.displayToastMessage("Select atleast 3 images")
-//                            return@KabuBottomButtonRowScope
-//                        }
-//                        isInputValidated.value = validateCarDetails(
-//                            carBrand = selectedCarBrand,
-//                            carModel = carModel,
-//                            carYear = carYear,
-//                            carColour = carColour,
-//                            plateNumber = plateNumber,
-//                            carBrandError = carBrandError,
-//                            carModelError = carModelError,
-//                            carYearError = carYearError,
-//                            carColourError = carColourError,
-//                            plateNumberError = plateNumberError
-//                        )
-//
-//                        if (isInputValidated.value) {
-//                        imagesFileList =
-//                            convertUrisToFiles(context = context, uris = imagesUriList as List<Uri>)
-//
-//                        val uploadCarDetails = UploadCarDetailsReqBody(
-//                            carBrand = selectedCarBrand,
-//                            carModel = carModel,
-//                            carYear = carYear,
-//                            carColor = carColour,
-//                            carPlateNumber = plateNumber,
-//                            carImages = imagesFileList
-//                        )
-//                        authViewModel.uploadCarDetails(uploadCarDetails)
-//
-//                        }
                     }
-                )
-            }
+                }
 
-        }
+                KabuDivider(height = 16.dp)
+
+                GrayBackgroundContainer {
+
+                    ScreenTitleText(
+                        title = "Car Details",
+                        subtitle = "Give us more information about your car",
+                        titleFontSize = 16,
+                        subtitleFontSize = 13,
+                        bottomPadding = 16
+                    )
+
+                    FormTextfieldDropdown(
+                        value = selectedCarBrand,
+                        title = "Car Brand",
+                        onClick = {
+                            showCarBrandSheet = true
+                        },
+                        validationError = carBrandError.value.isNotEmpty(),
+                        validationErrorMessage = carBrandError.value
+                    )
+
+                    FormTextfield(
+                        value = carModel,
+                        title = "Car Model",
+                        hintText = "e.g Corolla",
+                        onTextChanged = { carModel = it },
+                        validationError = carModelError.value.isNotEmpty(),
+                        validationErrorMessage = carModelError.value
+                    )
+
+                    FormTextfield(
+                        value = carYear,
+                        title = "Car Year",
+                        hintText = "e.g 2009",
+                        onTextChanged = { carYear = it },
+                        validationError = carYearError.value.isNotEmpty(),
+                        validationErrorMessage = carYearError.value
+                    )
+
+                    FormTextfieldDropdown(
+                        value = carColour,
+                        title = "Car Colour",
+                        onClick = {
+                            showCarColourSheet = true
+                        },
+                        validationError = carColourError.value.isNotEmpty(),
+                        validationErrorMessage = carColourError.value
+                    )
+
+                    FormTextfield(
+                        value = plateNumber,
+                        title = "Plate Number",
+                        hintText = "e.g ABC 123 CVGG",
+                        imeAction = ImeAction.Done,
+                        onTextChanged = { plateNumber = it },
+                        validationError = plateNumberError.value.isNotEmpty(),
+                        validationErrorMessage = plateNumberError.value
+
+                    )
+
+                }
+
+                Row {
+                    Spacer(modifier = Modifier.weight(1f))
+                    KabuBottomButtonRowScope(
+                        "Next", icon = R.drawable.arrow_right,
+                        isLoading = uploadCarDetailsUiState == UploadCarDetailsUiState.Loading,
+                        onClick = {
+//                        navigator.navToKabuRideCarDocsUpload()
+
+                            listOf(
+                                selectedCarImageUriOne,
+                                selectedCarImageUriTwo,
+                                selectedCarImageUriThree,
+                                selectedCarImageUriFour
+                            ).forEach { uri ->
+                                if (uri != null) {
+                                    imagesUriList.add(uri)
+                                }
+                            }
+                            if (imagesUriList.size < 3) {
+                                context.displayToastMessage("Select atleast 3 images")
+                                return@KabuBottomButtonRowScope
+                            }
+                            isInputValidated.value = validateCarDetails(
+                                carBrand = selectedCarBrand,
+                                carModel = carModel,
+                                carYear = carYear,
+                                carColour = carColour,
+                                plateNumber = plateNumber,
+                                carBrandError = carBrandError,
+                                carModelError = carModelError,
+                                carYearError = carYearError,
+                                carColourError = carColourError,
+                                plateNumberError = plateNumberError
+                            )
+
+                            if (isInputValidated.value) {
+                                imagesFileList =
+                                    convertUrisToFiles(
+                                        context = context,
+                                        uris = imagesUriList as List<Uri>
+                                    )
+
+                                val uploadCarDetails = UploadCarDetailsReqBody(
+                                    carBrand = selectedCarBrand,
+                                    carModel = carModel,
+                                    carYear = carYear,
+                                    carColor = carColour,
+                                    carPlateNumber = plateNumber,
+                                    carImages = imagesFileList
+                                )
+                                authViewModel.uploadCarDetails(uploadCarDetails)
+
+                            }
+                        }
+                    )
+                }
+
+            }
 
         }
 
@@ -447,7 +459,7 @@ fun RowScope.UploadCarImageBox(
 //    onImageSelected: (Uri?) -> Unit,
 //    showImageSelection: Boolean = true,
     onClick: () -> Unit,
-    ) {
+) {
     val context = LocalContext.current
 
 //    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(

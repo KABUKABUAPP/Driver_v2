@@ -121,11 +121,11 @@ fun DriverBioDataScreen(
 //                    navToSelectVehicleScreen()
 
                     isInputValidated.value = validateDriverDetails(
-                        fullName = fullName,
+                        fullName = fullName.trim(),
                         phoneNumber = phoneNumber,
                         email = email.trim(),
-                        houseAddress = houseAddress,
-                        city = city,
+                        houseAddress = houseAddress.trim(),
+                        city = city.trim(),
                         state = state,
                         carCategory = carCategory,
                         fullNameError = fullNameError,

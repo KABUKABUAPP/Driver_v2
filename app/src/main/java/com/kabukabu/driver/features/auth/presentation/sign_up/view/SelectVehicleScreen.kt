@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -76,6 +77,7 @@ fun SelectVehicleScreen(
 
     var hasVehicle by remember { mutableStateOf<Boolean?>(null) }
     var selectedCar by remember { mutableStateOf<Boolean?>(null) }
+
 
     LaunchedEffect(driverUiState) {
         when (driverUiState) {

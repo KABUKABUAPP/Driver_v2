@@ -99,6 +99,7 @@ class AuthViewModel : ViewModel() {
                         val brands = document.get("branditems") as? List<String>
                         brands?.let {
                             _carBrands.value = it
+                            println("car brands are ${_carBrands.value}")
                         }
                     }
                 }
@@ -121,9 +122,7 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-
     fun uploadDriverBioData(driverPersonalDetailsReqBody: UploadPersonalDetailsReqBody) {
-        Log.i("AuthViewModel", "uploadDriverBioData called..........")
         viewModelScope.launch(Dispatchers.Main) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
@@ -133,10 +132,8 @@ class AuthViewModel : ViewModel() {
             try {
                 onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Loading
                 val bearerToken = "Bearer $token"
-                //add log statement for driverPersonalDetailsReqBody here
-                Log.i("AuthViewModel", "DriverPersonalDetailsReqBody:..... $driverPersonalDetailsReqBody")
                 val textPlain = "text/plain".toMediaTypeOrNull()
-                Log.i("req-body", "$driverPersonalDetailsReqBody.")
+
                 val response = ApiClient.authService.onboardDriverPersonalDetails(
                     bearerToken = bearerToken,
                     fullName = driverPersonalDetailsReqBody.fullName.toRequestBody(textPlain),
@@ -145,30 +142,28 @@ class AuthViewModel : ViewModel() {
                     houseAddress = driverPersonalDetailsReqBody.houseAddress.toRequestBody(textPlain),
                     city = driverPersonalDetailsReqBody.city.toRequestBody(textPlain),
                     state = driverPersonalDetailsReqBody.state.toRequestBody(textPlain),
-                    carOwner = driverPersonalDetailsReqBody.carOwner.toString()
-                        .toRequestBody(textPlain),
+                    carOwner = driverPersonalDetailsReqBody.carOwner.toString().toRequestBody(textPlain),
                     carCategory = driverPersonalDetailsReqBody.carCategory.toRequestBody(textPlain)
                 )
 
                 if (response.status == "success") {
-                    onboardDriverBiodataUiState =
-                        OnboardDriverPersonalDetailsUiState.Success(response)
-//                    userPreferences.saveOnboardingStep(response.data.newUser.onboardingStep)
+                    onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Success(response)
                     userPreferences.saveOnboardingStep(2)
                 } else {
-                    onboardDriverBiodataUiState =
-                        OnboardDriverPersonalDetailsUiState.Error(response.message)
+                    onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(response.message)
                 }
 
+            } catch (e: HttpException) {
+                val errorMessage = HttpExceptionUtil.parseHttpError(e)
+                onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(errorMessage)
+                Log.e("AuthViewModel", "HTTP error uploading driver biodata: $errorMessage")
+
             } catch (e: Exception) {
-                onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(
-                    e.message ?: "An unknown error occurred"
-                )
+                onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Error(e.message ?: "An unknown error occurred")
                 Log.e("AuthViewModel", "Error sending biodata", e)
             }
         }
     }
-
 
     fun updateUserImage(imageFile: File?) {
         if (imageFile == null) {
@@ -187,11 +182,7 @@ class AuthViewModel : ViewModel() {
                 val bearerToken = "Bearer $token"
 
                 val requestFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
-                val profileImagePart = MultipartBody.Part.createFormData(
-                    "profile_image",
-                    imageFile.name,
-                    requestFile
-                )
+                val profileImagePart = MultipartBody.Part.createFormData("profile_image", imageFile.name, requestFile)
 
                 val response = ApiClient.authService.editUserProfile(
                     bearerToken = bearerToken,
@@ -212,20 +203,21 @@ class AuthViewModel : ViewModel() {
                 if (response.status == "success") {
                     editDriverProfileUiState = EditDriverProfileUiState.Success(response)
                     userPreferences.saveOnboardingStep(3)
-//                    userPreferences.saveOnboardingStep(response.data.editedUser.onboardingStep)
                 } else {
                     editDriverProfileUiState = EditDriverProfileUiState.Error(response.message)
                 }
 
+            } catch (e: HttpException) {
+                val errorMessage = HttpExceptionUtil.parseHttpError(e)
+                editDriverProfileUiState = EditDriverProfileUiState.Error(errorMessage)
+                Log.e("AuthViewModel", "HTTP error uploading profile image: $errorMessage")
+
             } catch (e: Exception) {
-                editDriverProfileUiState = EditDriverProfileUiState.Error(
-                    e.message ?: "Unexpected error occurred"
-                )
+                editDriverProfileUiState = EditDriverProfileUiState.Error(e.message ?: "Unexpected error occurred")
                 Log.e("ProfileViewModel", "Error uploading image", e)
             }
         }
     }
-
 
     fun uploadCarDetails(uploadCarDetailsReqBody: UploadCarDetailsReqBody) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -240,24 +232,16 @@ class AuthViewModel : ViewModel() {
                 val bearerToken = "Bearer $token"
                 val textPlain = "text/plain".toMediaTypeOrNull()
 
-                // Prepare text parts
                 val carBrand = uploadCarDetailsReqBody.carBrand.toRequestBody(textPlain)
                 val carModel = uploadCarDetailsReqBody.carModel.toRequestBody(textPlain)
                 val carYear = uploadCarDetailsReqBody.carYear.toRequestBody(textPlain)
                 val carColor = uploadCarDetailsReqBody.carColor.toRequestBody(textPlain)
                 val carPlateNumber = uploadCarDetailsReqBody.carPlateNumber.toRequestBody(textPlain)
 
-                // Prepare image parts
-                val carImages = uploadCarDetailsReqBody.carImages.mapIndexed { index, file ->
-                    val imageRequestBody = file.asRequestBody("image/*".toMediaTypeOrNull())
-                    MultipartBody.Part.createFormData(
-                        name = "car_images",
-                        filename = file.name,
-                        body = imageRequestBody
-                    )
+                val carImages = uploadCarDetailsReqBody.carImages.map { file ->
+                    MultipartBody.Part.createFormData("car_images", file.name, file.asRequestBody("image/*".toMediaTypeOrNull()))
                 }
 
-                // Make network call
                 val response = ApiClient.authService.uploadCarDetails(
                     bearerToken = bearerToken,
                     carBrand = carBrand,
@@ -271,15 +255,17 @@ class AuthViewModel : ViewModel() {
                 if (response.status == "success") {
                     uploadCarDetailsUiState = UploadCarDetailsUiState.Success(response)
                     userPreferences.saveOnboardingStep(4)
-//                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
                 } else {
                     uploadCarDetailsUiState = UploadCarDetailsUiState.Error(response.message)
                 }
 
+            } catch (e: HttpException) {
+                val errorMessage = HttpExceptionUtil.parseHttpError(e)
+                uploadCarDetailsUiState = UploadCarDetailsUiState.Error(errorMessage)
+                Log.e("AuthViewModel", "HTTP error uploading car details: $errorMessage")
+
             } catch (e: Exception) {
-                uploadCarDetailsUiState = UploadCarDetailsUiState.Error(
-                    e.message ?: "An unknown error occurred"
-                )
+                uploadCarDetailsUiState = UploadCarDetailsUiState.Error(e.message ?: "An unknown error occurred")
                 Log.e("AuthViewModel", "Error uploading car details", e)
             }
         }
@@ -298,64 +284,41 @@ class AuthViewModel : ViewModel() {
                 val bearerToken = "Bearer $token"
                 val textPlain = "text/plain".toMediaTypeOrNull()
 
-                // Prepare text parts
-                val driverLicenceNumber =
-                    uploadCarDocsReqBody.driverLicenceNumber?.toRequestBody(textPlain)
-                val carInsuranceNumber =
-                    uploadCarDocsReqBody.carInsuranceNumber?.toRequestBody(textPlain)
-                val vehicleLicenceNumber =
-                    uploadCarDocsReqBody.vehicleLicenceNumber?.toRequestBody(textPlain)
-                val proofOfOwnershipNumber =
-                    uploadCarDocsReqBody.proofOfOwnershipNumber?.toRequestBody(textPlain)
-                val roadWorthinessCertificationNumber =
-                    uploadCarDocsReqBody.roadWorthinessCertificationNumber?.toRequestBody(textPlain)
-                val hackneyPermitNumber =
-                    uploadCarDocsReqBody.hackneyPermitNumber?.toRequestBody(textPlain)
+                val driverLicence = uploadCarDocsReqBody.driverLicence.toMultipartPart("driver_licence")!!
+                val vehicleLicence = uploadCarDocsReqBody.vehicleLicence.toMultipartPart("vehicle_licence")!!
+                val insuranceCertificate = uploadCarDocsReqBody.insuranceCertificate.toMultipartPart("insurance_certificate")!!
+                val roadWorthinessCertification = uploadCarDocsReqBody.roadWorthinessCertification.toMultipartPart("road_worthiness_certificate")!!
 
-                // Prepare file parts using the helper
-                val driverLicence =
-                    uploadCarDocsReqBody.driverLicence.toMultipartPart("driver_licence")
-                val vehicleLicence =
-                    uploadCarDocsReqBody.vehicleLicence.toMultipartPart("vehicle_licence")
-                val insuranceCertificate =
-                    uploadCarDocsReqBody.insuranceCertificate.toMultipartPart("insurance_certificate")
-                val proofOfOwnership =
-                    uploadCarDocsReqBody.proofOfOwnership.toMultipartPart("proof_of_ownership")
-                val roadWorthinessCertification =
-                    uploadCarDocsReqBody.roadWorthinessCertification.toMultipartPart("road_worthiness_certificate")
-                val hackneyPermit =
-                    uploadCarDocsReqBody.hackneyPermit.toMultipartPart("hackney_permit")
-
-                // Make network call
                 val response = ApiClient.authService.uploadCarDocs(
                     bearerToken = bearerToken,
-                    driverLicenceNumber = driverLicenceNumber,
-                    carInsuranceNumber = carInsuranceNumber,
-                    vehicleLicenceNumber = vehicleLicenceNumber,
-                    proofOfOwnershipNumber = proofOfOwnershipNumber,
-                    roadWorthinessCertificationNumber = roadWorthinessCertificationNumber,
-                    hackneyPermitNumber = hackneyPermitNumber,
-                    driverLicence = driverLicence!!, // required
-                    vehicleLicence = vehicleLicence!!, // required
-                    insuranceCertificate = insuranceCertificate!!, // required
-                    proofOfOwnership = proofOfOwnership, // optional
-                    roadWorthinessCertification = roadWorthinessCertification!!, // required
-                    hackneyPermit = hackneyPermit // optional
+                    driverLicenceNumber = uploadCarDocsReqBody.driverLicenceNumber?.toRequestBody(textPlain),
+                    carInsuranceNumber = uploadCarDocsReqBody.carInsuranceNumber?.toRequestBody(textPlain),
+                    vehicleLicenceNumber = uploadCarDocsReqBody.vehicleLicenceNumber?.toRequestBody(textPlain),
+                    proofOfOwnershipNumber = uploadCarDocsReqBody.proofOfOwnershipNumber?.toRequestBody(textPlain),
+                    roadWorthinessCertificationNumber = uploadCarDocsReqBody.roadWorthinessCertificationNumber?.toRequestBody(textPlain),
+                    hackneyPermitNumber = uploadCarDocsReqBody.hackneyPermitNumber?.toRequestBody(textPlain),
+                    driverLicence = driverLicence,
+                    vehicleLicence = vehicleLicence,
+                    insuranceCertificate = insuranceCertificate,
+                    proofOfOwnership = uploadCarDocsReqBody.proofOfOwnership?.toMultipartPart("proof_of_ownership"),
+                    roadWorthinessCertification = roadWorthinessCertification,
+                    hackneyPermit = uploadCarDocsReqBody.hackneyPermit?.toMultipartPart("hackney_permit")
                 )
 
                 if (response.status == "success") {
                     uploadCarDocsUiState = UploadCarDocsUiState.Success(response)
                     userPreferences.saveOnboardingStep(5)
-//                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
-
                 } else {
                     uploadCarDocsUiState = UploadCarDocsUiState.Error(response.status)
                 }
 
+            } catch (e: HttpException) {
+                val errorMessage = HttpExceptionUtil.parseHttpError(e)
+                uploadCarDocsUiState = UploadCarDocsUiState.Error(errorMessage)
+                Log.e("AuthViewModel", "HTTP error uploading car docs: $errorMessage")
+
             } catch (e: Exception) {
-                uploadCarDocsUiState = UploadCarDocsUiState.Error(
-                    e.message ?: "An unknown error occurred"
-                )
+                uploadCarDocsUiState = UploadCarDocsUiState.Error(e.message ?: "An unknown error occurred")
                 Log.e("AuthViewModel", "Error uploading car docs", e)
             }
         }
@@ -374,61 +337,40 @@ class AuthViewModel : ViewModel() {
                 val bearerToken = "Bearer $token"
                 val textPlain = "text/plain".toMediaTypeOrNull()
 
-                // Prepare text parts
-                val fullName =
-                    uploadGuarantorDetailsReqBody.guarantorFullName.toRequestBody(textPlain)
-                val relationship =
-                    uploadGuarantorDetailsReqBody.guarantorRelationship.toRequestBody(textPlain)
-                val houseAddress =
-                    uploadGuarantorDetailsReqBody.guarantorHouseAddress.toRequestBody(textPlain)
-                val city = uploadGuarantorDetailsReqBody.guarantorCity.toRequestBody(textPlain)
-                val state = uploadGuarantorDetailsReqBody.guarantorState.toRequestBody(textPlain)
-                val phoneNumber =
-                    uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain)
-                val email = uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain)
-                val referralCode =
-                    uploadGuarantorDetailsReqBody.referralCode?.toRequestBody(textPlain)
-                val sharpProgramType =
-                    uploadGuarantorDetailsReqBody.sharpProgramType?.toRequestBody(textPlain)
+                val guarantorImage = uploadGuarantorDetailsReqBody.guarantorImage.toMultipartPart("guarantor_image")!!
 
-                // Prepare file part
-                val guarantorImage =
-                    uploadGuarantorDetailsReqBody.guarantorImage.toMultipartPart("guarantor_image")!!
-
-                // Make network call
                 val response = ApiClient.authService.uploadGuarantorDetails(
                     bearerToken = bearerToken,
-                    guarantorFullName = fullName,
-                    guarantorRelationship = relationship,
-                    guarantorHouseAddress = houseAddress,
-                    guarantorCity = city,
-                    guarantorState = state,
-                    guarantorPhoneNumber = phoneNumber,
-                    guarantorEmail = email,
-                    referralCode = referralCode,
-                    sharpProgramType = sharpProgramType,
+                    guarantorFullName = uploadGuarantorDetailsReqBody.guarantorFullName.toRequestBody(textPlain),
+                    guarantorRelationship = uploadGuarantorDetailsReqBody.guarantorRelationship.toRequestBody(textPlain),
+                    guarantorHouseAddress = uploadGuarantorDetailsReqBody.guarantorHouseAddress.toRequestBody(textPlain),
+                    guarantorCity = uploadGuarantorDetailsReqBody.guarantorCity.toRequestBody(textPlain),
+                    guarantorState = uploadGuarantorDetailsReqBody.guarantorState.toRequestBody(textPlain),
+                    guarantorPhoneNumber = uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain),
+                    guarantorEmail = uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain),
+                    referralCode = uploadGuarantorDetailsReqBody.referralCode?.toRequestBody(textPlain),
+                    sharpProgramType = uploadGuarantorDetailsReqBody.sharpProgramType?.toRequestBody(textPlain),
                     guarantorImage = guarantorImage
                 )
 
                 if (response.status == "success") {
                     uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Success(response)
                     userPreferences.saveOnboardingStep(6)
-//                    userPreferences.saveOnboardingStep(response.data.user.onboardingStep)
                 } else {
-                    uploadGuarantorDetailsUiState =
-                        UploadGuarantorDetailsUiState.Error(response.status)
+                    uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Error(response.status)
                 }
 
+            } catch (e: HttpException) {
+                val errorMessage = HttpExceptionUtil.parseHttpError(e)
+                uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Error(errorMessage)
+                Log.e("AuthViewModel", "HTTP error uploading guarantor details: $errorMessage")
+
             } catch (e: Exception) {
-                uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Error(
-                    e.message ?: "An unknown error occurred"
-                )
+                uploadGuarantorDetailsUiState = UploadGuarantorDetailsUiState.Error(e.message ?: "An unknown error occurred")
                 Log.e("AuthViewModel", "Error uploading guarantor details", e)
             }
         }
     }
-
-
 
     fun reUploadGuarantorDetails(uploadGuarantorDetailsReqBody: ReUploadGuarantorDetailsReqBody) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -443,73 +385,48 @@ class AuthViewModel : ViewModel() {
                 val bearerToken = "Bearer $token"
                 val textPlain = "text/plain".toMediaTypeOrNull()
 
-                // Prepare text fields
-                val guarantorFullName =
-                    uploadGuarantorDetailsReqBody.guarantorFullName.toRequestBody(textPlain)
-                val guarantorRelationship =
-                    uploadGuarantorDetailsReqBody.guarantorRelationship.toRequestBody(textPlain)
-                val guarantorHouseAddress =
-                    uploadGuarantorDetailsReqBody.guarantorHouseAddress.toRequestBody(textPlain)
-                val guarantorCity =
-                    uploadGuarantorDetailsReqBody.guarantorCity.toRequestBody(textPlain)
-                val guarantorState =
-                    uploadGuarantorDetailsReqBody.guarantorState.toRequestBody(textPlain)
-                val guarantorPhoneNumber =
-                    uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain)
-                val guarantorEmail =
-                    uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain)
-//                val referralCode =
-//                    uploadGuarantorDetailsReqBody.referralCode?.toRequestBody(textPlain)
-//                val sharpProgramType =
-//                    uploadGuarantorDetailsReqBody.sharpProgramType?.toRequestBody(textPlain)
-
-                // Prepare file part
                 val guarantorImage = uploadGuarantorDetailsReqBody.guarantorImage?.let {
-                    MultipartBody.Part.createFormData(
-                        "guarantor_image",
-                        it.name,
-                        it.asRequestBody("image/*".toMediaType())
-                    )
+                    MultipartBody.Part.createFormData("guarantor_image", it.name, it.asRequestBody("image/*".toMediaType()))
                 }
 
-                // Make the network call
                 val response = ApiClient.authService.reUploadGuarantorDetails(
                     bearerToken = bearerToken,
-                    guarantorFullName = guarantorFullName,
-                    guarantorRelationship = guarantorRelationship,
-                    guarantorHouseAddress = guarantorHouseAddress,
-                    guarantorCity = guarantorCity,
-                    guarantorState = guarantorState,
-                    guarantorPhoneNumber = guarantorPhoneNumber,
-                    guarantorEmail = guarantorEmail,
+                    guarantorFullName = uploadGuarantorDetailsReqBody.guarantorFullName.toRequestBody(textPlain),
+                    guarantorRelationship = uploadGuarantorDetailsReqBody.guarantorRelationship.toRequestBody(textPlain),
+                    guarantorHouseAddress = uploadGuarantorDetailsReqBody.guarantorHouseAddress.toRequestBody(textPlain),
+                    guarantorCity = uploadGuarantorDetailsReqBody.guarantorCity.toRequestBody(textPlain),
+                    guarantorState = uploadGuarantorDetailsReqBody.guarantorState.toRequestBody(textPlain),
+                    guarantorPhoneNumber = uploadGuarantorDetailsReqBody.guarantorPhoneNumber.toRequestBody(textPlain),
+                    guarantorEmail = uploadGuarantorDetailsReqBody.guarantorEmail.toRequestBody(textPlain),
                     guarantorImage = guarantorImage!!
                 )
 
                 if (response.status == "success") {
-                    reUploadGuarantorDetailsUiState =
-                        ReUploadGuarantorDetailsUiState.Success(response)
+                    reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Success(response)
                     Log.d("AuthViewModel", "Guarantor re-upload successful.")
                 } else {
-                    reUploadGuarantorDetailsUiState =
-                        ReUploadGuarantorDetailsUiState.Error(response.status)
+                    reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Error(response.status)
                     Log.e("AuthViewModel", "Guarantor re-upload failed: ${response.status}")
                 }
 
+            } catch (e: HttpException) {
+                val errorMessage = HttpExceptionUtil.parseHttpError(e)
+                reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Error(errorMessage)
+                Log.e("AuthViewModel", "HTTP error re-uploading guarantor: $errorMessage")
+
             } catch (e: Exception) {
-                reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Error(
-                    e.message ?: "An unknown error occurred"
-                )
+                reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Error(e.message ?: "An unknown error occurred")
                 Log.e("AuthViewModel", "Error re-uploading guarantor details", e)
             }
         }
     }
-
 
     fun reUploadDocument(reuploadDocumentReqBody: ReUploadDocumentReqBody, id: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
                 Log.e("AuthViewModel", "Cannot re-upload document, token is missing.")
+                reUploadDocUiState = ReUploadDocUiState.Error("Authentication token is missing.")
                 return@launch
             }
 
@@ -524,7 +441,7 @@ class AuthViewModel : ViewModel() {
                 // Validate file
                 val file = reuploadDocumentReqBody.file
                 if (file == null || !file.exists()) {
-                    reUploadDocUiState = ReUploadDocUiState.Error("File not found or invalid")
+                    reUploadDocUiState = ReUploadDocUiState.Error("File not found or invalid.")
                     return@launch
                 }
 
@@ -546,18 +463,19 @@ class AuthViewModel : ViewModel() {
                     reUploadDocUiState = ReUploadDocUiState.Success(response)
                     Log.d("AuthViewModel", "Document re-upload successful.")
                 } else {
-                    reUploadDocUiState = ReUploadDocUiState.Error(response.message ?: "Unknown error")
+                    reUploadDocUiState = ReUploadDocUiState.Error(response.message ?: "Unknown error.")
                     Log.e("AuthViewModel", "Document re-upload failed: ${response.message}")
                 }
 
             } catch (e: HttpException) {
+                // Parse and show server error message
                 val errorMessage = HttpExceptionUtil.parseHttpError(e)
                 reUploadDocUiState = ReUploadDocUiState.Error(errorMessage)
                 Log.e("AuthViewModel", "HTTP error re-uploading document: $errorMessage")
 
             } catch (e: Exception) {
                 reUploadDocUiState = ReUploadDocUiState.Error(
-                    e.message ?: "An unknown error occurred"
+                    e.message ?: "An unknown error occurred."
                 )
                 Log.e("AuthViewModel", "Error re-uploading document", e)
             }

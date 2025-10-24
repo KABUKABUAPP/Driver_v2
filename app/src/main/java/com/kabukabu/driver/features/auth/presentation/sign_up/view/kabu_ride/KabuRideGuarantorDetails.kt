@@ -2,6 +2,7 @@ package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import android.net.Uri
 import android.util.Patterns
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -124,6 +125,8 @@ fun KabuRideGuarantorDetail(
     val cityError = remember { mutableStateOf("") }
     val stateError = remember { mutableStateOf("") }
     val relationshipError = remember { mutableStateOf("") }
+
+    BackHandler { true }
 
 
     if (showGuarantorSheet) {
