@@ -33,13 +33,15 @@ import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.core.navigation.Navigator
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import com.kabukabu.driver.features.profile.data.Document
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun KabuRideAccountDeclinedScreen(
     navigator: Navigator,
-//    authViewModel: AuthViewModel = koinViewModel()
+    authViewModel: AuthViewModel = koinViewModel()
 ) {
 
     val context = LocalContext.current
@@ -57,7 +59,7 @@ fun KabuRideAccountDeclinedScreen(
         ?: emptyList()
 
     //listen to state update and nav to Declined screen if status had been changed.
-    LaunchedEffect(declinedDocuments) {
+    LaunchedEffect(Unit) {
         declinedDocuments.forEach { document ->
             when (document.status) {
                 "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()

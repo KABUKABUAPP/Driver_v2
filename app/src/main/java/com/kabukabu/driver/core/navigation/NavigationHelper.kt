@@ -27,7 +27,9 @@ class Navigator(private val navController: NavHostController) {
     }
 
     fun navToKabuRideAccountDeclinedScreen() {
-        navController.navigate(Screen.KabuRideAccountDeclined.route)
+        navController.navigate(Screen.KabuRideAccountDeclined.route){
+            popUpTo(Screen.KabuRideAccountDeclined.route){ inclusive = true}
+        }
     }
 
     fun navToKabuRideDocumentsReuploadScreen(id: String, title: String) {

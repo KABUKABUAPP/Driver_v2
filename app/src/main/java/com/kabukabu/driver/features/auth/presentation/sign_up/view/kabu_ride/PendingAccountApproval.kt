@@ -43,7 +43,7 @@ fun KabuRidePendingAccountApprovalScreen(onNavigateToLogin: ()-> Unit, navigator
         ?: emptyList()
 
     //listen to state update and nav to Declined screen if status had been changed.
-    LaunchedEffect(declinedDocuments) {
+    LaunchedEffect(Unit) {
         declinedDocuments.forEach { document ->
             when (document.status) {
                 "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()

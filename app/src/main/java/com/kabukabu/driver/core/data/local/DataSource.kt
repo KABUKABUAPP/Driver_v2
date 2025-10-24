@@ -71,7 +71,8 @@ class LocalDataSource {
         "SPOUSE",
         "FRIEND",
         "UNCLE",
-        "AUNT"
+        "AUNT",
+        "COLLEAGUE"
     )
 
 

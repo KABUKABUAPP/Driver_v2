@@ -56,7 +56,7 @@ fun KabuRideDocumentsReUploadScreen(
             is ReUploadDocUiState.Success -> {
                 context.displayToastMessage(uiState.response.message)
                 authViewModel.resetState()
-                navigator.navigateUp()
+                navigator.navToKabuRideAccountDeclinedScreen()
             }
 
             is ReUploadDocUiState.Error -> {
@@ -96,7 +96,7 @@ fun KabuRideDocumentsReUploadScreen(
 
                     ScreenTitleText(
                         title = "Documents",
-                        subtitle = "Upload Document",
+                        subtitle = "Re-upload Document",
                         bottomPadding = 16
                     )
 
