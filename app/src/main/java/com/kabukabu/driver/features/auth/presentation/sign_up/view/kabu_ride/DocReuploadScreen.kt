@@ -39,7 +39,7 @@ fun KabuRideDocumentsReUploadScreen(
     navigator: Navigator,
     authViewModel: AuthViewModel = koinViewModel()
 ) {
-    println("document id.........$id")
+//    println("document id.........$id")
     val context = LocalContext.current
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner

@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import android.util.Log
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.lifecycle.ViewModelStoreOwner
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.navigation.Navigator
@@ -57,8 +58,11 @@ fun OtpVerificationScreen(
 //    driverViewModel: DriverViewModel = viewModel()
     ) {
 
-//    val driverViewModel: DriverViewModel = viewModel()
     val context = LocalContext.current
+    // Create DriverViewModel at Activity scope so it's shared across Splash and Home
+    val activityOwner = context as ViewModelStoreOwner
+    val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+
     var onboardingStep: Int? = 1
     var otpValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue("", TextRange(0)))
@@ -459,7 +463,7 @@ private fun OTPInstructionText(email: String) {
         append(email)
         pop() // end of email style
 
-        append("\nEnter the code to validate your number")
+        append(" Enter the code to validate your number")
     }
 
     Text(

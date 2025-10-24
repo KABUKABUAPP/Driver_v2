@@ -24,7 +24,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,11 +37,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
-import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.response.InspectionHub
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
@@ -47,7 +49,7 @@ import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
-fun InspectionHubsScreen(navigator: Navigator,
+fun InspectionHubsScreen(onNavToInspectionScreen: () -> Unit,
                          authViewModel: AuthViewModel = koinViewModel()
 ) {
 
@@ -57,6 +59,14 @@ fun InspectionHubsScreen(navigator: Navigator,
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
 
     val hubsList = authViewModel.inspectionsHubs.collectAsState().value?.data ?: emptyList()
+
+    val userPreferences = KabukabuDriverApp.getInstance().userPreferences
+    val userDetails by userPreferences.userDetails.collectAsState(initial = null)
+    val inspectionCode = userDetails?.user?.driver?.inspectionCode
+
+    LaunchedEffect(inspectionCode) {
+        onNavToInspectionScreen()
+    }
 
     Scaffold { paddingValues ->
         Column(
@@ -79,7 +89,7 @@ fun InspectionHubsScreen(navigator: Navigator,
                 )
 
                 ScreenTitleText(
-                    title = "KAB-1234",
+                    title = userDetails?.user?.driver?.inspectionCode ?: "Not available yet",
                     subtitle = "Driver code",
                     titleFontSize = 24,
                     bottomPadding = 16

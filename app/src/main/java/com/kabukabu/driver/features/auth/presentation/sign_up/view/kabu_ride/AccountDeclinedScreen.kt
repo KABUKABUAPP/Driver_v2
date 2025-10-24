@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -54,6 +55,17 @@ fun KabuRideAccountDeclinedScreen(
     val declinedDocuments = userDetails?.documents
         ?.filter { it.status == "DECLINED" }
         ?: emptyList()
+
+    //listen to state update and nav to Declined screen if status had been changed.
+    LaunchedEffect(declinedDocuments) {
+        declinedDocuments.forEach { document ->
+            when (document.status) {
+                "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
+                "APPROVED" -> navigator.navToKabuRideInspection()
+            }
+        }
+    }
+
 
     Scaffold { paddingValues ->
         Column(

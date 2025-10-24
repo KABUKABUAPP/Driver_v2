@@ -199,7 +199,10 @@ data class Driver(
     @Json(name = "inspector_id")
     val inspectorId: String?,
     @Json(name = "admin_approval_remark")
-    val adminApprovalRemark: String?
+    val adminApprovalRemark: String?,
+    @Json(name = "inspection_code")
+    val inspectionCode: String?
+
 )
 
 @JsonClass(generateAdapter = true)

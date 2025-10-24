@@ -32,6 +32,7 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.Kab
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideSelfieVerificationScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideTermsAndConditionsScreen
 import com.kabukabu.driver.features.home.presentation.HomeScreen
+import com.kabukabu.driver.features.profile.data.Document
 import com.kabukabu.driver.features.profile.data.ProfileData
 import com.kabukabu.driver.features.profile.presentation.ProfileScreen
 import com.kabukabu.driver.features.promotions.presentation.PromotionsScreen
@@ -187,7 +188,8 @@ fun AppNavigation() {
         }
 
         composable(Screen.KabuRidePendingApproval.route) {
-            KabuRidePendingAccountApprovalScreen(onNavigateToLogin = { navController.navigate(Screen.Login.route) }
+            KabuRidePendingAccountApprovalScreen(onNavigateToLogin = { navController.navigate(Screen.Login.route) },
+                navigation
             )
         }
 
@@ -215,7 +217,12 @@ fun AppNavigation() {
         }
 
         composable(Screen.KabuRideInspection.route) {
-            InspectionHubsScreen(navigation)
+            InspectionHubsScreen( onNavToInspectionScreen = {
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(Screen.Home.route) { inclusive = true }
+                }
+            }
+            )
         }
 
 
@@ -309,7 +316,7 @@ private fun navigateBasedOnOnboardingStatus(
     navController: NavHostController,
     userDetails: ProfileData?
 ) {
-
+    // If onboarding is complete, go home immediately
     if (userDetails?.user?.isOnboardingComplete == true) {
         navController.navigate(Screen.Home.route) {
             popUpTo(navController.graph.id) { inclusive = true }
@@ -317,70 +324,89 @@ private fun navigateBasedOnOnboardingStatus(
         return
     }
 
-    userDetails?.user?.onboardingStep?.let {
-        if (it > 5) {  // user is awaiting admin approval checks
-            if (userDetails.user.driver != null) {
-                /**user is a driver not rider*/
-                if (userDetails.user.driver.carOwner == true) {
-                    /**user has car, KabuRide*/
-                    val adminApprovalStatus = userDetails.user.driver.adminApproval?.lowercase()
-                    when (adminApprovalStatus) {
-                        ApprovalStatus.pending.name -> {
+    userDetails?.user?.onboardingStep?.let { step ->
+        if (step > 5) {  // user is awaiting admin approval checks
+            val driver = userDetails.user.driver
+            if (driver != null) {
+                // user is a driver, not a rider
+                if (driver.carOwner == true) {
+                    // user has a car (KabuRide)
+                    val adminApprovalStatus = driver.adminApproval?.lowercase()
+
+                    when {
+                        // 1️⃣ Either admin declined OR one of the docs was declined
+                        adminApprovalStatus == ApprovalStatus.declined.name ||
+                                !areAllDocumentsApproved(userDetails.documents) -> {
+                            navigator.navToKabuRideAccountDeclinedScreen()
+                        }
+
+                        // 2 Admin still reviewing the driver
+                        adminApprovalStatus == ApprovalStatus.pending.name -> {
                             navigator.navToKabuRidePendingAccountApprovalScreen()
                         }
 
-                        ApprovalStatus.declined.name -> {
-                            navigator.navToKabuRideAccountDeclinedScreen()
+
+                        // 3️⃣ Admin has approved the driver
+                        adminApprovalStatus == ApprovalStatus.approved.name -> {
+                            val approvalStatus = driver.approvalStatus
+                            when (approvalStatus) {
+                                ApprovalStatus.active.name -> {
+                                    navController.navigate(Screen.Home.route) {
+                                        popUpTo(navController.graph.id) { inclusive = true }
+                                    }
+                                }
+                                ApprovalStatus.pending.name -> {
+                                    navigator.navToKabuRideInspection()
+                                }
+                                ApprovalStatus.declined.name -> {
+                                    navigator.navToKabuRideAccountDeclinedScreen()
+                                }
+                            }
                         }
 
-                        ApprovalStatus.approved.name -> {
-                            val approvalStatus = userDetails.user.driver.approvalStatus
-                            if (approvalStatus == ApprovalStatus.active.name) {
-                                navController.navigate(Screen.Home.route) {
-                                    popUpTo(navController.graph.id) { inclusive = true }
-                                }
-                            } else if (approvalStatus == ApprovalStatus.pending.name) {
-                                navigator.navToKabuRideInspection()
-                            }
-                            navigator.navToKabuRideAccountDeclinedScreen()
+                        // 4️⃣ Fallback (no valid status)
+                        else -> {
+                            navigator.navToKabuRidePendingAccountApprovalScreen()
                         }
                     }
                 } else {
-                    /**user doesn't have car; KabuSharp*/
-                    if (userDetails.user.driver.sharpApprovalStatus?.lowercase() == ApprovalStatus.declined.name) {
-                        //
-                    } else if (userDetails.user.driver.sharpApprovalStatus?.lowercase() == ApprovalStatus.declined.name) {
-                        //..
+                    // user doesn't own a car → KabuSharp
+                    val sharpStatus = driver.sharpApprovalStatus?.lowercase()
+                    when (sharpStatus) {
+                        ApprovalStatus.declined.name -> {
+                            navigator.navToKabuRideAccountDeclinedScreen()
+                        }
+                        ApprovalStatus.pending.name -> {
+                            navigator.navToKabuRidePendingAccountApprovalScreen()
+                        }
+                        ApprovalStatus.approved.name -> {
+                            navigator.navToKabuRideInspection()
+                        }
+                        else -> {
+                            navigator.navToKabuRidePendingAccountApprovalScreen()
+                        }
                     }
-                    //user is on KabuSharp
                 }
             }
-
-
         } else {
-            //user is yet to get to final admin approval
-            when (userDetails.user.onboardingStep) {
+            // user is yet to reach final admin approval step
+            when (step) {
                 0 -> navController.navigate(Screen.DriverBioDataScreen.route)
-
                 1 -> navController.navigate(Screen.KabuRideTAndC.route)
-
                 2 -> navigator.navToKabuRideCarDetails()
-
-                3 -> navigator.navToKabuRideCarDocsUpload()
-
-                4 -> navigator.navToKabuRideCarDocsUpload()
-
+                3, 4 -> navigator.navToKabuRideCarDocsUpload()
                 5 -> navigator.navToKabuRideGuarantorDetailsScreen()
-
                 6 -> navigator.navToKabuRidePendingAccountApprovalScreen()
-
             }
         }
     }
-
-
 }
 
+
+
+fun areAllDocumentsApproved(documents: List<Document>?): Boolean {
+    return documents?.none { it.status.equals(ApprovalStatus.declined.name, ignoreCase = true)} ?: true
+}
 
 enum class ApprovalStatus {
     pending,

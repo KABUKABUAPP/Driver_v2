@@ -78,7 +78,7 @@ private enum class CarImageIndex { One, Two, Three, Four }
 fun KabuRideCarDetailsScreen(
     navigator: Navigator,
 ) {
-   val authViewModel = AuthViewModel()
+   val authViewModel: AuthViewModel = AuthViewModel()
 
     val context = LocalContext.current
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
