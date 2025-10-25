@@ -50,8 +50,9 @@ import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
-fun InspectionHubsScreen(onNavToInspectionScreen: () -> Unit,
-dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
+fun InspectionHubsScreen(
+    onNavToLoginScreen: () -> Unit,
+    dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
 //                         authViewModel: AuthViewModel = koinViewModel()
 ) {
 
@@ -60,15 +61,21 @@ dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
 
-    val hubsList = dataPersistenceViewModel.inspectionsHubs.collectAsState().value?.data ?: emptyList()
+    val hubsList =
+        dataPersistenceViewModel.inspectionsHubs.collectAsState().value?.data ?: emptyList()
 
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
     val inspectionCode = userDetails?.user?.driver?.inspectionCode
 
-    LaunchedEffect(inspectionCode) {
-        onNavToInspectionScreen()
+//    LaunchedEffect(inspectionCode) {
+//        onNavToInspectionScreen()
+//    }
+
+    LaunchedEffect(userDetails?.user?.isOnboardingComplete) {
+        onNavToLoginScreen()
     }
+
 
     Scaffold { paddingValues ->
         Column(
@@ -153,7 +160,7 @@ private fun InspectionHubsListItem(hubData: InspectionHub) {
                 color = Color(0xFFFFF5D8),
                 shape = RoundedCornerShape(12.dp)
             )
-            .padding(16.dp)
+            .padding(end = 16.dp, top = 16.dp, bottom = 16.dp)
             .fillMaxWidth()
     ) {
         Column {

@@ -218,8 +218,10 @@ fun AppNavigation() {
             )
         }
 
+
         composable(Screen.KabuRideInspection.route) {
-            InspectionHubsScreen( onNavToInspectionScreen = {
+            InspectionHubsScreen(
+                onNavToLoginScreen = {
                 navController.navigate(Screen.Login.route) {
                     popUpTo(Screen.Home.route) { inclusive = true }
                 }

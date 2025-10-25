@@ -31,7 +31,7 @@ import com.kabukabu.driver.features.home.presentation.DriverViewModel
 
 
 @Composable
-fun KabuRidePendingAccountApprovalScreen(onNavigateToLogin: ()-> Unit, navigator: Navigator) {
+fun KabuRidePendingAccountApprovalScreen(onNavigateToLogin: () -> Unit, navigator: Navigator) {
 
     val context = LocalContext.current
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
@@ -39,6 +39,7 @@ fun KabuRidePendingAccountApprovalScreen(onNavigateToLogin: ()-> Unit, navigator
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
+
 
     BackHandler(enabled = true) {}
 
