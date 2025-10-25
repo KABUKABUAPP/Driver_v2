@@ -75,11 +75,11 @@ fun OtpVerificationScreen(
     // Countdown timer state
     var secondsLeft by remember { mutableIntStateOf(15) }
     var isTimerRunning by remember { mutableStateOf(true) }
-
+    val userDetails = UserPreferences(context).userDetails.collectAsState(null).value
     // Request focus when the screen is first displayed
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
-//        onboardingStep = UserPreferences(context).onboardingStep.firstOrNull()
+        onboardingStep = userDetails?.user?.onboardingStep
 //        println("current onboarding step is..........${UserPreferences(context).onboardingStep.firstOrNull()}")
     }
 

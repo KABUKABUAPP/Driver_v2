@@ -8,3 +8,9 @@ data class InspectionHubData (
     val phoneNumber: String? = "",
 
 )
+
+data class CarColourModal(
+    val hexCode: Long,
+    val colorName: String
+
+)

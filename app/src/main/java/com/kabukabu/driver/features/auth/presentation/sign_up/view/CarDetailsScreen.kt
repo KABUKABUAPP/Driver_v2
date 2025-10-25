@@ -50,6 +50,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -63,6 +64,8 @@ import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuDivider
+import com.kabukabu.driver.components.ui.KabuSpacer
+import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.utils_functions.convertUrisToFiles
 import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
@@ -571,7 +574,8 @@ private fun SelectCarColourSheet(
     onSelectColour: (String) -> Unit
 ) {
 
-    val nigeriaStates = LocalDataSource().carColours
+//    val colours = LocalDataSource().carColours
+    val colours = LocalDataSource().carColourModal
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -584,7 +588,7 @@ private fun SelectCarColourSheet(
                 .padding(vertical = 8.dp, horizontal = 16.dp)
         ) {
             Text(
-                text = "Select State",
+                text = "Select Colour",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(vertical = 12.dp)
@@ -593,24 +597,56 @@ private fun SelectCarColourSheet(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                items(nigeriaStates) { state ->
+                items(colours) { modalItem ->
                     AnimatedVisibility(
                         visible = true,
                         enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
                     ) {
-                        Text(
-                            text = state,
-                            style = MaterialTheme.typography.bodyLarge,
+
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable {
-                                    onSelectColour(state)
+                                .background(Color(0xFFF9F9F9), RoundedCornerShape(12.dp))
+                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                                .clickable{
+                                    onSelectColour(modalItem.colorName)
                                     onDismiss()
-                                }
-//                                .background(color = Color(0x2DD3D3D3))
-                                .padding(vertical = 12.dp, horizontal = 16.dp)
-                        )
+                                },
+
+                            verticalAlignment = Alignment.CenterVertically,
+
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color(modalItem.hexCode))
+                            )
+
+                            KabuSpacer(12)
+
+//                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Text(
+                                text = modalItem.colorName,
+                                color = Color.Gray,
+                                fontSize = 16.sp
+                            )
+                        }
+
+//                        Text(
+//                            text = state,
+//                            style = MaterialTheme.typography.bodyLarge,
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .clip(RoundedCornerShape(12.dp))
+//                                .clickable {
+//                                    onSelectColour(state)
+//                                    onDismiss()
+//                                }
+////                                .background(color = Color(0x2DD3D3D3))
+//                                .padding(vertical = 12.dp, horizontal = 16.dp)
+//                        )
                     }
                 }
             }
