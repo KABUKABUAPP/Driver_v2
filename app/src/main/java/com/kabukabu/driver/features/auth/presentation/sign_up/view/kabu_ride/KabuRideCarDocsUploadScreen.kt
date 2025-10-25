@@ -23,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,7 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.AnnotatedTextfieldTitle
 import com.kabukabu.driver.components.ui.CameraXCaptureImage
@@ -53,6 +55,7 @@ import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.utils_functions.convertUriToFile
+import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
@@ -72,6 +75,9 @@ fun KabuRideCarDocumentsUploadScreen(
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+
+    val userPreferences = KabukabuDriverApp.getInstance().userPreferences
+    val userDetails by userPreferences.userDetails.collectAsState(initial = null)
 
     val uploadCarDocsUiState = authViewModel.uploadCarDocsUiState
 //    val context = LocalContext.current
@@ -104,6 +110,8 @@ fun KabuRideCarDocumentsUploadScreen(
     BackHandler { true }
 
 
+
+
     LaunchedEffect(uploadCarDocsUiState) {
         when (uploadCarDocsUiState) {
 
@@ -122,6 +130,12 @@ fun KabuRideCarDocumentsUploadScreen(
         }
     }
 
+    LaunchedEffect(userDetails) {
+        when (userDetails?.user?.onboardingStep) {
+            5 -> navigation.navToKabuRideGuarantorDetailsScreen()
+
+        }
+    }
 
     Scaffold { paddingValues ->
         if (launchCamera) {
@@ -436,7 +450,8 @@ fun CaptureDocumentItem(
     validationErrorMessage: String = "",
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(bottom = 20.dp)
     ) {
         AnnotatedTextfieldTitle(title, isCompulsoryField)

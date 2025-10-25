@@ -94,8 +94,6 @@ fun KabuRideGuarantorDetail(
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
 
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
-
-
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
 
     val uploadGuarantorDetailsUiState = authViewModel.uploadGuarantorDetailsUiState
@@ -146,6 +144,8 @@ fun KabuRideGuarantorDetail(
         )
     }
 
+
+
     LaunchedEffect(uploadGuarantorDetailsUiState) {
         when (uploadGuarantorDetailsUiState) {
             is UploadGuarantorDetailsUiState.Success -> {
@@ -160,6 +160,12 @@ fun KabuRideGuarantorDetail(
             }
 
             else -> {}
+        }
+    }
+
+    LaunchedEffect(userDetails) {
+        if (userDetails?.user?.onboardingStep == 6) {
+        navigator.navToKabuRidePendingAccountApprovalScreen()
         }
     }
 

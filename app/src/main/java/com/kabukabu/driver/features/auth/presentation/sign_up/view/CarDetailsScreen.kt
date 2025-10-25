@@ -55,6 +55,7 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
 import com.kabukabu.driver.components.ui.GrayBackgroundContainer
 import com.kabukabu.driver.components.ui.ScreenTitleText
@@ -133,6 +134,9 @@ fun KabuRideCarDetailsScreen(
     val carColourError = remember { mutableStateOf("") }
     val plateNumberError = remember { mutableStateOf("") }
 
+    val userPreferences = KabukabuDriverApp.getInstance().userPreferences
+    val userDetails by userPreferences.userDetails.collectAsState(initial = null)
+
 
     if (showCarBrandSheet) {
         SelectCarBrandSheet(
@@ -171,6 +175,13 @@ fun KabuRideCarDetailsScreen(
 
             else -> {}
         }
+    }
+
+    LaunchedEffect(userDetails) {
+        when (userDetails?.user?.onboardingStep) {
+            3, 4 -> navigator.navToKabuRideCarDocsUpload()
+        }
+
     }
 
     Scaffold { paddingValues ->
