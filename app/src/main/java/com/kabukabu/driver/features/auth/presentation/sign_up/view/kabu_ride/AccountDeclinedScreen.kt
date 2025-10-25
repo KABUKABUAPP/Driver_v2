@@ -58,9 +58,13 @@ fun KabuRideAccountDeclinedScreen(
         ?.filter { it.status == "DECLINED" }
         ?: emptyList()
 
+    val noDeclinedDocs = userDetails?.documents
+        ?.filter { it.status != "DECLINED" }
+        ?: emptyList()
+
     //listen to state update and nav to Declined screen if status had been changed.
     LaunchedEffect(Unit) {
-        declinedDocuments.forEach { document ->
+        noDeclinedDocs.forEach { document ->
             when (document.status) {
                 "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
                 "APPROVED" -> navigator.navToKabuRideInspection()

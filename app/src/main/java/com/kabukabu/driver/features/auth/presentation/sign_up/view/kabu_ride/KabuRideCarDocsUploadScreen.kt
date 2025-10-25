@@ -58,13 +58,14 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBo
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDocsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import org.koin.androidx.compose.koinViewModel
 
 private enum class SelectedDoc { VehicleLicense, DriverLicense, Insurance, ProofOfOwnership, RoadWorthiness, HackneyPermit }
 
 @Composable
 fun KabuRideCarDocumentsUploadScreen(
     navigation: Navigator,
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = koinViewModel()
 ) {
 
     val context = LocalContext.current

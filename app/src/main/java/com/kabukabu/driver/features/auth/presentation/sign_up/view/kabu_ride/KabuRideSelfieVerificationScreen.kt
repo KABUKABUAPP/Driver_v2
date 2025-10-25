@@ -35,11 +35,12 @@ import com.kabukabu.driver.components.utils_functions.convertUriToFile
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.EditDriverProfileUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun KabuRideSelfieVerificationScreen(
     onNavToKabuCarDetailsScreen: () -> Unit,
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = koinViewModel()
     ) {
 
     val context = LocalContext.current
