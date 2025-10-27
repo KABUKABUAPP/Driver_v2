@@ -344,7 +344,11 @@ fun KabuRideCarDetailsScreen(
                         title = "Plate Number",
                         hintText = "e.g ABC 123 CVGG",
                         imeAction = ImeAction.Done,
-                        onTextChanged = { plateNumber = it },
+                        onTextChanged = { input ->
+                            if (!input.contains(" ")) {
+                                plateNumber = input
+                            }
+                        },
                         validationError = plateNumberError.value.isNotEmpty(),
                         validationErrorMessage = plateNumberError.value
 

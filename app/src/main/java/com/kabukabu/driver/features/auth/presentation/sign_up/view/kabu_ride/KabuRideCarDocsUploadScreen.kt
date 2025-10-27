@@ -90,7 +90,6 @@ fun KabuRideCarDocumentsUploadScreen(
     var roadWorthinessUri by remember { mutableStateOf<Uri?>(null) }
     var hackneyPermitUri by remember { mutableStateOf<Uri?>(null) }
 
-
     var launchCamera by remember { mutableStateOf(false) }
 
     var vehicleLicense by remember { mutableStateOf(null) }
@@ -107,10 +106,9 @@ fun KabuRideCarDocumentsUploadScreen(
     val proofOfOwnershipError = remember { mutableStateOf("") }
     val roadWorthinessError = remember { mutableStateOf("") }
 
-    BackHandler { true }
-
-
-
+    BackHandler() {
+        true
+    }
 
     LaunchedEffect(uploadCarDocsUiState) {
         when (uploadCarDocsUiState) {
@@ -133,7 +131,6 @@ fun KabuRideCarDocumentsUploadScreen(
     LaunchedEffect(userDetails) {
         when (userDetails?.user?.onboardingStep) {
             5 -> navigation.navToKabuRideGuarantorDetailsScreen()
-
         }
     }
 
