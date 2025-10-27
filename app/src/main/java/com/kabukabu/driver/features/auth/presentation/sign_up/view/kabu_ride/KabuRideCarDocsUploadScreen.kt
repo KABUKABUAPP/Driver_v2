@@ -106,8 +106,11 @@ fun KabuRideCarDocumentsUploadScreen(
     val proofOfOwnershipError = remember { mutableStateOf("") }
     val roadWorthinessError = remember { mutableStateOf("") }
 
-    BackHandler() {
-        true
+
+    BackHandler(enabled = true) {
+        if (launchCamera) {
+            launchCamera = false
+        }
     }
 
     LaunchedEffect(uploadCarDocsUiState) {

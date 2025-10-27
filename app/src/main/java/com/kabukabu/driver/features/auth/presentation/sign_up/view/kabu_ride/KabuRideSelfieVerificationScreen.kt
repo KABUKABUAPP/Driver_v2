@@ -1,6 +1,7 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.camera.core.CameraSelector
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -53,8 +54,15 @@ fun KabuRideSelfieVerificationScreen(
 
     var selfieUri by remember { mutableStateOf<Uri?>(null) }
     var photoError by remember { mutableStateOf<String?>(null) }
-    var isCapturing by remember { mutableStateOf(true) }
+//    var isCapturing by remember { mutableStateOf(true) }
+    var launchCamera by remember { mutableStateOf(false) }
 
+
+    BackHandler(enabled = true) {
+        if (launchCamera) {
+            launchCamera = false
+        }
+    }
 
     LaunchedEffect(uiState) {
         when (uiState) {
@@ -99,7 +107,7 @@ fun KabuRideSelfieVerificationScreen(
                     CameraXCaptureImage(
                         onImageCaptured = { uri ->
                             selfieUri = uri
-                            isCapturing = false
+//                            isCapturing = false
                         },
                         onError = { error ->
                             photoError = error
@@ -124,8 +132,6 @@ fun KabuRideSelfieVerificationScreen(
                 text = "Continue",
                 isLoading = uiState == EditDriverProfileUiState.Loading,
                 onClick = {
-//                    onNavToKabuCarDetailsScreen()
-
                     authViewModel.updateUserImage(convertUriToFile(context, selfieUri))
                 },
                 enabled = selfieUri != null

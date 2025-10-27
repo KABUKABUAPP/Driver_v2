@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -683,4 +685,53 @@ fun FormTextfieldDropdown(
 
 fun Context.displayToastMessage(message: String) {
     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+}
+
+
+
+@Composable
+fun KabuSearchBar(
+    placeholderText: String,
+    modifier: Modifier = Modifier,
+    filterText: String? = "",
+    onTextChanged: (text: String) -> Unit = {},
+//    onCancelClicked: () -> Unit = {}
+    ) {
+    OutlinedTextField(
+        value = filterText ?: "",
+        onValueChange = onTextChanged,
+        placeholder = {
+            Text(
+                placeholderText,
+                fontSize = 14.sp,
+            )
+        },
+        shape = RoundedCornerShape(12),
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Filled.Search,
+                tint = Color.Gray,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(25.dp)
+                    .clickable { },
+
+                )
+        },
+//        trailingIcon = {
+//            Icon(
+//                painter = painterResource(id = R.drawable.cancel),
+//                contentDescription = "Back button",
+//                modifier = Modifier
+//                    .size(13.dp)
+//                    .clickable { onCancelClicked() }
+//            )
+//        },
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Done
+        ),
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+    )
 }

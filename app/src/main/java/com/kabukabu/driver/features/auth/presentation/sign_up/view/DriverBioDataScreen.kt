@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
+import android.annotation.SuppressLint
 import android.util.Patterns
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -43,6 +44,7 @@ import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuDivider
+import com.kabukabu.driver.components.ui.KabuSearchBar
 import com.kabukabu.driver.components.ui.RowScopeFormTextfield
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
@@ -341,6 +343,14 @@ internal fun SelectStateSheet(
 ) {
 
     val nigeriaStates = LocalDataSource().nigeriaStates
+    var filterText by remember { mutableStateOf("") }
+
+    val filteredList = if (filterText.isBlank()) nigeriaStates else nigeriaStates.filter {
+        it.contains(
+            filterText,
+            ignoreCase = true
+        )
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -352,6 +362,15 @@ internal fun SelectStateSheet(
                 .fillMaxWidth()
                 .padding(vertical = 8.dp, horizontal = 16.dp)
         ) {
+
+            KabuSearchBar(
+                placeholderText = "Search States",
+                filterText = filterText,
+                onTextChanged = {
+                    filterText = it
+                }
+            )
+
             Text(
                 text = "Select State",
                 style = MaterialTheme.typography.titleMedium,
@@ -362,7 +381,7 @@ internal fun SelectStateSheet(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                items(nigeriaStates) { state ->
+                items(filteredList) { state ->
                     AnimatedVisibility(
                         visible = true,
                         enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
