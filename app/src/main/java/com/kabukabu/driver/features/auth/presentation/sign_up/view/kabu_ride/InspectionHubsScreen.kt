@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -51,14 +52,16 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun InspectionHubsScreen(
     onNavToHome: () -> Unit,
-    dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel(),
-    authViewModel: AuthViewModel = koinViewModel()
+//    dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel(),
+//    authViewModel: AuthViewModel = koinViewModel()
 ) {
 
     val context = LocalContext.current
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+    val dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
+    val authViewModel: AuthViewModel = koinViewModel()
 
     val hubsList =
         dataPersistenceViewModel.inspectionsHubs.collectAsState().value?.data ?: emptyList()
@@ -67,13 +70,11 @@ fun InspectionHubsScreen(
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
     val inspectionCode = userDetails?.user?.driver?.inspectionCode
 
-//    LaunchedEffect(inspectionCode) {
-//        onNavToInspectionScreen()
-//    }
-
-//    LaunchedEffect(userDetails?.user?.isOnboardingComplete) {
-//        onNavToLoginScreen()
-//    }
+    LaunchedEffect(userDetails?.user?.isOnboardingComplete) {
+        if (userDetails?.user?.isOnboardingComplete == true) {
+            onNavToHome()
+        }
+    }
 
 
     Scaffold { paddingValues ->
@@ -141,8 +142,7 @@ fun InspectionHubsScreen(
 private fun InspectionHubsList(hubs: List<InspectionHub>) {
 
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp)
+        horizontalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         itemsIndexed(hubs) { index, data ->
             InspectionHubsListItem(hubData = data)
@@ -172,7 +172,7 @@ private fun InspectionHubsListItem(hubData: InspectionHub) {
                 icon = Icons.Default.Home
             )
             HubInspectionLazyRowItem(
-                "5pm" ?: "",
+                "Closes 5pm" ?: "",
                 icon = Icons.Default.DateRange
             )
             HubInspectionLazyRowItem(
@@ -187,7 +187,8 @@ private fun InspectionHubsListItem(hubData: InspectionHub) {
 @Composable
 private fun HubInspectionLazyRowItem(text: String?, icon: ImageVector) {
     Row(
-        modifier = Modifier.padding(bottom = 6.dp),
+        modifier = Modifier.padding(bottom = 6.dp, start =
+        12.dp, end = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
