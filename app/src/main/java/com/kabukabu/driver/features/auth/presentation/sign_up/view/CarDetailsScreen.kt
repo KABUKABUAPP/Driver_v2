@@ -176,8 +176,8 @@ fun KabuRideCarDetailsScreen(
         SelectImageSource(
             onDismiss = { showImageSourceModalSheet = false },
             onSelectCategory = { source ->
-                imageSource = source
                 showImageSourceModalSheet = false
+                imageSource = source
             }
         )
     }
@@ -206,9 +206,12 @@ fun KabuRideCarDetailsScreen(
         }
     }
 
-//    LaunchedEffect(imageSource) {
-//        launchCamera = true
-//    }
+    LaunchedEffect(imageSource) {
+        if (imageSource == "Take a Picture" || imageSource == "Choose from Gallery") {
+            launchCamera = true
+        }
+    }
+
 
     BackHandler(enabled = true) {
         if (launchCamera) {
