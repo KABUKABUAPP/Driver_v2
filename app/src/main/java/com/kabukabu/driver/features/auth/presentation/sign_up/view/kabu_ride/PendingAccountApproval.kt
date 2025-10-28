@@ -1,5 +1,7 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -9,18 +11,24 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
@@ -43,12 +51,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.bumptech.glide.Glide
 import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.R
@@ -59,6 +69,7 @@ import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
 import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.core.navigation.Navigator
+import com.kabukabu.driver.features.auth.data.entity.response.VideoClipsResponse
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 
@@ -76,7 +87,7 @@ fun KabuRidePendingAccountApprovalScreen(
     val authViewModel: AuthViewModel = AuthViewModel(dataPersistenceViewModel)
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
-
+    val listOfClips = dataPersistenceViewModel.videoClips.collectAsState().value
     var showAccountApprovedModal by remember { mutableStateOf(true) }
 
     BackHandler(enabled = true) {}
@@ -141,6 +152,9 @@ fun KabuRidePendingAccountApprovalScreen(
                 topPadding = 8,
                 fontWeight = FontWeight.W500
             )
+
+            LearnMoreAboutKabukabu(listOfClips)
+
         }
     }
 }
@@ -188,7 +202,79 @@ private fun AccountApprovedModal(
                 "Let's go",
                 onClick = onClick
             )
-
         }
     }
 }
+
+
+@Composable
+fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
+    val context = LocalContext.current
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Learn more about Kabukabu",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(videos) { video ->
+                Column(
+                    modifier = Modifier
+                        .width(160.dp)
+                        .clickable {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(video.clip))
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            context.startActivity(intent)
+                        }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .height(100.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                    ) {
+                        AsyncImage(
+                            model = video.thumbnail,
+                            contentDescription = video.title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+
+                        Icon(
+                            painter = painterResource(id = R.drawable.play_square),
+                            contentDescription = "Play video",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .align(Alignment.Center)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = video.title,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = video.duration,
+                        style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+                    )
+                }
+            }
+        }
+    }
+}
+
+//data class VideoItem(
+//    val duration: String,
+//    val thumbnail: String,
+//    val title: String,
+//    val clip: String
+//)
