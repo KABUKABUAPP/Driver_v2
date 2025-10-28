@@ -198,7 +198,8 @@ fun KabuRideGuarantorDetail(
 
                 ProfileCard(
                     selectedImageUri = guarantorImageUri,
-                    onImageSelected = { guarantorImageUri = it }
+                    onImageSelected = { guarantorImageUri = it },
+                    modifier = Modifier.padding(6.dp)
                 )
 
                 FormTextfield(

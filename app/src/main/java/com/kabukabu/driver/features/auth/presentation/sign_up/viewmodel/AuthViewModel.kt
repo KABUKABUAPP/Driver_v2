@@ -1,6 +1,8 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -21,8 +23,10 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBo
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadGuarantorDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.response.VideoClipsResponse
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -31,6 +35,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import java.io.File
 
+@RequiresApi(Build.VERSION_CODES.O)
 class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewModel
 ) : ViewModel() {
 
@@ -110,28 +115,42 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun fetchVideoClips() {
         viewModelScope.launch(Dispatchers.IO) {
-            val db = FirebaseFirestore.getInstance()
-            val reference = db.collection("app_video").document("info")
+            try {
+                delay(800) // restore delay before fetching (for UI smoothness/loading indicator)
 
-            reference.get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        val clips = document.get("clips") as? List<VideoClipsResponse>
-                        clips?.let {
-                            dataPersistenceViewModel.setVideoClips(it)
-//                            _carBrands.value = it
-                            println("video clips from firebase....... ${clips}")
+                val db = FirebaseFirestore.getInstance()
+                val document = db.collection("app_video").document("info").get().await()
+
+                if (document.exists()) {
+                    val clipsList = document.get("clips") as? List<Map<String, Any>>
+                    clipsList?.let { maps ->
+                        val clips = maps.mapNotNull { map ->
+                            try {
+                                VideoClipsResponse(
+                                    clip = map["clip"] as? String ?: "",
+                                    duration = map["duration"] as? String ?: "",
+                                    thumbnail = map["thumbnail"] as? String ?: "",
+                                    title = map["title"] as? String ?: ""
+                                )
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                null
+                            }
+                        }
+
+                        if (clips.isNotEmpty()) {
+                            dataPersistenceViewModel.setVideoClips(clips)
+                            println("✅ video clips from firebase: $clips")
                         }
                     }
                 }
-                .addOnFailureListener { e ->
-                    e.printStackTrace()
-                }
-
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
-
     }
 
     fun fetchHubs(state: String) {

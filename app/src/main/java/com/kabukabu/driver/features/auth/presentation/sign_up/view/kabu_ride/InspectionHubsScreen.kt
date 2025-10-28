@@ -24,7 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -51,9 +50,9 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun InspectionHubsScreen(
-    onNavToLoginScreen: () -> Unit,
-    dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
-//                         authViewModel: AuthViewModel = koinViewModel()
+    onNavToHome: () -> Unit,
+    dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel(),
+    authViewModel: AuthViewModel = koinViewModel()
 ) {
 
     val context = LocalContext.current
@@ -72,9 +71,9 @@ fun InspectionHubsScreen(
 //        onNavToInspectionScreen()
 //    }
 
-    LaunchedEffect(userDetails?.user?.isOnboardingComplete) {
-        onNavToLoginScreen()
-    }
+//    LaunchedEffect(userDetails?.user?.isOnboardingComplete) {
+//        onNavToLoginScreen()
+//    }
 
 
     Scaffold { paddingValues ->

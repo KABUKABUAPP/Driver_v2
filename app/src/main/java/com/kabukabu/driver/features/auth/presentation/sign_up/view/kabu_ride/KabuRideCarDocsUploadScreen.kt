@@ -134,6 +134,7 @@ fun KabuRideCarDocumentsUploadScreen(
     LaunchedEffect(userDetails) {
         when (userDetails?.user?.onboardingStep) {
             5 -> navigation.navToKabuRideGuarantorDetailsScreen()
+            6 -> navigation.navToKabuRidePendingAccountApprovalScreen()
         }
     }
 

@@ -63,25 +63,31 @@ fun OtpVerificationScreen(
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
 
-    var onboardingStep: Int? = 1
+    val userDetails = UserPreferences(context).userDetails.collectAsState(null).value
+    var onboardingStep = userDetails?.user?.onboardingStep
+
+    // Track resend OTP state
+    val uiState = viewModel.uiState
+    val loginUiState = loginViewModel.uiState
+
+
+//    var onboardingStep: Int?
     var otpValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue("", TextRange(0)))
     }
     var isError by remember { mutableStateOf(false) }
-    val uiState = viewModel.uiState
     val focusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
 
     // Countdown timer state
     var secondsLeft by remember { mutableIntStateOf(15) }
     var isTimerRunning by remember { mutableStateOf(true) }
-    val userDetails = UserPreferences(context).userDetails.collectAsState(null).value
     // Request focus when the screen is first displayed
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+
+    LaunchedEffect(userDetails) {
         onboardingStep = userDetails?.user?.onboardingStep
-//        println("current onboarding step is..........${UserPreferences(context).onboardingStep.firstOrNull()}")
     }
+
 
 
     // Start countdown timer
@@ -95,8 +101,6 @@ fun OtpVerificationScreen(
         }
     }
 
-    // Track resend OTP state
-    val loginUiState = loginViewModel.uiState
 
     // Define colors
     val lightGray = Color(0xFFF1F1F1) // rgba(241, 241, 241, 1)
@@ -120,109 +124,139 @@ fun OtpVerificationScreen(
         isTimerRunning = true
     }
 
-    // Handle OTP verification state
+
+    var hasNavigated by remember { mutableStateOf(false) }
+
     LaunchedEffect(uiState) {
-        Log.d("OtpVerificationScreen", "UI State changed: $uiState")
-        when (uiState) {
-            is OtpUiState.Success -> {
-                Log.d("OtpVerificationScreen", "Success state detected, navigating to home")
-//                Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
-
-                // Add a delay before navigation to ensure token is saved
-                delay(500)
-
-                if (uiState.response.data?.loggedInUser?.isOnboardingComplete == true) {
-                    onNavigateToHome()
-                    Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
-                } else {
-//                    navigator.navToKabuRideGuarantorDetailsScreen()
-                    when (onboardingStep) {
-                        0 -> {
-                            navigateToDriverDetailsScreen()
+        if (!hasNavigated) {
+            when (uiState) {
+                is OtpUiState.Success -> {
+                    hasNavigated = true
+                    if (uiState.response.data?.loggedInUser?.isOnboardingComplete == true) {
+                        onNavigateToHome()
+                    } else {
+                        when (onboardingStep) {
+                            0 -> navigateToDriverDetailsScreen()
+                            2 -> navToSelfieScreen()
+                            3 -> navigator.navToKabuRideCarDetails()
+                            4 -> navigator.navToKabuRideCarDocsUpload()
+                            5 -> navigator.navToKabuRideGuarantorDetailsScreen()
+                            6 -> navigator.navToKabuRidePendingAccountApprovalScreen()
+                            else -> navigateToDriverDetailsScreen()
                         }
-
-                        2 -> {
-                            navToSelfieScreen()
-//                            navToSelectVehicleScreen()
-//                            navigateToDriverDetailsScreen()
-                        }
-
-                        3 -> {
-                            navigator.navToKabuRideCarDetails()
-                        }
-
-                        4 -> {
-                            navigator.navToKabuRideCarDocsUpload()
-                        }
-
-                        5 -> {
-                            navigator.navToKabuRideGuarantorDetailsScreen()
-                        }
-
-                        6 -> {
-                            navigator.navToKabuRidePendingAccountApprovalScreen()
-                        }
-
-                        else -> {
-                            println("onboarding step is....$onboardingStep")
-                            navigateToDriverDetailsScreen()
-//                            navigator.navToKabuRideGuarantorDetailsScreen()
-
-                        }
-
                     }
-//                    context.displayToastMessage("Continue to Onboarding")
                 }
-                // Navigate to home
-
-                // Add a longer delay before resetting state
-                delay(400)
-                viewModel.resetState()
-            }
-
-            is OtpUiState.Error -> {
-                Log.e("OtpVerificationScreen", "Error state: ${uiState.message}")
-                Toast.makeText(context, uiState.message, Toast.LENGTH_SHORT).show()
-                if (uiState.message.contains(
-                        "Proceed to Complete driver  Registration",
-                        ignoreCase = true
-                    )
-                ) {
-                    navigateToDriverDetailsScreen()
-                }
-                viewModel.resetState()
-            }
-
-            else -> {
-                Log.d("OtpVerificationScreen", "Other state: $uiState")
+                else -> {}
             }
         }
     }
+
+
+
+
+    // Handle OTP verification state
+//    LaunchedEffect(uiState) {
+//        Log.d("OtpVerificationScreen", "UI State changed: $uiState")
+//        when (uiState) {
+//            is OtpUiState.Success -> {
+//                Log.d("OtpVerificationScreen", "Success state detected, navigating to home")
+////                Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
+//
+//                // Add a delay before navigation to ensure token is saved
+//                delay(500)
+//
+//                if (uiState.response.data?.loggedInUser?.isOnboardingComplete == true) {
+//                    onNavigateToHome()
+//                    Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
+//                } else {
+////                    navigator.navToKabuRideGuarantorDetailsScreen()
+//                    when (onboardingStep) {
+//                        0 -> {
+//                            navigateToDriverDetailsScreen()
+//                        }
+//
+//                        2 -> {
+//                            navToSelfieScreen()
+////                            navToSelectVehicleScreen()
+////                            navigateToDriverDetailsScreen()
+//                        }
+//
+//                        3 -> {
+//                            navigator.navToKabuRideCarDetails()
+//                        }
+//
+//                        4 -> {
+//                            navigator.navToKabuRideCarDocsUpload()
+//                        }
+//
+//                        5 -> {
+//                            navigator.navToKabuRideGuarantorDetailsScreen()
+//                        }
+//
+//                        6 -> {
+//                            navigator.navToKabuRidePendingAccountApprovalScreen()
+//                        }
+//
+//                        else -> {
+//                            println("onboarding step is....$onboardingStep")
+//                            navigateToDriverDetailsScreen()
+////                            navigator.navToKabuRideGuarantorDetailsScreen()
+//
+//                        }
+//
+//                    }
+////                    context.displayToastMessage("Continue to Onboarding")
+//                }
+//                // Navigate to home
+//
+//                // Add a longer delay before resetting state
+//                delay(400)
+//                viewModel.resetState()
+//            }
+//
+//            is OtpUiState.Error -> {
+//                Log.e("OtpVerificationScreen", "Error state: ${uiState.message}")
+//                Toast.makeText(context, uiState.message, Toast.LENGTH_SHORT).show()
+//                if (uiState.message.contains(
+//                        "Proceed to Complete driver  Registration",
+//                        ignoreCase = true
+//                    )
+//                ) {
+//                    navigateToDriverDetailsScreen()
+//                }
+//                viewModel.resetState()
+//            }
+//
+//            else -> {
+//                Log.d("OtpVerificationScreen", "Other state: $uiState")
+//            }
+//        }
+//    }
 
     // Handle login/resend OTP state
-    LaunchedEffect(loginUiState) {
-        when (loginUiState) {
-            is LoginUiState.Success -> {
-                Toast.makeText(context, "OTP resent successfully", Toast.LENGTH_SHORT).show()
-                loginViewModel.resetState()
-            }
-
-            is LoginUiState.Error -> {
-                Toast.makeText(
-                    context,
-                    "Failed to resend OTP: ${loginUiState.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
-                loginViewModel.resetState()
-            }
-
-            is LoginUiState.Loading -> {
-                // Show loading state for resend if needed
-            }
-
-            else -> {}
-        }
-    }
+//    LaunchedEffect(loginUiState) {
+//        when (loginUiState) {
+//            is LoginUiState.Success -> {
+//                Toast.makeText(context, "OTP resent successfully", Toast.LENGTH_SHORT).show()
+//                loginViewModel.resetState()
+//            }
+//
+//            is LoginUiState.Error -> {
+//                Toast.makeText(
+//                    context,
+//                    "Failed to resend OTP: ${loginUiState.message}",
+//                    Toast.LENGTH_SHORT
+//                ).show()
+//                loginViewModel.resetState()
+//            }
+//
+//            is LoginUiState.Loading -> {
+//                // Show loading state for resend if needed
+//            }
+//
+//            else -> {}
+//        }
+//    }
 
 
     Box(modifier = Modifier.fillMaxSize()) {

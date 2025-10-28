@@ -72,6 +72,7 @@ import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.response.VideoClipsResponse
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
@@ -84,8 +85,9 @@ fun KabuRidePendingAccountApprovalScreen(
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
-    val dataPersistenceViewModel: DataPersistenceViewModel = DataPersistenceViewModel()
-    val authViewModel: AuthViewModel = AuthViewModel(dataPersistenceViewModel)
+    val dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
+    val authViewModel: AuthViewModel = koinViewModel()
+
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
     val listOfClips = dataPersistenceViewModel.videoClips.collectAsState().value
