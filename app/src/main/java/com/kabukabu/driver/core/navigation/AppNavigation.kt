@@ -153,9 +153,9 @@ fun AppNavigation() {
 
         composable(Screen.DriverBioDataScreen.route) {
             DriverBioDataScreen(
-                navToSelectVehicleScreen = {
-                    navController.navigate(Screen.SelectVehicleScreen.route)
-                }
+//                navToSelectVehicleScreen = {
+//                    navController.navigate(Screen.SelectVehicleScreen.route)
+//                }
             )
         }
 
@@ -178,7 +178,7 @@ fun AppNavigation() {
         }
 
         composable(Screen.KabuRideCarDetails.route) {
-            KabuRideCarDetailsScreen(navigation)
+            KabuRideCarDetailsScreen()
         }
 
         composable(Screen.KabuRideCarDocsUpload.route) {

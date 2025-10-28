@@ -42,6 +42,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,6 +79,9 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsRe
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDetailsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
 
@@ -88,7 +92,7 @@ private enum class ImageSource { Camera, Gallery }
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun KabuRideCarDetailsScreen(
-    navigator: Navigator,
+//    navigator: Navigator,
     authViewModel: AuthViewModel = koinViewModel(),
     dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
 ) {
@@ -184,7 +188,7 @@ fun KabuRideCarDetailsScreen(
             is UploadCarDetailsUiState.Success -> {
                 context.displayToastMessage(uploadCarDetailsUiState.response.message)
                 authViewModel.resetState()
-                navigator.navToKabuRideCarDocsUpload()
+//                navigator.navToKabuRideCarDocsUpload()
             }
 
             is UploadCarDetailsUiState.Error -> {
@@ -198,9 +202,13 @@ fun KabuRideCarDetailsScreen(
 
     LaunchedEffect(userDetails) {
         when (userDetails?.user?.onboardingStep) {
-            3, 4 -> navigator.navToKabuRideCarDocsUpload()
+//            3, 4 -> navigator.navToKabuRideCarDocsUpload()
         }
     }
+
+//    LaunchedEffect(imageSource) {
+//        launchCamera = true
+//    }
 
     BackHandler(enabled = true) {
         if (launchCamera) {
@@ -242,16 +250,25 @@ fun KabuRideCarDetailsScreen(
                 },
             )
             } else if (imageSource == "Choose from Gallery") {
+                val coroutineScope = rememberCoroutineScope()
+
                 val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.PickVisualMedia(),
                     onResult = { uri ->
-                        when (selectedCarImageIndex) {
-                            CarImageIndex.One -> selectedCarImageUriOne = uri
-                            CarImageIndex.Two -> selectedCarImageUriTwo = uri
-                            CarImageIndex.Three -> selectedCarImageUriThree = uri
-                            CarImageIndex.Four -> selectedCarImageUriFour = uri
+                        coroutineScope.launch(Dispatchers.IO) {
+                            uri?.let {
+                                // Optionally downscale or validate image here
+                                withContext(Dispatchers.Main) {
+                                    when (selectedCarImageIndex) {
+                                        CarImageIndex.One -> selectedCarImageUriOne = uri
+                                        CarImageIndex.Two -> selectedCarImageUriTwo = uri
+                                        CarImageIndex.Three -> selectedCarImageUriThree = uri
+                                        CarImageIndex.Four -> selectedCarImageUriFour = uri
+                                    }
+                                    launchCamera = false
+                                }
+                            }
                         }
-                        launchCamera = false
                     }
                 )
 
