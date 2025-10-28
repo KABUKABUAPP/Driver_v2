@@ -122,7 +122,6 @@ fun KabuRideGuarantorDetail(
 
     BackHandler { true }
 
-
     if (showGuarantorSheet) {
         SelectGuarantorRelationshipModal(
             onDismiss = { showGuarantorSheet = false },

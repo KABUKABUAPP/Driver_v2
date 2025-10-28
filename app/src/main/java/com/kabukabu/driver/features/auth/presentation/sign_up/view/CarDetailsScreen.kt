@@ -35,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -442,7 +443,6 @@ fun KabuRideCarDetailsScreen(
                         "Next", icon = R.drawable.arrow_right,
                         isLoading = uploadCarDetailsUiState == UploadCarDetailsUiState.Loading,
                         onClick = {
-                        navigator.navToKabuRideCarDocsUpload()
 
                             listOf(
                                 selectedCarImageUriOne,
@@ -782,9 +782,14 @@ private fun SelectCarColourSheet(
 
     val colours = LocalDataSource().carColourModal
 
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        sheetState = sheetState,
         dragHandle = { BottomSheetDefaults.DragHandle() },
     ) {
         Column(

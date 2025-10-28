@@ -104,7 +104,6 @@ fun KabuRidePendingAccountApprovalScreen(
                 "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
                 "APPROVED" -> {
                     showAccountApprovedModal = true
-                    navigator.navToKabuRideInspection()
                 }
             }
         }

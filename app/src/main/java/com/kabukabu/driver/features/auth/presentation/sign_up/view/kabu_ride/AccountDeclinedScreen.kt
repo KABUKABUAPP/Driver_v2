@@ -121,14 +121,6 @@ fun KabuRideAccountDeclinedScreen(
 
         }
 
-//            KabuBottomButton(
-//                text = "Resubmit",
-//                onClick = {
-//                    println("docs size is ${userDetails?.documents?.size}")
-//                    println("docs size is ${userDetails?.documents}")
-//                }
-//            )
-//        }
     }
 }
 
