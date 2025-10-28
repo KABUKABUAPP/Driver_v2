@@ -20,6 +20,7 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.DriverDetailsReqBo
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadGuarantorDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.response.InspectionHubsResponse
+import com.kabukabu.driver.features.auth.data.entity.response.VideoClipsResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -98,6 +99,30 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
                 .addOnSuccessListener { document ->
                     if (document.exists()) {
                         val brands = document.get("branditems") as? List<String>
+                        brands?.let {
+                            dataPersistenceViewModel.setCarBrands(it)
+//                            _carBrands.value = it
+//                            println("car brands are ${_carBrands.value}")
+                        }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    e.printStackTrace()
+                }
+
+        }
+
+    }
+
+    fun fetchVideoClips() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val db = FirebaseFirestore.getInstance()
+            val reference = db.collection("app_video").document("info")
+
+            reference.get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val brands = document.get("clips") as? List<*>
                         brands?.let {
                             dataPersistenceViewModel.setCarBrands(it)
 //                            _carBrands.value = it
