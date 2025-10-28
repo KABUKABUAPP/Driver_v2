@@ -487,7 +487,7 @@ fun CustomLinearProgressIndicator(progress: Float, modifier: Modifier = Modifier
 internal fun ScreenTitleText(
     title: String,
     subtitle: String,
-    titleFontSize: Int = 20,
+    titleFontSize: Int = 22,
     subtitleFontSize: Int = 15,
     bottomPadding: Int = 0,
     topPadding: Int = 0,
@@ -516,10 +516,11 @@ internal fun ScreenTitleText(
 
 @Composable
 internal fun GrayBackgroundContainer(
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .background(
                 color = Color(0x5DF1F1F1),
                 shape = RoundedCornerShape(12.dp)

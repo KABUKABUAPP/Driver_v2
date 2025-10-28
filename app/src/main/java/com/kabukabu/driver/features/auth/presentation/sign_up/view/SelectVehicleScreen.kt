@@ -348,7 +348,7 @@ fun RowScope.HasCarSelectionCard(
             .height(animatedHeight)
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
-            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+            .border(1.dp, borderColor, RoundedCornerShape(32.dp))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
