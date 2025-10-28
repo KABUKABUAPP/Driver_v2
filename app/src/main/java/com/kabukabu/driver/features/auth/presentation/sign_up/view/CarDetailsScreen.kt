@@ -170,7 +170,7 @@ fun KabuRideCarDetailsScreen(
 
     if (showImageSourceModalSheet) {
         SelectImageSource(
-            onDismiss = { showCarColourModalSheet = false },
+            onDismiss = { showImageSourceModalSheet = false },
             onSelectCategory = { source ->
                 imageSource = source
                 showImageSourceModalSheet = false
@@ -196,18 +196,18 @@ fun KabuRideCarDetailsScreen(
         }
     }
 
+    LaunchedEffect(userDetails) {
+        when (userDetails?.user?.onboardingStep) {
+            3, 4 -> navigator.navToKabuRideCarDocsUpload()
+        }
+    }
+
     BackHandler(enabled = true) {
         if (launchCamera) {
             launchCamera = false
         }
     }
 
-    LaunchedEffect(userDetails) {
-        when (userDetails?.user?.onboardingStep) {
-            3, 4 -> navigator.navToKabuRideCarDocsUpload()
-        }
-
-    }
 
     Scaffold { paddingValues ->
         if (launchCamera) {
@@ -242,31 +242,24 @@ fun KabuRideCarDetailsScreen(
                 },
             )
             } else if (imageSource == "Choose from Gallery") {
-
                 val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.PickVisualMedia(),
                     onResult = { uri ->
-//                        onImageSelected(uri)
                         when (selectedCarImageIndex) {
-                            CarImageIndex.One -> {
-                                selectedCarImageUriOne = uri
-                            }
-
-                            CarImageIndex.Two -> {
-                                selectedCarImageUriTwo = uri
-                            }
-
-                            CarImageIndex.Three -> {
-                                selectedCarImageUriThree = uri
-                            }
-
-                            CarImageIndex.Four -> {
-                                selectedCarImageUriFour = uri
-                            }
-
+                            CarImageIndex.One -> selectedCarImageUriOne = uri
+                            CarImageIndex.Two -> selectedCarImageUriTwo = uri
+                            CarImageIndex.Three -> selectedCarImageUriThree = uri
+                            CarImageIndex.Four -> selectedCarImageUriFour = uri
                         }
+                        launchCamera = false
                     }
                 )
+
+                LaunchedEffect(Unit) {
+                    singlePhotoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                }
             }
         } else {
             Column(
@@ -326,6 +319,7 @@ fun KabuRideCarDetailsScreen(
                             onClick = {
                                 if (imageSource.isEmpty()) {
                                     showImageSourceModalSheet = true
+                                    return@UploadCarImageBoxCamera
                                 }
                                 selectedCarImageIndex = CarImageIndex.Two
                                 launchCamera = true
@@ -334,6 +328,10 @@ fun KabuRideCarDetailsScreen(
                         UploadCarImageBoxCamera(
                             selectedImageUri = selectedCarImageUriThree,
                             onClick = {
+                                if (imageSource.isEmpty()) {
+                                    showImageSourceModalSheet = true
+                                    return@UploadCarImageBoxCamera
+                                }
                                 selectedCarImageIndex = CarImageIndex.Three
                                 launchCamera = true
                             }
@@ -341,6 +339,10 @@ fun KabuRideCarDetailsScreen(
                         UploadCarImageBoxCamera(
                             selectedImageUri = selectedCarImageUriFour,
                             onClick = {
+                                if (imageSource.isEmpty()) {
+                                    showImageSourceModalSheet = true
+                                    return@UploadCarImageBoxCamera
+                                }
                                 selectedCarImageIndex = CarImageIndex.Four
                                 launchCamera = true
                             }
@@ -760,7 +762,6 @@ private fun SelectCarColourSheet(
     onSelectColour: (String) -> Unit
 ) {
 
-//    val colours = LocalDataSource().carColours
     val colours = LocalDataSource().carColourModal
 
     ModalBottomSheet(
