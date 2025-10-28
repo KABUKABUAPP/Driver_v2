@@ -3,6 +3,9 @@ package com.kabukabu.driver.features.auth.presentation.sign_up.view
 import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -66,7 +69,6 @@ import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.KabuSpacer
-import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.utils_functions.convertUrisToFiles
 import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
@@ -80,6 +82,8 @@ import org.koin.androidx.compose.koinViewModel
 import java.io.File
 
 private enum class CarImageIndex { One, Two, Three, Four }
+
+private enum class ImageSource { Camera, Gallery }
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
@@ -108,12 +112,16 @@ fun KabuRideCarDetailsScreen(
 //    val context = LocalContext.current
 
 
-    BackHandler { true }
-
     var launchCamera by remember { mutableStateOf(false) }
 
-    var showCarBrandSheet by remember { mutableStateOf(false) }
-    var showCarColourSheet by remember { mutableStateOf(false) }
+//    var imageUploadChannel by remember { mutableStateOf(null) }
+
+    var showCarBrandModalSheet by remember { mutableStateOf(false) }
+    var showCarColourModalSheet by remember { mutableStateOf(false) }
+    var showImageSourceModalSheet by remember { mutableStateOf(false) }
+
+    var imageSource by remember { mutableStateOf("") }
+
 
     var selectedCarBrand by remember { mutableStateOf("") }
     var carModel by remember { mutableStateOf("") }
@@ -138,23 +146,34 @@ fun KabuRideCarDetailsScreen(
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
 
 
-    if (showCarBrandSheet) {
+    if (showCarBrandModalSheet) {
         SelectCarBrandSheet(
             carBrands = carBrands,
-            onDismiss = { showCarBrandSheet = false },
+            onDismiss = { showCarBrandModalSheet = false },
             onSelectCategory = { selectedBrand ->
                 selectedCarBrand = selectedBrand
-                showCarBrandSheet = false
+                showCarBrandModalSheet = false
             }
         )
     }
 
-    if (showCarColourSheet) {
+    if (showCarColourModalSheet) {
         SelectCarColourSheet(
-            onDismiss = { showCarColourSheet = false },
+            onDismiss = { showCarColourModalSheet = false },
             onSelectColour = { colour ->
                 carColour = colour
-                showCarColourSheet = false
+                showCarColourModalSheet = false
+            }
+        )
+    }
+
+
+    if (showImageSourceModalSheet) {
+        SelectImageSource(
+            onDismiss = { showCarColourModalSheet = false },
+            onSelectCategory = { source ->
+                imageSource = source
+                showImageSourceModalSheet = false
             }
         )
     }
@@ -177,6 +196,12 @@ fun KabuRideCarDetailsScreen(
         }
     }
 
+    BackHandler(enabled = true) {
+        if (launchCamera) {
+            launchCamera = false
+        }
+    }
+
     LaunchedEffect(userDetails) {
         when (userDetails?.user?.onboardingStep) {
             3, 4 -> navigator.navToKabuRideCarDocsUpload()
@@ -187,6 +212,7 @@ fun KabuRideCarDetailsScreen(
     Scaffold { paddingValues ->
         if (launchCamera) {
             // Show the camera view
+            if (imageSource == "Take a Picture") {
             CameraXCaptureImage(
                 onImageCaptured = { uri ->
                     if (uri != null) {
@@ -213,8 +239,35 @@ fun KabuRideCarDetailsScreen(
                 },
                 onError = { error ->
                     launchCamera = false
-                }
+                },
             )
+            } else if (imageSource == "Choose from Gallery") {
+
+                val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.PickVisualMedia(),
+                    onResult = { uri ->
+//                        onImageSelected(uri)
+                        when (selectedCarImageIndex) {
+                            CarImageIndex.One -> {
+                                selectedCarImageUriOne = uri
+                            }
+
+                            CarImageIndex.Two -> {
+                                selectedCarImageUriTwo = uri
+                            }
+
+                            CarImageIndex.Three -> {
+                                selectedCarImageUriThree = uri
+                            }
+
+                            CarImageIndex.Four -> {
+                                selectedCarImageUriFour = uri
+                            }
+
+                        }
+                    }
+                )
+            }
         } else {
             Column(
                 modifier = Modifier
@@ -255,30 +308,37 @@ fun KabuRideCarDetailsScreen(
                             .background(Color.White)
                     ) {
 
-                        UploadCarImageBox(
+                        UploadCarImageBoxCamera(
                             selectedImageUri = selectedCarImageUriOne,
                             onClick = {
+                                if (imageSource.isEmpty()) {
+                                    showImageSourceModalSheet = true
+                                    return@UploadCarImageBoxCamera
+                                }
                                 selectedCarImageIndex = CarImageIndex.One
                                 launchCamera = true
                             }
                         )
 
 
-                        UploadCarImageBox(
+                        UploadCarImageBoxCamera(
                             selectedImageUri = selectedCarImageUriTwo,
                             onClick = {
+                                if (imageSource.isEmpty()) {
+                                    showImageSourceModalSheet = true
+                                }
                                 selectedCarImageIndex = CarImageIndex.Two
                                 launchCamera = true
                             }
                         )
-                        UploadCarImageBox(
+                        UploadCarImageBoxCamera(
                             selectedImageUri = selectedCarImageUriThree,
                             onClick = {
                                 selectedCarImageIndex = CarImageIndex.Three
                                 launchCamera = true
                             }
                         )
-                        UploadCarImageBox(
+                        UploadCarImageBoxCamera(
                             selectedImageUri = selectedCarImageUriFour,
                             onClick = {
                                 selectedCarImageIndex = CarImageIndex.Four
@@ -305,7 +365,7 @@ fun KabuRideCarDetailsScreen(
                         value = selectedCarBrand,
                         title = "Car Brand",
                         onClick = {
-                            showCarBrandSheet = true
+                            showCarBrandModalSheet = true
                         },
                         validationError = carBrandError.value.isNotEmpty(),
                         validationErrorMessage = carBrandError.value
@@ -333,7 +393,7 @@ fun KabuRideCarDetailsScreen(
                         value = carColour,
                         title = "Car Colour",
                         onClick = {
-                            showCarColourSheet = true
+                            showCarColourModalSheet = true
                         },
                         validationError = carColourError.value.isNotEmpty(),
                         validationErrorMessage = carColourError.value
@@ -472,22 +532,79 @@ private fun validateCarDetails(
 
 }
 
+
 @Composable
-fun RowScope.UploadCarImageBox(
-    modifier: Modifier = Modifier,
+fun RowScope.UploadCarImageBoxImagePicker(
     selectedImageUri: Uri?,
-//    onImageSelected: (Uri?) -> Unit,
-//    showImageSelection: Boolean = true,
-    onClick: () -> Unit,
+    onImageSelected: (Uri?) -> Unit,
+    showImageSelection: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
 
-//    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.PickVisualMedia(),
-//        onResult = { uri ->
-//            onImageSelected(uri)
-//        }
-//    )
+    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            onImageSelected(uri)
+        }
+    )
+
+    if (selectedImageUri == null || selectedImageUri == Uri.EMPTY) {
+        Box(
+            modifier = modifier
+                .height(75.dp)
+                .weight(1f)
+                .clip(RoundedCornerShape(6.dp))
+                .background(Color(0xFFF1F1F1))
+                .clickable {
+//                    if (showImageSelection) {
+                        singlePhotoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+//                    } else {
+//                        context.displayToastMessage("Please fill all required fields before uploading.")
+//                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(R.drawable.image_placeholder),
+                contentDescription = "image placeholder icon",
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    } else {
+        Box(
+            modifier = modifier
+                .height(75.dp)
+                .weight(1f)
+                .clip(RoundedCornerShape(6.dp))
+                .clickable {
+                    singlePhotoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                }
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(selectedImageUri)
+                    .size(800)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Car image preview",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
+}
+
+@Composable
+fun RowScope.UploadCarImageBoxCamera(
+    modifier: Modifier = Modifier,
+    selectedImageUri: Uri?,
+    onClick: () -> Unit,
+) {
 
     if (selectedImageUri == null || selectedImageUri == Uri.EMPTY) {
         Box(
@@ -526,6 +643,60 @@ fun RowScope.UploadCarImageBox(
         }
     }
 }
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SelectImageSource(
+    onDismiss: () -> Unit,
+    onSelectCategory: (String) -> Unit
+) {
+
+    val imageSource = listOf("Take a Picture", "Choose from Gallery")
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 16.dp)
+        ) {
+            Text(
+                text = "Select Image Source",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 12.dp)
+            )
+
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                items(imageSource) { state ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
+                    ) {
+                        Text(
+                            text = state,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    onSelectCategory(state)
+                                    onDismiss()
+                                }
+                                .padding(vertical = 12.dp, horizontal = 16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -41,7 +41,7 @@ import java.util.Locale
 fun CameraXCaptureImage(
     onImageCaptured: (Uri?) -> Unit,
     onError: (String) -> Unit = {},
-    cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA // 👈 added this line
+    cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
 ) {
     val context = LocalContext.current
