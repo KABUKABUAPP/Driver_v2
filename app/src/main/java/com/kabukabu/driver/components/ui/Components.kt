@@ -1,7 +1,11 @@
 package com.kabukabu.driver.components.ui
 
 import android.content.Context
+import android.graphics.Insets.add
+import android.os.Build.VERSION.SDK_INT
 import android.widget.Toast
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -36,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -45,6 +50,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.ImageLoader
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.utils_functions.priceFilter
 
@@ -689,7 +699,6 @@ fun Context.displayToastMessage(message: String) {
 }
 
 
-
 @Composable
 fun KabuSearchBar(
     placeholderText: String,
@@ -697,7 +706,7 @@ fun KabuSearchBar(
     filterText: String? = "",
     onTextChanged: (text: String) -> Unit = {},
 //    onCancelClicked: () -> Unit = {}
-    ) {
+) {
     OutlinedTextField(
         value = filterText ?: "",
         onValueChange = onTextChanged,
@@ -734,5 +743,31 @@ fun KabuSearchBar(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
+    )
+}
+
+@Composable
+fun GIFImage(
+    @DrawableRes gifImage: Int,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .components {
+            if (SDK_INT >= 28) {
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+        }
+        .build()
+    Image(
+        painter = rememberAsyncImagePainter(
+            ImageRequest.Builder(context).data(data = gifImage).apply(block = {
+//                size(Size.)
+            }).build(), imageLoader = imageLoader
+        ),
+        contentDescription = "gif image",
+        modifier = modifier.fillMaxWidth(),
     )
 }
