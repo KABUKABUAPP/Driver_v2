@@ -58,7 +58,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun DriverBioDataScreen(
-//    navToSelectVehicleScreen: () -> Unit,
+    navToSelectVehicleScreen: () -> Unit,
     authViewModel: AuthViewModel = koinViewModel(),
     dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
 ) {
@@ -154,7 +154,7 @@ fun DriverBioDataScreen(
 
                         // persist values locally before navigating
                         authViewModel.setUploadUserDetailsReqBody(driverBiodata)
-//                        navToSelectVehicleScreen()
+                        navToSelectVehicleScreen()
                     }
                 }
             )

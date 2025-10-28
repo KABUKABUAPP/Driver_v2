@@ -76,7 +76,8 @@ import com.kabukabu.driver.features.home.presentation.DriverViewModel
 
 @Composable
 fun KabuRidePendingAccountApprovalScreen(
-//    onNavigateToLogin: () -> Unit, navigator: Navigator
+//    onNavigateToLogin: () -> Unit,
+    navigator: Navigator
 ) {
 
     val context = LocalContext.current
@@ -88,7 +89,7 @@ fun KabuRidePendingAccountApprovalScreen(
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
     val listOfClips = dataPersistenceViewModel.videoClips.collectAsState().value
-    var showAccountApprovedModal by remember { mutableStateOf(true) }
+    var showAccountApprovedModal by remember { mutableStateOf(false) }
 
     BackHandler(enabled = true) {}
 
@@ -100,10 +101,10 @@ fun KabuRidePendingAccountApprovalScreen(
     LaunchedEffect(Unit) {
         declinedDocuments.forEach { document ->
             when (document.status) {
-//                "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
+                "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
                 "APPROVED" -> {
                     showAccountApprovedModal = true
-//                    navigator.navToKabuRideInspection()
+                    navigator.navToKabuRideInspection()
                 }
             }
         }
@@ -112,7 +113,7 @@ fun KabuRidePendingAccountApprovalScreen(
     if (showAccountApprovedModal) {
         AccountApprovedModal(
             onClick = {
-//                navigator.navToKabuRideInspection()
+                navigator.navToKabuRideInspection()
             }
         )
     }

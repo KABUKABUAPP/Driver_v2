@@ -92,7 +92,7 @@ private enum class ImageSource { Camera, Gallery }
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun KabuRideCarDetailsScreen(
-//    navigator: Navigator,
+    navigator: Navigator,
     authViewModel: AuthViewModel = koinViewModel(),
     dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
 ) {
@@ -115,7 +115,6 @@ fun KabuRideCarDetailsScreen(
 
 //    val context = LocalContext.current
 
-
     var launchCamera by remember { mutableStateOf(false) }
 
 //    var imageUploadChannel by remember { mutableStateOf(null) }
@@ -125,7 +124,6 @@ fun KabuRideCarDetailsScreen(
     var showImageSourceModalSheet by remember { mutableStateOf(false) }
 
     var imageSource by remember { mutableStateOf("") }
-
 
     var selectedCarBrand by remember { mutableStateOf("") }
     var carModel by remember { mutableStateOf("") }
@@ -188,7 +186,7 @@ fun KabuRideCarDetailsScreen(
             is UploadCarDetailsUiState.Success -> {
                 context.displayToastMessage(uploadCarDetailsUiState.response.message)
                 authViewModel.resetState()
-//                navigator.navToKabuRideCarDocsUpload()
+                navigator.navToKabuRideCarDocsUpload()
             }
 
             is UploadCarDetailsUiState.Error -> {
@@ -202,7 +200,7 @@ fun KabuRideCarDetailsScreen(
 
     LaunchedEffect(userDetails) {
         when (userDetails?.user?.onboardingStep) {
-//            3, 4 -> navigator.navToKabuRideCarDocsUpload()
+            3, 4 -> navigator.navToKabuRideCarDocsUpload()
         }
     }
 
@@ -424,7 +422,7 @@ fun KabuRideCarDetailsScreen(
                     FormTextfield(
                         value = plateNumber,
                         title = "Plate Number",
-                        hintText = "e.g ABC 123 CVGG",
+                        hintText = "e.g ABC123CVGG",
                         imeAction = ImeAction.Done,
                         onTextChanged = { input ->
                             if (!input.contains(" ")) {
@@ -444,7 +442,7 @@ fun KabuRideCarDetailsScreen(
                         "Next", icon = R.drawable.arrow_right,
                         isLoading = uploadCarDetailsUiState == UploadCarDetailsUiState.Loading,
                         onClick = {
-//                        navigator.navToKabuRideCarDocsUpload()
+                        navigator.navToKabuRideCarDocsUpload()
 
                             listOf(
                                 selectedCarImageUriOne,

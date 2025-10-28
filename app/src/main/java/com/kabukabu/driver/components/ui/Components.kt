@@ -56,7 +56,6 @@ import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.kabukabu.driver.R
-import com.kabukabu.driver.components.utils_functions.priceFilter
 
 
 @Composable

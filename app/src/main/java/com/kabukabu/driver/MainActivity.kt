@@ -29,8 +29,9 @@ class MainActivity : ComponentActivity() {
                         .navigationBarsPadding(), // Respect bottom safe area only
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    KabuRidePendingAccountApprovalScreen()
-//                    AppNavigation()
+//                    KabuRideCarDetailsScreen()
+//                    KabuRidePendingAccountApprovalScreen()
+                    AppNavigation()
                 }
             }
         }
