@@ -23,8 +23,10 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -54,23 +56,28 @@ import com.kabukabu.driver.components.ui.GIFImage
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuSpacer
 import com.kabukabu.driver.components.ui.TitleText
+import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
 import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.core.navigation.Navigator
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 
 
 @Composable
-fun KabuRidePendingAccountApprovalScreen(onNavigateToLogin: () -> Unit, navigator: Navigator) {
+fun KabuRidePendingAccountApprovalScreen(
+//    onNavigateToLogin: () -> Unit, navigator: Navigator
+) {
 
     val context = LocalContext.current
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+    val dataPersistenceViewModel: DataPersistenceViewModel = DataPersistenceViewModel()
+    val authViewModel: AuthViewModel = AuthViewModel(dataPersistenceViewModel)
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
 
-    var showAccountApprovedModal by remember { mutableStateOf(false) }
-
+    var showAccountApprovedModal by remember { mutableStateOf(true) }
 
     BackHandler(enabled = true) {}
 
@@ -82,7 +89,7 @@ fun KabuRidePendingAccountApprovalScreen(onNavigateToLogin: () -> Unit, navigato
     LaunchedEffect(Unit) {
         declinedDocuments.forEach { document ->
             when (document.status) {
-                "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
+//                "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
                 "APPROVED" -> {
                     showAccountApprovedModal = true
 //                    navigator.navToKabuRideInspection()
@@ -94,7 +101,7 @@ fun KabuRidePendingAccountApprovalScreen(onNavigateToLogin: () -> Unit, navigato
     if (showAccountApprovedModal) {
         AccountApprovedModal(
             onClick = {
-                navigator.navToKabuRideInspection()
+//                navigator.navToKabuRideInspection()
             }
         )
     }
@@ -144,8 +151,14 @@ fun KabuRidePendingAccountApprovalScreen(onNavigateToLogin: () -> Unit, navigato
 private fun AccountApprovedModal(
     onClick: () -> Unit,
 ) {
+
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
+
     ModalBottomSheet(
         onDismissRequest = {},
+        sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         dragHandle = { BottomSheetDefaults.DragHandle() },
     ) {

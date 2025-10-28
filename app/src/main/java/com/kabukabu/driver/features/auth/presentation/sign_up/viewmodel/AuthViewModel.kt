@@ -19,12 +19,8 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDetailsRe
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverDetailsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBody
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadGuarantorDetailsReqBody
-import com.kabukabu.driver.features.auth.data.entity.response.InspectionHubsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.VideoClipsResponse
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
@@ -32,7 +28,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.koin.androidx.compose.koinViewModel
 import retrofit2.HttpException
 import java.io.File
 
@@ -82,6 +77,7 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
     init {
         fetchCarBrands()
         fetchHubs("Lagos")
+        fetchVideoClips()
     }
 
     fun setUploadUserDetailsReqBody(driverDetailsReqBody: DriverDetailsReqBody) {
@@ -122,11 +118,11 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
             reference.get()
                 .addOnSuccessListener { document ->
                     if (document.exists()) {
-                        val brands = document.get("clips") as? List<*>
-                        brands?.let {
-                            dataPersistenceViewModel.setCarBrands(it)
+                        val clips = document.get("clips") as? List<VideoClipsResponse>
+                        clips?.let {
+                            dataPersistenceViewModel.setVideoClips(it)
 //                            _carBrands.value = it
-//                            println("car brands are ${_carBrands.value}")
+                            println("video clips from firebase....... ${clips}")
                         }
                     }
                 }

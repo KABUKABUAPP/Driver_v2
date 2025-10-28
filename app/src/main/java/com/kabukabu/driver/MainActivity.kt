@@ -13,6 +13,7 @@ import androidx.core.view.WindowCompat
 import com.kabukabu.driver.core.navigation.AppNavigation
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.DriverBioDataScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.KabuRideCarDetailsScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRidePendingAccountApprovalScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideSelfieVerificationScreen
 
 class MainActivity : ComponentActivity() {
@@ -28,7 +29,8 @@ class MainActivity : ComponentActivity() {
                         .navigationBarsPadding(), // Respect bottom safe area only
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation()
+                    KabuRidePendingAccountApprovalScreen()
+//                    AppNavigation()
                 }
             }
         }

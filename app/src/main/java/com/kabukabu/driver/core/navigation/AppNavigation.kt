@@ -190,8 +190,9 @@ fun AppNavigation() {
         }
 
         composable(Screen.KabuRidePendingApproval.route) {
-            KabuRidePendingAccountApprovalScreen(onNavigateToLogin = { navController.navigate(Screen.Login.route) },
-                navigation
+            KabuRidePendingAccountApprovalScreen(
+//                onNavigateToLogin = { navController.navigate(Screen.Login.route) },
+//                navigation
             )
         }
 

@@ -29,6 +29,10 @@ class DataPersistenceViewModel: ViewModel() {
         _carBrands.value = carBrands
     }
 
+    fun setVideoClips(videoClips: List<VideoClipsResponse>) {
+        _videoClips.value = videoClips
+    }
+
     fun setInspectionHubs(inspectionHubsResponse: InspectionHubsResponse?){
         _inspectionsHubs.value = inspectionHubsResponse
     }
