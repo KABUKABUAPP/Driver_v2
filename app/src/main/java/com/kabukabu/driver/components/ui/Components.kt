@@ -500,6 +500,7 @@ internal fun ScreenTitleText(
     subtitleFontSize: Int = 15,
     bottomPadding: Int = 0,
     topPadding: Int = 0,
+    subtitleFontWeight: FontWeight = FontWeight.Normal,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -517,7 +518,8 @@ internal fun ScreenTitleText(
             text = subtitle,
             fontSize = subtitleFontSize,
             bottomPadding = 12,
-            lineHeight = 22
+            lineHeight = 22,
+            fontWeight = subtitleFontWeight
         )
     }
 }

@@ -87,7 +87,9 @@ fun InspectionHubsScreen(
                     titleFontSize = 22,
                     subtitle = "Please take your car to our nearest \n" +
                             "inspection hub",
-                    bottomPadding = 20
+                    bottomPadding = 20,
+                    subtitleFontSize = 13,
+                    subtitleFontWeight = FontWeight.W400
                 )
 
                 ScreenTitleText(
@@ -113,18 +115,18 @@ fun InspectionHubsScreen(
 
                 TitleText(
                     text = "Kabu Inspection Hub closest to you",
-                    fontSize = 16,
+                    fontSize = 14,
                     fontWeight = FontWeight.W500,
-                    bottomPadding = 16
+                    bottomPadding = 12
                 )
                 InspectionHubsList(hubsList)
             }
 
             TitleText(
                 "This screen will proceed when agent approves your inspection",
-                fontSize = 13,
+                fontSize = 12,
                 color = Color.Gray,
-                lineHeight = 20
+                lineHeight = 15
             )
 
         }
@@ -218,7 +220,7 @@ private fun InspectionInstruction(text: String) {
         )
         TitleText(
             text = text,
-            fontSize = 14,
+            fontSize = 13,
             fontWeight = FontWeight.W500,
             lineHeight = 20
         )
