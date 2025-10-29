@@ -42,6 +42,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,15 +76,16 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthView
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.core.net.toUri
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KabuRidePendingAccountApprovalScreen(
     navigator: Navigator
 ) {
-
     val context = LocalContext.current
-    // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
     val dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
@@ -92,90 +94,55 @@ fun KabuRidePendingAccountApprovalScreen(
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
     val listOfClips = dataPersistenceViewModel.videoClips.collectAsState().value
-    var showAccountApprovedModal by remember { mutableStateOf(false) }
 
     BackHandler(enabled = true) {}
 
-    val declinedDocuments = userDetails?.documents
-        ?.filter { it.status == "DECLINED" }
-        ?: emptyList()
+    val declinedDocuments = userDetails?.documents ?: emptyList()
 
-    //listen to state update and nav to Declined screen if status had been changed.
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val coroutineScope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
         declinedDocuments.forEach { document ->
             when (document.status) {
                 "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
                 "APPROVED" -> {
-                    showAccountApprovedModal = true
+                    delay(500) // let the screen settle before showing sheet
+                    coroutineScope.launch {
+                        sheetState.show()
+                    }
                 }
             }
         }
     }
-
-    if (showAccountApprovedModal) {
-        AccountApprovedModal(
-            onClick = {
-                navigator.navToKabuRideInspection()
-            }
-        )
-    }
-
-
-    val bgModifier = Modifier
-        .paint(
-            painter = painterResource(id = R.drawable.map_bg),
-            alpha = 0.1f,
-            contentScale = ContentScale.FillWidth
-        )
-        .fillMaxWidth()
 
     Scaffold { paddingValues ->
         Column(
-            modifier = bgModifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-//                .verticalScroll(rememberScrollState())
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-            TitleText(
-                text = "Your account is pending \napproval",
-                fontSize = 25,
-                fontWeight = FontWeight.W500,
-                bottomPadding = 12,
-                topPadding = 24,
-                modifier = Modifier.clickable {
-                    val declinedDocuments = userDetails?.documents
-                    println("douments status.......$declinedDocuments")
-                }
-            )
-
-            TitleText(
-                text = "We are doing background check. We will notify you immediately afterwards",
-                bottomPadding = 16,
-                topPadding = 8,
-                fontWeight = FontWeight.W500
-            )
-
+                TitleText(
+                    text = "Your account is pending \napproval",
+                    fontSize = 25,
+                    fontWeight = FontWeight.W500,
+                    bottomPadding = 12,
+                    topPadding = 24,
+                )
+                TitleText(
+                    text = "We are doing background check. We will notify you immediately afterwards",
+                    bottomPadding = 16,
+                    topPadding = 8,
+                    fontWeight = FontWeight.W500
+                )
             }
 
             LearnMoreAboutKabukabu(listOfClips)
-
         }
     }
-}
-
-//@PreviewParameter
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AccountApprovedModal(
-    onClick: () -> Unit,
-) {
-
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
 
     ModalBottomSheet(
         onDismissRequest = {},
@@ -189,11 +156,7 @@ private fun AccountApprovedModal(
                 .padding(vertical = 8.dp, horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            GIFImage(
-                gifImage = R.drawable.account_approved,
-                modifier = Modifier
-            )
+            GIFImage(gifImage = R.drawable.account_approved)
             TitleText(
                 "Your account is approved!",
                 fontSize = 22,
@@ -207,11 +170,65 @@ private fun AccountApprovedModal(
 
             KabuBottomButton(
                 "Let's go",
-                onClick = onClick
+                onClick = {
+                    coroutineScope.launch {
+                        sheetState.hide()
+                        delay(200)
+                        navigator.navToKabuRideInspection()
+                    }
+                }
             )
         }
     }
 }
+
+
+////@PreviewParameter
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//private fun AccountApprovedModal(
+//    onClick: () -> Unit,
+//) {
+//
+//    val sheetState = rememberModalBottomSheetState(
+//        skipPartiallyExpanded = true
+//    )
+//
+//    ModalBottomSheet(
+//        onDismissRequest = {},
+//        sheetState = sheetState,
+//        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+//        dragHandle = { BottomSheetDefaults.DragHandle() },
+//    ) {
+//        Column(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(vertical = 8.dp, horizontal = 16.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//
+//            GIFImage(
+//                gifImage = R.drawable.account_approved,
+//                modifier = Modifier
+//            )
+//            TitleText(
+//                "Your account is approved!",
+//                fontSize = 22,
+//                fontWeight = FontWeight.Bold,
+//            )
+//            TitleText(
+//                "You can now drive and earn with us",
+//                fontSize = 15,
+//                bottomPadding = 30,
+//            )
+//
+//            KabuBottomButton(
+//                "Let's go",
+//                onClick = onClick
+//            )
+//        }
+//    }
+//}
 
 
 @SuppressLint("UseKtx")
@@ -221,11 +238,12 @@ fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
-        TitleText("Learn more about Kabukabu",
+        TitleText(
+            "Learn more about Kabukabu",
             fontSize = 16,
             fontWeight = FontWeight.W500,
             bottomPadding = 16
-            )
+        )
 
         LazyRow(
             contentPadding = PaddingValues(bottom = 16.dp),
@@ -281,10 +299,3 @@ fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
         }
     }
 }
-
-//data class VideoItem(
-//    val duration: String,
-//    val thumbnail: String,
-//    val title: String,
-//    val clip: String
-//)
