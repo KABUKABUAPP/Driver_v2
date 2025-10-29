@@ -1,5 +1,7 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -58,6 +60,7 @@ import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SelectVehicleScreen(
     onNavToTermsAndCondition: () -> Unit,
@@ -259,15 +262,13 @@ fun RowScope.VehicleTypeSelectionCard(
     val borderColor =
         if (isSelected) Color.Black else Color.Transparent
 
-
-
     Box(
         modifier = Modifier
             .weight(1f)
             .height(120.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(backgroundColor)
-            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(32.dp))
+            .background(backgroundColor, RoundedCornerShape(32.dp))
+            .border(1.dp, borderColor, RoundedCornerShape(32.dp))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
@@ -346,8 +347,8 @@ fun RowScope.HasCarSelectionCard(
         modifier = Modifier
             .weight(1f)
             .height(animatedHeight)
-            .clip(RoundedCornerShape(16.dp))
-            .background(backgroundColor)
+            .clip(RoundedCornerShape(32.dp))
+            .background(backgroundColor, RoundedCornerShape(32))
             .border(1.dp, borderColor, RoundedCornerShape(32.dp))
             .clickable { onClick() },
         contentAlignment = Alignment.Center

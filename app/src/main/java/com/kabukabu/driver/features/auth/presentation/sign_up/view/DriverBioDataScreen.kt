@@ -1,7 +1,9 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.util.Patterns
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -57,6 +59,7 @@ import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DriverBioDataScreen(
     navToSelectVehicleScreen: () -> Unit,
@@ -203,7 +206,7 @@ fun DriverBioDataScreen(
                 title = "Phone number",
                 value = phoneNumber,
                 hintText = "08012345678",
-                keyboardType = "phone number",
+                keyboardType = "number",
                 onTextChanged = { newText ->
                     val filtered = newText.filter { it.isDigit() }
                     if (filtered.length <= 11) {

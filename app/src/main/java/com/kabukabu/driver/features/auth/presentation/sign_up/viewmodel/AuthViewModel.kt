@@ -119,7 +119,7 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
     fun fetchVideoClips() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                delay(800) // restore delay before fetching (for UI smoothness/loading indicator)
+//                delay(800) // restore delay before fetching (for UI smoothness/loading indicator)
 
                 val db = FirebaseFirestore.getInstance()
                 val document = db.collection("app_video").document("info").get().await()
@@ -143,7 +143,6 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
 
                         if (clips.isNotEmpty()) {
                             dataPersistenceViewModel.setVideoClips(clips)
-                            println("✅ video clips from firebase: $clips")
                         }
                     }
                 }

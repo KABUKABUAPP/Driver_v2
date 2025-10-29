@@ -42,9 +42,9 @@ fun KabuRideTermsAndConditionsScreen(onNavToSelfieVerification: () -> Unit) {
             Text(
                 text = "Kabukabu T&C",
                 fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
+                fontSize = 24.sp,
                 color = Color.Black,
-                modifier = Modifier.padding(bottom = 12.dp)
+                modifier = Modifier.padding(bottom = 12.dp, top = 12.dp)
             )
 
             SectionHeader("Subscription")

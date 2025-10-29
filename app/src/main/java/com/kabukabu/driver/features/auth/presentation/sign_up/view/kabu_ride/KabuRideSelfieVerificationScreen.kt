@@ -1,7 +1,9 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.camera.core.CameraSelector
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -46,6 +48,7 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.EditDriv
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun KabuRideSelfieVerificationScreen(
     onNavToKabuCarDetailsScreen: () -> Unit = {},
@@ -64,7 +67,7 @@ fun KabuRideSelfieVerificationScreen(
     var launchCamera by remember { mutableStateOf(false) }
 
 
-    BackHandler(enabled = true) {
+    BackHandler() {
         if (launchCamera) {
             launchCamera = false
         }
@@ -110,15 +113,16 @@ fun KabuRideSelfieVerificationScreen(
                 .padding(horizontal = 16.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+            ScreenTitleText(
+                title = "Verification",
+                subtitle = "Let's put a face to your name",
+                bottomPadding = 20
+            )
+
             if (selfieUri == null) {
                 if (!launchCamera) {
                     Column {
-                        ScreenTitleText(
-                            title = "Verification",
-                            subtitle = "Let's put a face to your name",
-                            bottomPadding = 20
-                        )
-
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -155,7 +159,7 @@ fun KabuRideSelfieVerificationScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f),
+                            .weight(0.5f),
                         contentAlignment = Alignment.Center
                     ) {
                         CameraXCaptureImage(
