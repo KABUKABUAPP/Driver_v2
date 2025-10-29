@@ -31,6 +31,7 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.Ins
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRidePendingAccountApprovalScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideSelfieVerificationScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideTermsAndConditionsScreen
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.ReuploadGuarantorDetail
 import com.kabukabu.driver.features.home.presentation.HomeScreen
 import com.kabukabu.driver.features.profile.data.Document
 import com.kabukabu.driver.features.profile.data.ProfileData
@@ -74,14 +75,14 @@ fun AppNavigation() {
 //                popUpTo(navController.graph.id) { inclusive = true }
 //            }
         } else {
-            println("about to nav based on 2")
-
-            delay(500)
-            //navigate to Login because authToken is not found, and restart proccess.
-            navController.navigate(Screen.Login.route) {
-                popUpTo(Screen.Splash.route) { inclusive = true }
-            }
-            Log.d("AppNavigation", "No auth token found")
+//            println("about to nav based on 2")
+//
+//            delay(500)
+//            //navigate to Login because authToken is not found, and restart proccess.
+//            navController.navigate(Screen.Login.route) {
+//                popUpTo(Screen.Splash.route) { inclusive = true }
+//            }
+//            Log.d("AppNavigation", "No auth token found")
         }
     }
 
@@ -201,6 +202,12 @@ fun AppNavigation() {
 
         composable(Screen.KabuRideAccountDeclined.route) {
             KabuRideAccountDeclinedScreen(
+                navigation
+            )
+        }
+
+        composable(Screen.KabuRideGuarantorReUpload.route) {
+            ReuploadGuarantorDetail(
                 navigation
             )
         }

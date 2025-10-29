@@ -59,7 +59,6 @@ import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DriverBioDataScreen(
     navToSelectVehicleScreen: () -> Unit,

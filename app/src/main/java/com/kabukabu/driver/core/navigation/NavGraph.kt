@@ -27,6 +27,7 @@ sealed class Screen(val route: String) {
     object KabuRidePendingApproval : Screen("/kabu-ride-pending-approval")
     object KabuRideAccountDeclined : Screen("/kabu-ride-account-declined")
     object KabuRideDocReUpload : Screen("/kabu-ride-document-re-upload")
+    object KabuRideGuarantorReUpload : Screen("/kabu-ride-guarantor-re-upload")
     object KabuRideInspection : Screen("/kabu-ride-inspection")
 
 }

@@ -48,7 +48,6 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.EditDriv
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun KabuRideSelfieVerificationScreen(
     onNavToKabuCarDetailsScreen: () -> Unit = {},

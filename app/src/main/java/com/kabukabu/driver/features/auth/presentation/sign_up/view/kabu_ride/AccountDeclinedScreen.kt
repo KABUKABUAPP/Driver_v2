@@ -62,13 +62,13 @@ fun KabuRideAccountDeclinedScreen(
         ?.filter { it.status != "DECLINED" }
         ?: emptyList()
 
-    //listen to state update and nav to Declined screen if status had been changed.
+    //listen to state update and nav to screens if status had been changed.
     LaunchedEffect(Unit) {
         noDeclinedDocs.forEach { document ->
             when (document.status) {
                 "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
-                "APPROVED" -> navigator.navToKabuRideInspection()
-                else -> navigator.navToKabuRidePendingAccountApprovalScreen()
+                "PENDING" -> navigator.navToKabuRidePendingAccountApprovalScreen()
+                else -> navigator.navToKabuRideInspection()
             }
         }
     }

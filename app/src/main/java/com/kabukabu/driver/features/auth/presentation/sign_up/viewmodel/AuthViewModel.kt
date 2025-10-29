@@ -35,7 +35,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import java.io.File
 
-@RequiresApi(Build.VERSION_CODES.O)
 class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewModel
 ) : ViewModel() {
 
@@ -115,37 +114,41 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun fetchVideoClips() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-//                delay(800) // restore delay before fetching (for UI smoothness/loading indicator)
-
                 val db = FirebaseFirestore.getInstance()
-                val document = db.collection("app_video").document("info").get().await()
+                val reference = db.collection("app_video").document("info")
 
-                if (document.exists()) {
-                    val clipsList = document.get("clips") as? List<Map<String, Any>>
-                    clipsList?.let { maps ->
-                        val clips = maps.mapNotNull { map ->
-                            try {
-                                VideoClipsResponse(
-                                    clip = map["clip"] as? String ?: "",
-                                    duration = map["duration"] as? String ?: "",
-                                    thumbnail = map["thumbnail"] as? String ?: "",
-                                    title = map["title"] as? String ?: ""
-                                )
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                                null
+                reference.get()
+                    .addOnSuccessListener { document ->
+                        if (document.exists()) {
+                            val clipsList = document.get("clips") as? List<Map<String, Any>>
+                            clipsList?.let { maps ->
+                                val clips = maps.mapNotNull { map ->
+                                    try {
+                                        VideoClipsResponse(
+                                            clip = map["clip"] as? String ?: "",
+                                            duration = map["duration"] as? String ?: "",
+                                            thumbnail = map["thumbnail"] as? String ?: "",
+                                            title = map["title"] as? String ?: ""
+                                        )
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                        null
+                                    }
+                                }
+
+                                if (clips.isNotEmpty()) {
+                                    dataPersistenceViewModel.setVideoClips(clips)
+                                }
                             }
                         }
-
-                        if (clips.isNotEmpty()) {
-                            dataPersistenceViewModel.setVideoClips(clips)
-                        }
                     }
-                }
+                    .addOnFailureListener { e ->
+                        e.printStackTrace()
+                    }
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }

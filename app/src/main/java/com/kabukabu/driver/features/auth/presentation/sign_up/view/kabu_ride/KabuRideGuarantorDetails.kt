@@ -82,7 +82,6 @@ import org.koin.androidx.compose.koinViewModel
 import java.util.regex.Pattern
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun KabuRideGuarantorDetail(
     navigator: Navigator,

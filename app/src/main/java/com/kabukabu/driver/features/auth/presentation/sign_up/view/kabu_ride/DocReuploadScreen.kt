@@ -1,6 +1,8 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +34,7 @@ import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun KabuRideDocumentsReUploadScreen(
     id: String,

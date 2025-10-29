@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -73,6 +74,7 @@ import com.kabukabu.driver.features.auth.data.entity.response.VideoClipsResponse
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
+import androidx.core.net.toUri
 
 
 @Composable
@@ -212,6 +214,7 @@ private fun AccountApprovedModal(
 }
 
 
+@SuppressLint("UseKtx")
 @Composable
 fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
     val context = LocalContext.current
@@ -225,7 +228,7 @@ fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
             )
 
         LazyRow(
-            contentPadding = PaddingValues(vertical = 6.dp),
+            contentPadding = PaddingValues(bottom = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(videos) { video ->
@@ -233,7 +236,7 @@ fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
                     modifier = Modifier
                         .width(160.dp)
                         .clickable {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(video.clip))
+                            val intent = Intent(Intent.ACTION_VIEW, video.clip.toUri())
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             context.startActivity(intent)
                         }
@@ -256,7 +259,7 @@ fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
                             contentDescription = "Play video",
                             tint = Color.White,
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(28.dp)
                                 .align(Alignment.Center)
                         )
                     }
@@ -266,7 +269,8 @@ fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
                         text = video.title,
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(bottom = 3.dp)
                     )
                     Text(
                         text = video.duration,
