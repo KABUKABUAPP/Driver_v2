@@ -1,7 +1,9 @@
 package com.kabukabu.driver.core.navigation
 
+
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
+    object SplashScreenCover : Screen("/splash_screen-cover")
     object Login : Screen("login")
     object OtpVerification : Screen("otp_verification")
     object Home : Screen("home")

@@ -20,6 +20,7 @@ import com.kabukabu.driver.features.analytics.presentation.AnalyticsScreen
 import com.kabukabu.driver.features.auth.presentation.LoginScreen
 import com.kabukabu.driver.features.auth.presentation.OtpVerificationScreen
 import com.kabukabu.driver.features.auth.presentation.SplashScreen
+import com.kabukabu.driver.features.auth.presentation.SplashScreenCover
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.DriverBioDataScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectVehicleScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideAccountDeclinedScreen
@@ -59,22 +60,34 @@ fun AppNavigation() {
 
     // Check for auth token and navigate accordingly
     LaunchedEffect(authToken) {
-        delay(700)
-        if (!authToken.isNullOrBlank()) {
-            Log.d(
-                "AppNavigation",
-                "Auth token found: ${authToken?.take(10)}..."
-            )
+        delay(250)
+        if (!authToken.isNullOrBlank() && userDetails?.user?.isOnboardingComplete == true) {
+
+            // User is logged in, navigate to home screen
+            navController.navigate(Screen.Home.route) {
+                popUpTo(navController.graph.id) { inclusive = true }
+
+
+//
+//
+//
+//
+//            Log.d(
+//                "AppNavigation",
+//                "Auth token found: ${authToken?.take(10)}..."
+//            )
             // Add a delay to ensure the NavHost is fully set up
-            delay(500)
-            println("about to nav based on 1")
-            navigateBasedOnOnboardingStatus(navigation, navController, userDetails)
+//            delay(500)
+
 
             // User is logged in, navigate to home screen
 //            navController.navigate(Screen.Home.route) {
 //                popUpTo(navController.graph.id) { inclusive = true }
-//            }
+            }
         } else {
+
+            println("about to nav based on 1")
+            navigateBasedOnOnboardingStatus(navigation, navController, userDetails)
 //            println("about to nav based on 2")
 //
 //            delay(500)
@@ -88,7 +101,7 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Splash.route,
+        startDestination = Screen.SplashScreenCover.route,
         enterTransition = {
             fadeIn(animationSpec = tween(500))
         },
@@ -102,6 +115,12 @@ fun AppNavigation() {
             fadeOut(animationSpec = tween(500))
         }
     ) {
+
+
+        composable(Screen.SplashScreenCover.route) {
+            SplashScreenCover()
+        }
+
         composable(Screen.Splash.route) {
             SplashScreen(
                 onGetStartedClick = {
@@ -338,13 +357,13 @@ private fun navigateBasedOnOnboardingStatus(
     Log.d(TAG, "Checking navigation status. UserDetails: $userDetails")
 
     // If onboarding is complete, go home immediately
-    if (userDetails?.user?.isOnboardingComplete == true) {
-        Log.d(TAG, "✅ Onboarding complete. Navigating to Home.")
-        navController.navigate(Screen.Home.route) {
-            popUpTo(navController.graph.id) { inclusive = true }
-        }
-        return
-    }
+//    if (userDetails?.user?.isOnboardingComplete == true) {
+//        Log.d(TAG, "✅ Onboarding complete. Navigating to Home.")
+//        navController.navigate(Screen.Home.route) {
+//            popUpTo(navController.graph.id) { inclusive = true }
+//        }
+//        return
+//    }
 
     Log.d(TAG, "Onboarding NOT complete. Checking step...")
 
@@ -433,6 +452,7 @@ private fun navigateBasedOnOnboardingStatus(
                     }
                 }
             } else {
+
                 Log.w(TAG, "⚠️ Step > 5 but user.driver is NULL. No navigation triggered.")
             }
         } else {
@@ -469,10 +489,12 @@ private fun navigateBasedOnOnboardingStatus(
                 }
             }
         }
-    } ?: run {
-        // This block runs if userDetails.user.onboardingStep is null
-        Log.w(TAG, "⚠️ Onboarding not complete, but onboardingStep is NULL. No navigation triggered.")
+        return
     }
+
+    navController.navigate(Screen.Splash.route)
+
+
 }
 
 
