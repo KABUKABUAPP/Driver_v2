@@ -2,10 +2,12 @@ package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -90,6 +92,7 @@ private enum class CarImageIndex { One, Two, Three, Four }
 
 private enum class ImageSource { Camera, Gallery }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun KabuRideCarDetailsScreen(
@@ -405,6 +408,7 @@ fun KabuRideCarDetailsScreen(
                         value = carYear,
                         title = "Car Year",
                         hintText = "e.g 2009",
+                        keyboardType = "phone number",
                         onTextChanged = { carYear = it },
                         validationError = carYearError.value.isNotEmpty(),
                         validationErrorMessage = carYearError.value
@@ -685,7 +689,7 @@ private fun SelectImageSource(
         ) {
             Text(
                 text = "Select Image Source",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(vertical = 12.dp)
             )

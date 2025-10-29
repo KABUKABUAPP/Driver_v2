@@ -77,7 +77,6 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun KabuRidePendingAccountApprovalScreen(
-//    onNavigateToLogin: () -> Unit,
     navigator: Navigator
 ) {
 
@@ -133,9 +132,11 @@ fun KabuRidePendingAccountApprovalScreen(
             modifier = bgModifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+//                .verticalScroll(rememberScrollState())
         ) {
+            Column {
             TitleText(
                 text = "Your account is pending \napproval",
                 fontSize = 25,
@@ -154,6 +155,8 @@ fun KabuRidePendingAccountApprovalScreen(
                 topPadding = 8,
                 fontWeight = FontWeight.W500
             )
+
+            }
 
             LearnMoreAboutKabukabu(listOfClips)
 
@@ -214,14 +217,15 @@ fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
     val context = LocalContext.current
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "Learn more about Kabukabu",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
+
+        TitleText("Learn more about Kabukabu",
+            fontSize = 16,
+            fontWeight = FontWeight.W500,
+            bottomPadding = 16
+            )
 
         LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
+            contentPadding = PaddingValues(vertical = 6.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(videos) { video ->

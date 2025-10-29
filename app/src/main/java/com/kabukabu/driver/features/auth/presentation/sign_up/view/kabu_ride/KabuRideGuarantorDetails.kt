@@ -1,11 +1,13 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import android.net.Uri
+import android.os.Build
 import android.util.Patterns
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -80,6 +82,7 @@ import org.koin.androidx.compose.koinViewModel
 import java.util.regex.Pattern
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun KabuRideGuarantorDetail(
     navigator: Navigator,
@@ -451,7 +454,7 @@ internal fun SelectGuarantorRelationshipModal(
                 .padding(vertical = 8.dp, horizontal = 16.dp)
         ) {
             Text(
-                text = "Select State",
+                text = "Select Guarantor Relationship",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(vertical = 12.dp)
