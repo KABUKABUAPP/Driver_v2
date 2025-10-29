@@ -3,6 +3,7 @@ package com.kabukabu.driver.features.auth.data.entity.response
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
+
 @JsonClass(generateAdapter = true)
 data class InspectionHubsResponse(
     @Json(name = "status") val status: String,
@@ -26,5 +27,15 @@ data class InspectionHub(
     @Json(name = "deleted") val deleted: Boolean,
     @Json(name = "created_at") val createdAt: String,
     @Json(name = "updated_at") val updatedAt: String,
-    @Json(name = "__v") val v: Int
+    @Json(name = "__v") val v: Int,
+    @Json(name = "phone_number") val phoneNumber: String?,
+    @Json(name = "opening_hours") val openingHours: List<OpeningHour>?
+)
+
+@JsonClass(generateAdapter = true)
+data class OpeningHour(
+    @Json(name = "_id") val id: String,
+    @Json(name = "day") val day: String,
+    @Json(name = "opensAt") val opensAt: String,
+    @Json(name = "closesAt") val closesAt: String
 )

@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,11 +14,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -30,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -100,7 +93,7 @@ fun InspectionHubsScreen(
                 ScreenTitleText(
                     title = userDetails?.user?.driver?.inspectionCode ?: "Not available yet",
                     subtitle = "Driver code",
-                    titleFontSize = 24,
+                    titleFontSize = 26,
                     bottomPadding = 16
                 )
 
@@ -130,7 +123,8 @@ fun InspectionHubsScreen(
             TitleText(
                 "This screen will proceed when agent approves your inspection",
                 fontSize = 13,
-                color = Color.Gray
+                color = Color.Gray,
+                lineHeight = 20
             )
 
         }
@@ -165,19 +159,19 @@ private fun InspectionHubsListItem(hubData: InspectionHub) {
         Column {
             HubInspectionLazyRowItem(
                 hubData.name ?: "",
-                icon = Icons.Default.Person
+                icon = R.drawable.user
             )
             HubInspectionLazyRowItem(
                 hubData.address ?: "",
-                icon = Icons.Default.Home
+                icon = R.drawable.buildings
             )
             HubInspectionLazyRowItem(
-                "Closes 5pm" ?: "",
-                icon = Icons.Default.DateRange
+                hubData.openingHours?.get(0)?.closesAt ?: "",
+                icon = R.drawable.clock_alt
             )
             HubInspectionLazyRowItem(
-                "0811111112" ?: "",
-                icon = Icons.Default.Call
+                hubData.phoneNumber ?: "",
+                icon = R.drawable.phone_icon
             )
         }
     }
@@ -185,7 +179,7 @@ private fun InspectionHubsListItem(hubData: InspectionHub) {
 
 
 @Composable
-private fun HubInspectionLazyRowItem(text: String?, icon: ImageVector) {
+private fun HubInspectionLazyRowItem(text: String?, icon: Int) {
     Row(
         modifier = Modifier.padding(bottom = 6.dp, start =
         12.dp, end = 12.dp),
@@ -194,9 +188,9 @@ private fun HubInspectionLazyRowItem(text: String?, icon: ImageVector) {
     ) {
 
         Icon(
-            imageVector = icon,
+            painter = painterResource(icon),
             contentDescription = "Icon",
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(14.dp)
         )
         TitleText(
             text = text ?: "",
