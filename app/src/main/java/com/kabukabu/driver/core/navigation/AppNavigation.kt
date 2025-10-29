@@ -346,7 +346,6 @@ fun AppNavigation() {
 }
 
 
-// Define a TAG constant, usually at the top of your file or in a companion object
 private const val TAG = "OnboardingNavigation"
 
 private fun navigateBasedOnOnboardingStatus(

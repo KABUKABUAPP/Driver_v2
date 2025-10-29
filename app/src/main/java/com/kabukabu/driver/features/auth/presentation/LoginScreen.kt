@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.features.auth.presentation.LoginViewModel
 import com.kabukabu.driver.core.utils.LoginUiState
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -67,6 +68,8 @@ fun LoginScreen(
             else -> {}
         }
     }
+
+    BackHandler { true }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
