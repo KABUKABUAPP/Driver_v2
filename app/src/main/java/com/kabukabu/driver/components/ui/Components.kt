@@ -166,6 +166,7 @@ fun KabuOutlinedTextField(
                         keyboardType = KeyboardType.Number,
                         imeAction = imeAction
                     ),
+                    shape = RoundedCornerShape(8.dp)
                 )
             }
 
@@ -191,7 +192,8 @@ fun KabuOutlinedTextField(
                     colors = noBorderColors,
                     isError = isValidationError,
                     enabled = isClickable,
-                    modifier = Modifier
+                    shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(),
                     keyboardOptions = KeyboardOptions.Default.copy(
@@ -216,7 +218,8 @@ fun KabuOutlinedTextField(
                             color = Color(0xFF9A9A9A)
                         )
                     },
-                    enabled = isClickable,
+                    shape = RoundedCornerShape(8.dp),
+                            enabled = isClickable,
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(),

@@ -115,12 +115,12 @@ fun SelectVehicleScreen(
                     val driverBiodata = DriverDetailsReqBody(
                         fullName = currentUserDetails?.fullName ?: "",
                         phoneNumber = currentUserDetails?.phoneNumber ?: "",
-                        email = currentUserDetails?.email ?: "",
+//                        email = currentUserDetails?.email ?: "",
                         houseAddress = currentUserDetails?.houseAddress ?: "",
                         city = currentUserDetails?.city ?: "",
                         state = currentUserDetails?.state ?: "",
                         carOwner = hasVehicle,
-                        carCategory = currentUserDetails?.carCategory ?: "REGULAR"
+//                        carCategory = currentUserDetails?.carCategory ?: "REGULAR"
                     )
 
                     coroutineScope.launch {
@@ -343,13 +343,15 @@ fun RowScope.HasCarSelectionCard(
         label = "cardHeightAnimation"
     )
 
+    val shape = RoundedCornerShape(32.dp)
+
     Box(
         modifier = Modifier
             .weight(1f)
             .height(animatedHeight)
-            .clip(RoundedCornerShape(32.dp))
-            .background(backgroundColor, RoundedCornerShape(32))
-            .border(1.dp, borderColor, RoundedCornerShape(32.dp))
+            .border(1.dp, borderColor, shape)
+            .clip(shape)
+            .background(backgroundColor)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
@@ -374,5 +376,6 @@ fun RowScope.HasCarSelectionCard(
         }
     }
 }
+
 
 

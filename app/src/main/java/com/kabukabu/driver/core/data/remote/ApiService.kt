@@ -44,17 +44,17 @@ interface ApiService {
 
 
     @Multipart
-    @POST("auth/driver-onboard-one")
+    @POST("auth/v2/driver-onboard-one")
     suspend fun onboardDriverPersonalDetails(
         @Header("Authorization") bearerToken: String,
         @Part("full_name") fullName: RequestBody,
         @Part("phone_number") phoneNumber: RequestBody,
-        @Part("email") email: RequestBody,
+//        @Part("email") email: RequestBody,
         @Part("house_address") houseAddress: RequestBody,
         @Part("city") city: RequestBody,
         @Part("state") state: RequestBody,
         @Part("car_owner") carOwner: RequestBody,
-        @Part("car_category") carCategory: RequestBody
+//        @Part("car_category") carCategory: RequestBody
     ): DriverPersonalDetailsResponse
 
 

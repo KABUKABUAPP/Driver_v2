@@ -79,11 +79,11 @@ fun DriverBioDataScreen(
 
     var fullName by remember { mutableStateOf(uiState?.fullName ?: "") }
     var phoneNumber by remember { mutableStateOf(uiState?.phoneNumber ?: "") }
-    var email by remember { mutableStateOf(uiState?.email ?: "") }
+//    var email by remember { mutableStateOf(uiState?.email ?: "") }
     var houseAddress by remember { mutableStateOf(uiState?.houseAddress ?: "") }
     var city by remember { mutableStateOf(uiState?.city ?: "") }
     var state by remember { mutableStateOf(uiState?.state ?: "") }
-    var carCategory by remember { mutableStateOf(uiState?.carCategory ?: "") }
+//    var carCategory by remember { mutableStateOf(uiState?.carCategory ?: "") }
 
     val isInputValidated = remember { mutableStateOf(false) }
     val fullNameError = remember { mutableStateOf("") }
@@ -105,16 +105,16 @@ fun DriverBioDataScreen(
         )
     }
 
-    if (showCarCategorySheet) {
-        SelectCarCategorySheet(
-            onDismiss = { showCarCategorySheet = false },
-            onSelectCategory = { carCat ->
-                carCategory = carCat
-                showCarCategorySheet = false
-                focusManager.clearFocus()
-            }
-        )
-    }
+//    if (showCarCategorySheet) {
+//        SelectCarCategorySheet(
+//            onDismiss = { showCarCategorySheet = false },
+//            onSelectCategory = { carCat ->
+//                carCategory = carCat
+//                showCarCategorySheet = false
+//                focusManager.clearFocus()
+//            }
+//        )
+//    }
 
     Scaffold(
         bottomBar = {
@@ -129,30 +129,30 @@ fun DriverBioDataScreen(
                     isInputValidated.value = validateDriverDetails(
                         fullName = fullName.trim(),
                         phoneNumber = phoneNumber,
-                        email = email.trim(),
+//                        email = email.trim(),
                         houseAddress = houseAddress.trim(),
                         city = city.trim(),
                         state = state,
-                        carCategory = carCategory,
+//                        carCategory = carCategory,
                         fullNameError = fullNameError,
                         phoneNumberError = phoneNumberError,
-                        emailError = emailError,
+//                        emailError = emailError,
                         houseAddressError = houseAddressError,
                         cityError = cityError,
                         stateError = stateError,
-                        carCategoryError = carCategoryError,
+//                        carCategoryError = carCategoryError,
                     )
 
                     if (isInputValidated.value) {
                         val driverBiodata = DriverDetailsReqBody(
                             fullName = fullName,
                             phoneNumber = phoneNumber,
-                            email = email.trim(),
+//                            email = email.trim(),
                             houseAddress = houseAddress,
                             city = city,
                             state = state,
                             carOwner = false,
-                            carCategory = carCategory
+//                            carCategory = carCategory
                         )
 
                         // persist values locally before navigating
@@ -185,21 +185,28 @@ fun DriverBioDataScreen(
                 value = fullName,
                 hintText = "John Doe",
                 onTextChanged = { newText ->
-//                    val filtered = newText.filter { it.isLetter() }
-                    fullName = newText
+                    val isValid = validateFullName(
+                        newText,
+                        fullNameError
+                    )
+                    if (isValid) {
+                        fullName = newText
+                    } else {
+                        return@FormTextfield
+                    }
                 },
                 validationError = fullNameError.value.isNotEmpty(),
                 validationErrorMessage = fullNameError.value
             )
 
-            FormTextfield(
-                title = "Email Address",
-                value = email,
-                hintText = "example@gmail.com",
-                onTextChanged = { email = it },
-                validationError = emailError.value.isNotEmpty(),
-                validationErrorMessage = emailError.value
-            )
+//            FormTextfield(
+//                title = "Email Address",
+//                value = email,
+//                hintText = "example@gmail.com",
+//                onTextChanged = { email = it },
+//                validationError = emailError.value.isNotEmpty(),
+//                validationErrorMessage = emailError.value
+//            )
 
             FormTextfield(
                 title = "Phone number",
@@ -249,13 +256,13 @@ fun DriverBioDataScreen(
                 )
             }
 
-            FormTextfieldDropdown(
-                value = carCategory,
-                title = "Car Category",
-                onClick = { showCarCategorySheet = true },
-                validationError = carCategoryError.value.isNotEmpty(),
-                validationErrorMessage = carCategoryError.value
-            )
+//            FormTextfieldDropdown(
+//                value = carCategory,
+//                title = "Car Category",
+//                onClick = { showCarCategorySheet = true },
+//                validationError = carCategoryError.value.isNotEmpty(),
+//                validationErrorMessage = carCategoryError.value
+//            )
 
             // Add space so content isn't hidden behind the button
 //            KabuDivider(height = 100.dp)
@@ -264,32 +271,46 @@ fun DriverBioDataScreen(
 }
 
 
+private fun validateFullName(
+    fullName: String,
+    fullNameError: MutableState<String>,
+): Boolean {
+
+    var isValid = true
+    fullNameError.value = ""
+    if (!fullName.matches(Regex("^[A-Za-z\\s]+\$"))) {
+        fullNameError.value = "Full name must contain only letters"
+        isValid = false
+    }
+    return isValid
+}
+
 private fun validateDriverDetails(
     fullName: String,
     phoneNumber: String,
-    email: String,
+//    email: String,
     houseAddress: String,
     city: String,
     state: String,
-    carCategory: String,
+//    carCategory: String,
     fullNameError: MutableState<String>,
     phoneNumberError: MutableState<String>,
-    emailError: MutableState<String>,
+//    emailError: MutableState<String>,
     houseAddressError: MutableState<String>,
     cityError: MutableState<String>,
     stateError: MutableState<String>,
-    carCategoryError: MutableState<String>,
+//    carCategoryError: MutableState<String>,
 
     ): Boolean {
 
     var isValid = true
     fullNameError.value = ""
     phoneNumberError.value = ""
-    emailError.value = ""
+//    emailError.value = ""
     houseAddressError.value = ""
     cityError.value = ""
     stateError.value = ""
-    carCategoryError.value = ""
+//    carCategoryError.value = ""
 
     if (fullName.isEmpty() || fullName.length < 6) {
         fullNameError.value = "Full name is too short"
@@ -306,12 +327,12 @@ private fun validateDriverDetails(
         isValid = false
     }
 
-    if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email)
-            .matches()
-    ) {
-        emailError.value = "Invalid email address"
-        isValid = false
-    }
+//    if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email)
+//            .matches()
+//    ) {
+//        emailError.value = "Invalid email address"
+//        isValid = false
+//    }
 
     if (houseAddress.isEmpty() || houseAddress.length < 10) {
         houseAddressError.value = "House address is too short"
@@ -329,10 +350,10 @@ private fun validateDriverDetails(
         isValid = false
     }
 
-    if (carCategory.isEmpty()) {
-        carCategoryError.value = "Choose car category"
-        isValid = false
-    }
+//    if (carCategory.isEmpty()) {
+//        carCategoryError.value = "Choose car category"
+//        isValid = false
+//    }
 
     return isValid
 }

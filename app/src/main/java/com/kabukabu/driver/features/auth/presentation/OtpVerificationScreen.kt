@@ -124,36 +124,6 @@ fun OtpVerificationScreen(
         isTimerRunning = true
     }
 
-
-    var hasNavigated by remember { mutableStateOf(false) }
-
-//    LaunchedEffect(uiState) {
-//        if (!hasNavigated) {
-//            when (uiState) {
-//                is OtpUiState.Success -> {
-//                    hasNavigated = true
-//                    if (uiState.response.data?.loggedInUser?.isOnboardingComplete == true) {
-//                        onNavigateToHome()
-//                    } else {
-//                        when (onboardingStep) {
-//                            0 -> navigateToDriverDetailsScreen()
-//                            2 -> navToSelfieScreen()
-//                            3 -> navigator.navToKabuRideCarDetails()
-//                            4 -> navigator.navToKabuRideCarDocsUpload()
-//                            5 -> navigator.navToKabuRideGuarantorDetailsScreen()
-//                            6 -> navigator.navToKabuRidePendingAccountApprovalScreen()
-//                            else -> navigateToDriverDetailsScreen()
-//                        }
-//                    }
-//                }
-//                else -> {}
-//            }
-//        }
-//    }
-
-
-
-
      //Handle OTP verification state
     LaunchedEffect(uiState) {
         Log.d("OtpVerificationScreen", "UI State changed: $uiState")
@@ -169,7 +139,6 @@ fun OtpVerificationScreen(
                     onNavigateToHome()
                     Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
                 } else {
-//                    navigator.navToKabuRideGuarantorDetailsScreen()
                     when (onboardingStep) {
                         0 -> {
                             navigateToDriverDetailsScreen()
@@ -177,8 +146,6 @@ fun OtpVerificationScreen(
 
                         2 -> {
                             navToSelfieScreen()
-//                            navToSelectVehicleScreen()
-//                            navigateToDriverDetailsScreen()
                         }
 
                         3 -> {
@@ -200,8 +167,6 @@ fun OtpVerificationScreen(
                         else -> {
                             println("onboarding step is....$onboardingStep")
                             navigateToDriverDetailsScreen()
-//                            navigator.navToKabuRideGuarantorDetailsScreen()
-
                         }
 
                     }
@@ -233,30 +198,30 @@ fun OtpVerificationScreen(
         }
     }
 
-    // Handle login/resend OTP state
-//    LaunchedEffect(loginUiState) {
-//        when (loginUiState) {
-//            is LoginUiState.Success -> {
-//                Toast.makeText(context, "OTP resent successfully", Toast.LENGTH_SHORT).show()
-//                loginViewModel.resetState()
-//            }
-//
-//            is LoginUiState.Error -> {
-//                Toast.makeText(
-//                    context,
-//                    "Failed to resend OTP: ${loginUiState.message}",
-//                    Toast.LENGTH_SHORT
-//                ).show()
-//                loginViewModel.resetState()
-//            }
-//
-//            is LoginUiState.Loading -> {
-//                // Show loading state for resend if needed
-//            }
-//
-//            else -> {}
-//        }
-//    }
+//     Handle login/resend OTP state
+    LaunchedEffect(loginUiState) {
+        when (loginUiState) {
+            is LoginUiState.Success -> {
+                Toast.makeText(context, "OTP resent successfully", Toast.LENGTH_SHORT).show()
+                loginViewModel.resetState()
+            }
+
+            is LoginUiState.Error -> {
+                Toast.makeText(
+                    context,
+                    "Failed to resend OTP: ${loginUiState.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                loginViewModel.resetState()
+            }
+
+            is LoginUiState.Loading -> {
+                // Show loading state for resend if needed
+            }
+
+            else -> {}
+        }
+    }
 
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -286,15 +251,6 @@ fun OtpVerificationScreen(
 
                 OTPInstructionText(email)
 
-//                Text(
-//                    text = "An OTP has been sent to $email\nEnter the code to validate your number",
-//                    style = MaterialTheme.typography.bodyMedium.copy(
-//                        fontWeight = FontWeight.W700,
-//                        fontSize = 14.sp,
-//                        color = MaterialTheme.colorScheme.onBackground
-//                    ),
-//                    textAlign = TextAlign.Start
-//                )
             }
 
             // OTP Pin Fields
@@ -497,12 +453,12 @@ private fun OTPInstructionText(email: String) {
         append(email)
         pop() // end of email style
 
-        append(" Enter the code to validate your number")
+        append(". Enter the code to validate your number")
     }
 
     Text(
         text = text,
-        fontSize = 16.sp,
+        fontSize = 14.sp,
         color = Color.Black,
         lineHeight = 22.sp
     )

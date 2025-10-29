@@ -7,10 +7,10 @@ import com.squareup.moshi.JsonClass
 data class DriverDetailsReqBody(
     @Json(name = "full_name") val fullName: String,
     @Json(name = "phone_number") val phoneNumber: String,
-    @Json(name = "email") val email: String,
+//    @Json(name = "email") val email: String,
     @Json(name = "house_address") val houseAddress: String,
     @Json(name = "city") val city: String,
     @Json(name = "state") val state: String,
     @Json(name = "car_owner") val carOwner: Boolean?,
-    @Json(name = "car_category") val carCategory: String,
+//    @Json(name = "car_category") val carCategory: String,
 )

@@ -168,7 +168,7 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
     }
 
     fun uploadDriverBioData(driverPersonalDetailsReqBody: DriverDetailsReqBody) {
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
                 Log.e("AuthViewModel", "Cannot fetch profile, token is missing.")
@@ -183,12 +183,12 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
                     bearerToken = bearerToken,
                     fullName = driverPersonalDetailsReqBody.fullName.toRequestBody(textPlain),
                     phoneNumber = driverPersonalDetailsReqBody.phoneNumber.toRequestBody(textPlain),
-                    email = driverPersonalDetailsReqBody.email.toRequestBody(textPlain),
+//                    email = driverPersonalDetailsReqBody.email.toRequestBody(textPlain),
                     houseAddress = driverPersonalDetailsReqBody.houseAddress.toRequestBody(textPlain),
                     city = driverPersonalDetailsReqBody.city.toRequestBody(textPlain),
                     state = driverPersonalDetailsReqBody.state.toRequestBody(textPlain),
                     carOwner = driverPersonalDetailsReqBody.carOwner.toString().toRequestBody(textPlain),
-                    carCategory = driverPersonalDetailsReqBody.carCategory.toRequestBody(textPlain)
+//                    carCategory = driverPersonalDetailsReqBody.carCategory.toRequestBody(textPlain)
                 )
 
                 if (response.status == "success") {
