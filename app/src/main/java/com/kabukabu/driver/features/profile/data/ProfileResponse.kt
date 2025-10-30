@@ -17,14 +17,14 @@ data class ProfileResponse(
 @JsonClass(generateAdapter = true)
 data class ProfileData(
     @Json(name = "user")
-    val user: User?,
+    val user: User?=null,
     @Json(name = "car_details")
-    val carDetails: CarDetails?,
+    val carDetails: CarDetails?=null,
     @Json(name = "documents")
-    val documents: List<Document>?,
+    val documents: List<Document>?= emptyList(),
 
     @Json(name = "active_trip")
-    val activeTrip: ActiveTrip?
+    val activeTrip: ActiveTrip?=null
 
 )
 

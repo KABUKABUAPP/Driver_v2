@@ -1,6 +1,8 @@
 package com.kabukabu.driver.core.navigation
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -8,6 +10,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -47,7 +54,9 @@ import com.kabukabu.driver.features.wallet.presentation.PaymentHistoryScreen
 import com.kabukabu.driver.features.wallet.presentation.SharpPaymentScreen
 import com.kabukabu.driver.features.wallet.presentation.WalletScreen
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation() {
 
@@ -55,47 +64,30 @@ fun AppNavigation() {
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
     val authToken by userPreferences.authToken.collectAsState(initial = null)
-//    val coroutineScope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     val navigation = Navigator(navController)
 
-    // Check for auth token and navigate accordingly
-    LaunchedEffect(authToken) {
-        delay(250)
-        if (!authToken.isNullOrBlank() && userDetails?.user?.isOnboardingComplete == true) {
+    // Log changes whenever userDetails updates
+    LaunchedEffect(userDetails) {
+        Log.i("DataStoreDebug", "userDetails emitted: $userDetails")
+    }
 
-            // User is logged in, navigate to home screen
+    // Auth check logic
+    LaunchedEffect(authToken, userDetails) {
+        delay(400)
+
+        if (userDetails == null) {
+            navController.navigate(Screen.Login.route)
+            return@LaunchedEffect
+        }
+
+        if (!authToken.isNullOrBlank() && userDetails?.user?.isOnboardingComplete == true) {
             navController.navigate(Screen.Home.route) {
                 popUpTo(navController.graph.id) { inclusive = true }
-
-
-//
-//
-//
-//
-//            Log.d(
-//                "AppNavigation",
-//                "Auth token found: ${authToken?.take(10)}..."
-//            )
-            // Add a delay to ensure the NavHost is fully set up
-//            delay(500)
-
-
-            // User is logged in, navigate to home screen
-//            navController.navigate(Screen.Home.route) {
-//                popUpTo(navController.graph.id) { inclusive = true }
             }
+            Log.d("OnboardingNavigation", "User is Logged in ${authToken?.take(10)}...")
         } else {
-
-            println("about to nav based on 1")
             navigateBasedOnOnboardingStatus(navigation, navController, userDetails)
-//            println("about to nav based on 2")
-//
-//            delay(500)
-//            //navigate to Login because authToken is not found, and restart proccess.
-//            navController.navigate(Screen.Login.route) {
-//                popUpTo(Screen.Splash.route) { inclusive = true }
-//            }
-//            Log.d("AppNavigation", "No auth token found")
         }
     }
 
@@ -252,10 +244,10 @@ fun AppNavigation() {
         composable(Screen.KabuRideInspection.route) {
             InspectionHubsScreen(
                 onNavToHome = {
-                navController.navigate(Screen.Home.route) {
-                    popUpTo(Screen.Home.route) { inclusive = true }
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
                 }
-            }
             )
         }
 
@@ -355,14 +347,14 @@ private fun navigateBasedOnOnboardingStatus(
 ) {
     Log.d(TAG, "Checking navigation status. UserDetails: $userDetails")
 
-    // If onboarding is complete, go home immediately
-//    if (userDetails?.user?.isOnboardingComplete == true) {
-//        Log.d(TAG, "✅ Onboarding complete. Navigating to Home.")
-//        navController.navigate(Screen.Home.route) {
-//            popUpTo(navController.graph.id) { inclusive = true }
-//        }
-//        return
-//    }
+//     If onboarding is complete, go home immediately
+    if (userDetails?.user?.isOnboardingComplete == true) {
+        Log.d(TAG, "✅ Onboarding complete. Navigating to Home.")
+        navController.navigate(Screen.Home.route) {
+            popUpTo(navController.graph.id) { inclusive = true }
+        }
+        return
+    }
 
     Log.d(TAG, "Onboarding NOT complete. Checking step...")
 
@@ -384,19 +376,28 @@ private fun navigateBasedOnOnboardingStatus(
                         // 1️⃣ Either admin declined OR one of the docs was declined
                         adminApprovalStatus == ApprovalStatus.declined.name ||
                                 !areAllDocumentsApproved(userDetails.documents) -> {
-                            Log.d(TAG, "Navigating to: KabuRideAccountDeclinedScreen (Admin or Docs declined).")
+                            Log.d(
+                                TAG,
+                                "Navigating to: KabuRideAccountDeclinedScreen (Admin or Docs declined)."
+                            )
                             navigator.navToKabuRideAccountDeclinedScreen()
                         }
 
                         // 2 Admin still reviewing the driver
                         adminApprovalStatus == ApprovalStatus.pending.name -> {
-                            Log.d(TAG, "Navigating to: KabuRidePendingAccountApprovalScreen (Admin pending).")
+                            Log.d(
+                                TAG,
+                                "Navigating to: KabuRidePendingAccountApprovalScreen (Admin pending)."
+                            )
                             navigator.navToKabuRidePendingAccountApprovalScreen()
                         }
 
                         // 3️⃣ Admin has approved the driver
                         adminApprovalStatus == ApprovalStatus.approved.name -> {
-                            Log.d(TAG, "Admin status: 'approved'. Checking internal approval status...")
+                            Log.d(
+                                TAG,
+                                "Admin status: 'approved'. Checking internal approval status..."
+                            )
                             val approvalStatus = driver.approvalStatus
                             Log.d(TAG, "Internal approvalStatus: $approvalStatus")
                             when (approvalStatus) {
@@ -406,23 +407,38 @@ private fun navigateBasedOnOnboardingStatus(
                                         popUpTo(navController.graph.id) { inclusive = true }
                                     }
                                 }
+
                                 ApprovalStatus.pending.name -> {
-                                    Log.d(TAG, "Navigating to: KabuRideInspection (Internal status 'pending').")
+                                    Log.d(
+                                        TAG,
+                                        "Navigating to: KabuRideInspection (Internal status 'pending')."
+                                    )
                                     navigator.navToKabuRideInspection()
                                 }
+
                                 ApprovalStatus.declined.name -> {
-                                    Log.d(TAG, "Navigating to: KabuRideAccountDeclinedScreen (Internal status 'declined').")
+                                    Log.d(
+                                        TAG,
+                                        "Navigating to: KabuRideAccountDeclinedScreen (Internal status 'declined')."
+                                    )
                                     navigator.navToKabuRideAccountDeclinedScreen()
                                 }
+
                                 else -> {
-                                    Log.w(TAG, "Unhandled internal approvalStatus: $approvalStatus. No navigation.")
+                                    Log.w(
+                                        TAG,
+                                        "Unhandled internal approvalStatus: $approvalStatus. No navigation."
+                                    )
                                 }
                             }
                         }
 
                         // 4️⃣ Fallback (no valid status)
                         else -> {
-                            Log.d(TAG, "Navigating to: KabuRidePendingAccountApprovalScreen (Fallback status).")
+                            Log.d(
+                                TAG,
+                                "Navigating to: KabuRidePendingAccountApprovalScreen (Fallback status)."
+                            )
                             navigator.navToKabuRidePendingAccountApprovalScreen()
                         }
                     }
@@ -433,19 +449,31 @@ private fun navigateBasedOnOnboardingStatus(
                     Log.d(TAG, "KabuSharp sharpApprovalStatus: $sharpStatus")
                     when (sharpStatus) {
                         ApprovalStatus.declined.name -> {
-                            Log.d(TAG, "Navigating to: KabuRideAccountDeclinedScreen (Sharp 'declined').")
+                            Log.d(
+                                TAG,
+                                "Navigating to: KabuRideAccountDeclinedScreen (Sharp 'declined')."
+                            )
                             navigator.navToKabuRideAccountDeclinedScreen()
                         }
+
                         ApprovalStatus.pending.name -> {
-                            Log.d(TAG, "Navigating to: KabuRidePendingAccountApprovalScreen (Sharp 'pending').")
+                            Log.d(
+                                TAG,
+                                "Navigating to: KabuRidePendingAccountApprovalScreen (Sharp 'pending')."
+                            )
                             navigator.navToKabuRidePendingAccountApprovalScreen()
                         }
+
                         ApprovalStatus.approved.name -> {
                             Log.d(TAG, "Navigating to: KabuRideInspection (Sharp 'approved').")
                             navigator.navToKabuRideInspection()
                         }
+
                         else -> {
-                            Log.d(TAG, "Navigating to: KabuRidePendingAccountApprovalScreen (Sharp fallback status).")
+                            Log.d(
+                                TAG,
+                                "Navigating to: KabuRidePendingAccountApprovalScreen (Sharp fallback status)."
+                            )
                             navigator.navToKabuRidePendingAccountApprovalScreen()
                         }
                     }
@@ -459,30 +487,42 @@ private fun navigateBasedOnOnboardingStatus(
             Log.d(TAG, "Step <= 5: User is in active onboarding flow.")
             when (step) {
                 0 -> {
-                    Log.d(TAG, "Step 0: Navigating to DriverBioDataScreen.")
-                    navController.navigate(Screen.DriverBioDataScreen.route)
+                    Log.d(TAG, "Step 0: Navigating to LoginScreen.")
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.SplashScreenCover.route) { inclusive = true }
+                    }
+//                    navController.navigate(Screen.OtpVerification.route)
                 }
+
                 1 -> {
                     Log.d(TAG, "Step 1: Navigating to KabuRideTAndC.")
                     navController.navigate(Screen.KabuRideTAndC.route)
                 }
+
                 2 -> {
                     Log.d(TAG, "Step 2: Navigating to KabuRideCarDetails.")
                     navigator.navToKabuRideCarDetails()
                 }
+
                 3, 4 -> {
                     Log.d(TAG, "Step 3 or 4: Navigating to KabuRideCarDocsUpload.")
                     navigator.navToKabuRideCarDocsUpload()
                 }
+
                 5 -> {
                     Log.d(TAG, "Step 5: Navigating to KabuRideGuarantorDetailsScreen.")
                     navigator.navToKabuRideGuarantorDetailsScreen()
                 }
+
                 6 -> {
                     // This code is unreachable because of the `if (step > 5)` check above.
-                    Log.w(TAG, "⚠️ UNREACHABLE CODE: 'case 6' was hit, but should be handled by 'if (step > 5)'.")
+                    Log.w(
+                        TAG,
+                        "⚠️ UNREACHABLE CODE: 'case 6' was hit, but should be handled by 'if (step > 5)'."
+                    )
                     navigator.navToKabuRidePendingAccountApprovalScreen()
                 }
+
                 else -> {
                     Log.w(TAG, "⚠️ Unhandled step in 0-5 range: $step. No navigation triggered.")
                 }
@@ -590,9 +630,9 @@ private fun navigateBasedOnOnboardingStatus(
 //}
 
 
-
 fun areAllDocumentsApproved(documents: List<Document>?): Boolean {
-    return documents?.none { it.status.equals(ApprovalStatus.declined.name, ignoreCase = true)} ?: true
+    return documents?.none { it.status.equals(ApprovalStatus.declined.name, ignoreCase = true) }
+        ?: true
 }
 
 enum class ApprovalStatus {

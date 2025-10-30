@@ -129,7 +129,7 @@ fun OtpVerificationScreen(
         Log.d("OtpVerificationScreen", "UI State changed: $uiState")
         when (uiState) {
             is OtpUiState.Success -> {
-                Log.d("OtpVerificationScreen", "Success state detected, navigating to home")
+                Log.d("OtpVerificationScreen", "OTP Verification successful")
 //                Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
 
                 // Add a delay before navigation to ensure token is saved

@@ -103,9 +103,7 @@ fun KabuRideCarDetailsScreen(
 
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
-        authViewModel.fetchCarBrands()
-    }
+
 
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
@@ -183,7 +181,6 @@ fun KabuRideCarDetailsScreen(
             }
         )
     }
-
 
     LaunchedEffect(uploadCarDetailsUiState) {
         when (uploadCarDetailsUiState) {

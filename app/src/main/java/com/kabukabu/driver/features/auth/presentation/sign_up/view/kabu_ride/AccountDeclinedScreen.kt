@@ -36,6 +36,8 @@ import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import com.kabukabu.driver.features.profile.data.Document
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.firstOrNull
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -63,15 +65,42 @@ fun KabuRideAccountDeclinedScreen(
         ?: emptyList()
 
     //listen to state update and nav to screens if status had been changed.
+//    LaunchedEffect(userDetails) {
+//        while (true) {
+//            driverViewModel.fetchUserProfile()
+//            noDeclinedDocs.forEach { document ->
+//                when (document.status) {
+//                    "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
+//                    "PENDING" -> navigator.navToKabuRidePendingAccountApprovalScreen()
+//                    else -> navigator.navToKabuRideInspection()
+//                }
+//            }
+//            delay(3000)
+//        }
+//    }
+
+
     LaunchedEffect(Unit) {
-        noDeclinedDocs.forEach { document ->
-            when (document.status) {
-                "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
-                "PENDING" -> navigator.navToKabuRidePendingAccountApprovalScreen()
-                else -> navigator.navToKabuRideInspection()
+        while (true) {
+            driverViewModel.fetchUserProfile()
+            val currentUserDetails = userPreferences.userDetails.firstOrNull()
+
+            val noDeclinedDocs = currentUserDetails?.documents
+                ?.filter { it.status != "DECLINED" }
+                ?: emptyList()
+
+            noDeclinedDocs.forEach { document ->
+                when (document.status) {
+                    "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
+                    "PENDING" -> navigator.navToKabuRidePendingAccountApprovalScreen()
+                    else -> navigator.navToKabuRideInspection()
+                }
             }
+
+            delay(3000)
         }
     }
+
 
 
     Scaffold { paddingValues ->
@@ -131,7 +160,7 @@ private fun DeclinedDocs(
 
     ) {
 
-    LazyColumn (
+    LazyColumn(
         modifier = Modifier.fillMaxWidth()
     ) {
         itemsIndexed(declinedTitles) { index, data ->

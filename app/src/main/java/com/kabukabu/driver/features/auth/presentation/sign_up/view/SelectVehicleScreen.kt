@@ -99,6 +99,23 @@ fun SelectVehicleScreen(
         }
     }
 
+    LaunchedEffect(driverUiState) {
+        when (driverUiState) {
+            is OnboardDriverPersonalDetailsUiState.Success -> {
+                context.displayToastMessage(driverUiState.response.message)
+                authViewModel.resetState()
+                onNavToTermsAndCondition()
+            }
+
+            is OnboardDriverPersonalDetailsUiState.Error -> {
+                context.displayToastMessage(driverUiState.message)
+                authViewModel.resetState()
+            }
+
+            else -> {}
+        }
+    }
+
     Scaffold(
         bottomBar = {
             KabuBottomButton(
@@ -110,6 +127,9 @@ fun SelectVehicleScreen(
                     if (hasVehicle == null) {
                         context.displayToastMessage("No selection made")
                         return@KabuBottomButton
+                    } else if (selectedCar == null) {
+                        context.displayToastMessage("Vehicle type not selected")
+                        return@KabuBottomButton
                     }
 
                     val driverBiodata = DriverDetailsReqBody(
@@ -119,7 +139,7 @@ fun SelectVehicleScreen(
                         houseAddress = currentUserDetails?.houseAddress ?: "",
                         city = currentUserDetails?.city ?: "",
                         state = currentUserDetails?.state ?: "",
-                        carOwner = hasVehicle,
+                        carOwner = selectedCar,
 //                        carCategory = currentUserDetails?.carCategory ?: "REGULAR"
                     )
 

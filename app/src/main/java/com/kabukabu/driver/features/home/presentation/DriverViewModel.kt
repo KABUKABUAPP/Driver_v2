@@ -87,6 +87,7 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
 
                         _userDetails.value = userDetails
                         userPreferences.saveUserDetails(userDetails)
+                        Log.d("DriverViewModel, Datastore", "user details saved to datastore: $userDetails")
 
                         userPreferences.saveFullName(userDetails?.user?.fullName ?: "")
                         Log.d("DriverViewModel", "User profile updated: ${_userProfile.value}")
