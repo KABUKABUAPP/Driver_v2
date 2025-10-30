@@ -36,7 +36,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,7 +46,6 @@ import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.AnnotatedTextfieldTitle
 import com.kabukabu.driver.components.ui.CameraXCaptureImage
 import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
-import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.GrayBackgroundContainer
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
@@ -55,7 +53,6 @@ import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.utils_functions.convertUriToFile
-import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
@@ -340,7 +337,9 @@ fun KabuRideCarDocumentsUploadScreen(
                     KabuTransparentBottomButtonRowScope(
                         "Previous",
                         icon = R.drawable.arrow_left,
-                        onClick = { navigation.navigateUp() }
+                        onClick = {
+//                            navigation.navigateUp()
+                        }
                     )
 
                     KabuBottomButtonRowScope(

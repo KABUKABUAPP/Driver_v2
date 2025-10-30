@@ -1,13 +1,11 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import android.net.Uri
-import android.os.Build
 import android.util.Patterns
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -80,7 +78,6 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthView
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadGuarantorDetailsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
-import java.util.regex.Pattern
 
 
 @Composable
@@ -315,7 +312,9 @@ fun KabuRideGuarantorDetail(
                 KabuTransparentBottomButtonRowScope(
                     "Previous",
                     icon = R.drawable.arrow_left,
-                    onClick = { navigator.navigateUp() }
+                    onClick = {
+//                        navigator.navigateUp()
+                    }
                 )
 
                 KabuBottomButtonRowScope(

@@ -1,9 +1,7 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import android.net.Uri
-import android.os.Build
 import androidx.activity.compose.BackHandler
-import androidx.annotation.RequiresApi
 import androidx.camera.core.CameraSelector
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -66,7 +64,7 @@ fun KabuRideSelfieVerificationScreen(
     var launchCamera by remember { mutableStateOf(false) }
 
 
-    BackHandler() {
+    BackHandler {
         if (launchCamera) {
             launchCamera = false
         }
