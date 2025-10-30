@@ -83,6 +83,7 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthView
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDetailsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
@@ -149,6 +150,7 @@ fun KabuRideCarDetailsScreen(
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
 
+    val coroutineScope = rememberCoroutineScope()
 
     if (showCarBrandModalSheet) {
         SelectCarBrandSheet(
@@ -182,6 +184,10 @@ fun KabuRideCarDetailsScreen(
         )
     }
 
+    LaunchedEffect(Unit) {
+        driverViewModel.fetchUserProfile()
+    }
+
     LaunchedEffect(uploadCarDetailsUiState) {
         when (uploadCarDetailsUiState) {
             is UploadCarDetailsUiState.Success -> {
@@ -207,7 +213,9 @@ fun KabuRideCarDetailsScreen(
 
     LaunchedEffect(imageSource) {
         if (imageSource == "Take a Picture" || imageSource == "Choose from Gallery") {
+            coroutineScope.launch(Dispatchers.Main) {
             launchCamera = true
+            }
         }
     }
 

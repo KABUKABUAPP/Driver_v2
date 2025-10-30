@@ -113,6 +113,10 @@ fun KabuRideCarDocumentsUploadScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        driverViewModel.fetchUserProfile()
+    }
+
     LaunchedEffect(uploadCarDocsUiState) {
         when (uploadCarDocsUiState) {
 

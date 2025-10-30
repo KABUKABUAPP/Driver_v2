@@ -79,9 +79,9 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
 
 
     init {
-        fetchCarBrands()
-        fetchHubs("Lagos")
-        fetchVideoClips()
+//        fetchCarBrands()
+//        fetchHubs("Lagos")
+//        fetchVideoClips()
     }
 
     fun setUploadUserDetailsReqBody(driverDetailsReqBody: DriverDetailsReqBody) {

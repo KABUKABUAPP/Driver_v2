@@ -72,6 +72,10 @@ fun KabuRideSelfieVerificationScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        driverViewModel.fetchUserProfile()
+    }
+
     LaunchedEffect(uiState) {
         when (uiState) {
             is EditDriverProfileUiState.Success -> {

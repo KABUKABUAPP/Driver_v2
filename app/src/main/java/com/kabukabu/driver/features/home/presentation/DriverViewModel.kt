@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import android.util.Log
 import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.features.profile.data.ProfileData
+import kotlinx.coroutines.Dispatchers
 
 class DriverViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -44,7 +45,7 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
         // Fetch early so UI like the drawer can consume cached state immediately
         fetchUserProfile()
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             userPreferences.userDetails.collect {
                 Log.i("DataStoreDebug", "userDetails emitted: $it")
             }
@@ -53,7 +54,7 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun fetchUserProfile() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
                 Log.e("DriverViewModel", "Cannot fetch profile, token is missing.")
@@ -102,7 +103,7 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun updateOnlineStatus(isOnline: Boolean) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             val userId = userPreferences.userId.firstOrNull()
 
