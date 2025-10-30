@@ -1,9 +1,5 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
-import android.annotation.SuppressLint
-import android.os.Build
-import android.util.Patterns
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -14,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -92,7 +89,6 @@ fun DriverBioDataScreen(
     val houseAddressError = remember { mutableStateOf("") }
     val cityError = remember { mutableStateOf("") }
     val stateError = remember { mutableStateOf("") }
-    val carCategoryError = remember { mutableStateOf("") }
 
     if (showStateSheet) {
         SelectStateSheet(
@@ -389,6 +385,8 @@ internal fun SelectStateSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .imePadding()
+                .navigationBarsPadding()
                 .padding(vertical = 8.dp, horizontal = 16.dp)
         ) {
 

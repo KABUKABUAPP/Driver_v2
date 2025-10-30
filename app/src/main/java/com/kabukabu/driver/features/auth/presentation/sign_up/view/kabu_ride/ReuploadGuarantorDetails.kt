@@ -30,8 +30,6 @@ import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.GrayBackgroundContainer
 import com.kabukabu.driver.components.ui.KabuBottomButton
-import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
-import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
 import com.kabukabu.driver.components.ui.RowScopeFormTextfield
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
@@ -258,7 +256,7 @@ fun ReuploadGuarantorDetail(
 
             KabuBottomButton(
                 text = "Submit",
-                isLoading = reuploadGuarantorDetailsUiState == UploadGuarantorDetailsUiState.Loading,
+                isLoading = reuploadGuarantorDetailsUiState == ReUploadGuarantorDetailsUiState.Loading,
                 onClick = {
                     if (guarantorImageUri?.path.isNullOrEmpty()) {
                         context.displayToastMessage("Upload your Guarantor's image")

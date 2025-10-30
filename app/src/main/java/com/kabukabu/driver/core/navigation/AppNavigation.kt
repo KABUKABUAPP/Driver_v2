@@ -10,11 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -384,6 +380,14 @@ private fun navigateBasedOnOnboardingStatus(
                                 "Navigating to: KabuRideAccountDeclinedScreen (Admin or Docs declined)."
                             )
                             navigator.navToKabuRideAccountDeclinedScreen()
+                        }
+
+                        userDetails.user.guarantorStatus?.lowercase() == ApprovalStatus.declined.name -> {
+                            Log.d(
+                                TAG,
+                                "Navigating to: Reupload Guarantor details screen"
+                            )
+                            navigator.navToKabuRideReuploadGuarantorDetails()
                         }
 
                         // 2 Admin still reviewing the driver
