@@ -271,7 +271,7 @@ fun DriverBioDataScreen(
 }
 
 
-private fun validateFullName(
+internal fun validateFullName(
     fullName: String,
     fullNameError: MutableState<String>,
 ): Boolean {

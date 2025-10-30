@@ -185,6 +185,7 @@ fun KabuRideCarDetailsScreen(
     }
 
     LaunchedEffect(Unit) {
+        authViewModel.fetchCarBrands()
         driverViewModel.fetchUserProfile()
     }
 

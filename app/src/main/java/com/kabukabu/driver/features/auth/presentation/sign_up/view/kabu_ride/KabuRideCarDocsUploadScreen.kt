@@ -117,6 +117,13 @@ fun KabuRideCarDocumentsUploadScreen(
         driverViewModel.fetchUserProfile()
     }
 
+    LaunchedEffect(userDetails) {
+        when (userDetails?.user?.onboardingStep) {
+            5 -> navigation.navToKabuRideGuarantorDetailsScreen()
+            6 -> navigation.navToKabuRidePendingAccountApprovalScreen()
+        }
+    }
+    
     LaunchedEffect(uploadCarDocsUiState) {
         when (uploadCarDocsUiState) {
 
@@ -135,12 +142,6 @@ fun KabuRideCarDocumentsUploadScreen(
         }
     }
 
-    LaunchedEffect(userDetails) {
-        when (userDetails?.user?.onboardingStep) {
-            5 -> navigation.navToKabuRideGuarantorDetailsScreen()
-            6 -> navigation.navToKabuRidePendingAccountApprovalScreen()
-        }
-    }
 
     Scaffold { paddingValues ->
         if (launchCamera) {

@@ -48,16 +48,17 @@ class LocalDataSource {
     )
 
     val guarantorRelationship = listOf(
-        "FATHER",
-        "MOTHER",
-        "BROTHER",
-        "SISTER",
-        "SPOUSE",
-        "FRIEND",
-        "UNCLE",
-        "AUNT",
-        "COLLEAGUE"
+        "Father",
+        "Mother",
+        "Brother",
+        "Sister",
+        "Spouse",
+        "Friend",
+        "Uncle",
+        "Aunt",
+        "Colleague"
     )
+
 
 
     val carColours = listOf(

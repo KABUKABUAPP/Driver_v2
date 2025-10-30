@@ -75,6 +75,7 @@ import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.req_body.UploadGuarantorDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectStateSheet
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.validateFullName
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadGuarantorDetailsUiState
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
@@ -145,7 +146,15 @@ fun KabuRideGuarantorDetail(
         )
     }
 
+    LaunchedEffect(Unit) {
+        driverViewModel.fetchUserProfile()
+    }
 
+    LaunchedEffect(userDetails) {
+        if (userDetails?.user?.onboardingStep == 6) {
+        navigator.navToKabuRidePendingAccountApprovalScreen()
+        }
+    }
 
     LaunchedEffect(uploadGuarantorDetailsUiState) {
         when (uploadGuarantorDetailsUiState) {
@@ -164,11 +173,6 @@ fun KabuRideGuarantorDetail(
         }
     }
 
-    LaunchedEffect(userDetails) {
-        if (userDetails?.user?.onboardingStep == 6) {
-        navigator.navToKabuRidePendingAccountApprovalScreen()
-        }
-    }
 
     Scaffold { paddingValues ->
         Column(
@@ -209,7 +213,15 @@ fun KabuRideGuarantorDetail(
                     value = fullName,
                     hintText = "John Doe",
                     onTextChanged = { newText ->
-                        fullName = newText
+                        val isValid = validateFullName(
+                            newText,
+                            fullNameError
+                        )
+                        if (isValid) {
+                            fullName = newText
+                        } else {
+                            return@FormTextfield
+                        }
                     },
                     validationError = fullNameError.value.isNotEmpty(),
                     validationErrorMessage = fullNameError.value

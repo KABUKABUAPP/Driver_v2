@@ -2,6 +2,7 @@ package com.kabukabu.driver.features.auth.data.entity.response
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+
 @JsonClass(generateAdapter = true)
 data class UploadCarDocsResponse(
     @Json(name = "status") val status: String,
@@ -47,7 +48,7 @@ data class User(
     @Json(name = "updated_at") val updatedAt: String,
     @Json(name = "__v") val v: Int,
     @Json(name = "accessTokens") val accessTokens: String,
-    @Json(name = "type_of_car") val typeOfCar: String,
+//    @Json(name = "type_of_car") val typeOfCar: String,
     @Json(name = "driver") val driver: Driver
 )
 
