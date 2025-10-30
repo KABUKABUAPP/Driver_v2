@@ -69,6 +69,10 @@ fun InspectionHubsScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        authViewModel.fetchHubs()
+        driverViewModel.fetchUserProfile()
+    }
 
     Scaffold { paddingValues ->
         Column(

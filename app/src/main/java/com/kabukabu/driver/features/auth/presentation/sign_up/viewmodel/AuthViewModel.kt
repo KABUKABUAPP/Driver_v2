@@ -155,7 +155,7 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
         }
     }
 
-    fun fetchHubs(state: String) {
+    fun fetchHubs(state: String = "Lagos") {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = HubApiClient.hubService.fetchHubs(state)

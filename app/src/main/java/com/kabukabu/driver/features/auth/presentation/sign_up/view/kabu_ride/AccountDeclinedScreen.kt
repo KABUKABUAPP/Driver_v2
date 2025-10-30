@@ -20,6 +20,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,6 +56,7 @@ fun KabuRideAccountDeclinedScreen(
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
+    var showAccountApprovedModal by rememberSaveable { mutableStateOf(false) }
 
     //disables back button
     BackHandler(enabled = true) {}
@@ -82,26 +87,38 @@ fun KabuRideAccountDeclinedScreen(
 
     LaunchedEffect(Unit) {
         while (true) {
+
             driverViewModel.fetchUserProfile()
-            val currentUserDetails = userPreferences.userDetails.firstOrNull()
 
-            val noDeclinedDocs = currentUserDetails?.documents
-                ?.filter { it.status != "DECLINED" }
-                ?: emptyList()
+            val documents = userDetails?.documents ?: emptyList()
 
-            noDeclinedDocs.forEach { document ->
-                when (document.status) {
-                    "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
-                    "PENDING" -> navigator.navToKabuRidePendingAccountApprovalScreen()
-                    else -> navigator.navToKabuRideInspection()
-                }
+//            // 1️⃣ If any document is DECLINED → go to Declined screen
+//            if (documents.any { it.status == "DECLINED" }) {
+//                return@LaunchedEffect
+//            }
+
+            // 2️⃣ If all documents are APPROVED → show approved modal
+            if (documents.isNotEmpty() && documents.all { it.status == "APPROVED" }) {
+                showAccountApprovedModal = true
+                return@LaunchedEffect
+            }
+
+            // 3️⃣ Otherwise (no declined, not all approved → must have some pending)
+            if (documents.any { it.status == "PENDING" }) {
+                navigator.navToKabuRidePendingAccountApprovalScreen()
             }
 
             delay(3000)
         }
     }
 
-
+    if (showAccountApprovedModal) {
+        AccountApprovedModal(
+            onClick = {
+                navigator.navToKabuRideInspection()
+            }
+        )
+    }
 
     Scaffold { paddingValues ->
         Column(

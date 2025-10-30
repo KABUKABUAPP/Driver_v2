@@ -40,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,33 +94,47 @@ fun KabuRidePendingAccountApprovalScreen(
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
     val listOfClips = dataPersistenceViewModel.videoClips.collectAsState().value
-    var showAccountApprovedModal by remember { mutableStateOf(false) }
+    var showAccountApprovedModal by rememberSaveable { mutableStateOf(false) }
 
     BackHandler(enabled = true) {}
 
-    val declinedDocuments = userDetails?.documents
-        ?.filter { it.status == "DECLINED" }
-        ?: emptyList()
 
-    //listen to state update and nav to Declined screen if status had been changed.
+
+
     LaunchedEffect(Unit) {
+        authViewModel.fetchVideoClips()
+//        driverViewModel.fetchUserProfile()
+    }
+
+
+    //listen to state update and nav if status changed.
+    LaunchedEffect(Unit) {
+        var time = 1
         while (true) {
             driverViewModel.fetchUserProfile()
-            declinedDocuments.forEach { document ->
-                when (document.status) {
-                    "DECLINED" -> {
-                        navigator.navToKabuRideAccountDeclinedScreen()
-                        return@LaunchedEffect // stop further checks if navigated away
-                    }
-                    "APPROVED" -> {
-                        delay(500)
-                        showAccountApprovedModal = true
-                    }
-                }
+
+            val documents = userDetails?.documents ?: emptyList()
+
+            // If any document is DECLINED → navigate immediately
+            if (documents.any { it.status == "DECLINED" }) {
+                navigator.navToKabuRideAccountDeclinedScreen()
+                return@LaunchedEffect
             }
-            delay(3000)
+
+            // If all documents are APPROVED → show modal
+            if (documents.isNotEmpty() && documents.all { it.status == "APPROVED" }) {
+                delay(500)
+                showAccountApprovedModal = true
+                return@LaunchedEffect
+            }
+
+            println("called endpoint $time")
+            time++
+            delay(5000)
         }
     }
+
+
 
     if (showAccountApprovedModal) {
         AccountApprovedModal(
@@ -178,7 +193,7 @@ fun KabuRidePendingAccountApprovalScreen(
 //@PreviewParameter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AccountApprovedModal(
+internal fun AccountApprovedModal(
     onClick: () -> Unit,
 ) {
 
