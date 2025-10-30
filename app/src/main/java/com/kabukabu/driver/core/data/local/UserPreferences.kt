@@ -134,19 +134,15 @@ class UserPreferences(private val context: Context) {
     }
 
 
-    suspend fun getUserDetails(): ProfileData? {
-        val json = context.dataStore.data
-            .map { preferences -> preferences[USER_DETAILS] }
-            .firstOrNull()
-
-        return json?.let {
-            Gson().fromJson(it, ProfileData::class.java)
-        }
-    }
-
     val userDetails: Flow<ProfileData?> = context.dataStore.data.map { preferences ->
         preferences[USER_DETAILS]?.let { json ->
             Gson().fromJson(json, ProfileData::class.java)
+        }
+    }
+
+    suspend fun clearUserDetails() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(USER_DETAILS)
         }
     }
 

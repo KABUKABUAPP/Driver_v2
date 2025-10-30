@@ -258,6 +258,9 @@ fun AppNavigation() {
             Log.d("AppNavigation", "Home screen composable called")
             HomeScreen(
                 onLogout = {
+                    coroutineScope.launch {
+                        userPreferences.clearUserDetails()
+                    }
                     Log.d("AppNavigation", "Logout triggered, navigating to login")
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }

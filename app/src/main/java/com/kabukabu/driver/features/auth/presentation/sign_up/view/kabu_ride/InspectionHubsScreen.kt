@@ -36,9 +36,11 @@ import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
+import com.kabukabu.driver.core.navigation.ApprovalStatus
 import com.kabukabu.driver.features.auth.data.entity.response.InspectionHub
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -63,11 +65,21 @@ fun InspectionHubsScreen(
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
     val inspectionCode = userDetails?.user?.driver?.inspectionCode
 
-    LaunchedEffect(userDetails?.user?.isOnboardingComplete) {
-        if (userDetails?.user?.isOnboardingComplete == true) {
-            onNavToHome()
+
+    LaunchedEffect(Unit) {
+        while (true) {
+
+            driverViewModel.fetchUserProfile()
+
+            if (userDetails?.user?.isOnboardingComplete == true) {
+                onNavToHome()
+            }
+
+            delay(5000)
         }
     }
+
+
 
     LaunchedEffect(Unit) {
         authViewModel.fetchHubs()
@@ -187,8 +199,10 @@ private fun InspectionHubsListItem(hubData: InspectionHub) {
 @Composable
 private fun HubInspectionLazyRowItem(text: String?, icon: Int) {
     Row(
-        modifier = Modifier.padding(bottom = 6.dp, start =
-        12.dp, end = 12.dp),
+        modifier = Modifier.padding(
+            bottom = 6.dp, start =
+                12.dp, end = 12.dp
+        ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {

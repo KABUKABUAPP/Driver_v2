@@ -91,7 +91,7 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
                         Log.d("DriverViewModel, Datastore", "user details saved to datastore: $userDetails")
 
                         userPreferences.saveFullName(userDetails?.user?.fullName ?: "")
-                        Log.d("DriverViewModel", "User profile updated: ${_userProfile.value}")
+//                        Log.d("DriverViewModel", "User profile updated: ${_userProfile.value}")
                     }
                 } else {
                     Log.e("DriverViewModel", "Failed to fetch profile: ${profileResponse.errorBody()?.string()}")
