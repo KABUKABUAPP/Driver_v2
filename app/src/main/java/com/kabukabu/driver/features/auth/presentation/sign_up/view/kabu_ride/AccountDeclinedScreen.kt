@@ -36,6 +36,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.TitleText
+import com.kabukabu.driver.core.navigation.ApprovalStatus
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
@@ -69,21 +70,6 @@ fun KabuRideAccountDeclinedScreen(
         ?.filter { it.status != "DECLINED" }
         ?: emptyList()
 
-    //listen to state update and nav to screens if status had been changed.
-//    LaunchedEffect(userDetails) {
-//        while (true) {
-//            driverViewModel.fetchUserProfile()
-//            noDeclinedDocs.forEach { document ->
-//                when (document.status) {
-//                    "DECLINED" -> navigator.navToKabuRideAccountDeclinedScreen()
-//                    "PENDING" -> navigator.navToKabuRidePendingAccountApprovalScreen()
-//                    else -> navigator.navToKabuRideInspection()
-//                }
-//            }
-//            delay(3000)
-//        }
-//    }
-
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -92,23 +78,31 @@ fun KabuRideAccountDeclinedScreen(
 
             val documents = userDetails?.documents ?: emptyList()
 
-//            // 1️⃣ If any document is DECLINED → go to Declined screen
-//            if (documents.any { it.status == "DECLINED" }) {
-//                return@LaunchedEffect
-//            }
+            // 1️⃣ If any document is DECLINED → go to Declined screen
+            if (documents.any { it.status == "DECLINED" }) {
+                delay(3000)
+                return@LaunchedEffect
+            }
 
             // 2️⃣ If all documents are APPROVED → show approved modal
-            if (documents.isNotEmpty() && documents.all { it.status == "APPROVED" }) {
-                showAccountApprovedModal = true
+            if (documents.any { it.status == "PENDING" }) {
+                navigator.navToKabuRidePendingAccountApprovalScreen()
                 return@LaunchedEffect
             }
 
             // 3️⃣ Otherwise (no declined, not all approved → must have some pending)
-            if (documents.any { it.status == "PENDING" }) {
-                navigator.navToKabuRidePendingAccountApprovalScreen()
+            if (userDetails?.user?.driver?.adminApproval == ApprovalStatus.approved.name) {
+                showAccountApprovedModal = true
+                return@LaunchedEffect
             }
 
-            delay(3000)
+            if (userDetails?.user?.guarantorStatus?.lowercase() == ApprovalStatus.declined.name) {
+                navigator.navToKabuRideReuploadGuarantorDetails()
+                return@LaunchedEffect
+            }
+
+
+            delay(5000)
         }
     }
 

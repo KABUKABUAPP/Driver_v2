@@ -29,6 +29,7 @@ import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
 import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.GrayBackgroundContainer
+import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuBottomButtonRowScope
 import com.kabukabu.driver.components.ui.KabuTransparentBottomButtonRowScope
 import com.kabukabu.driver.components.ui.RowScopeFormTextfield
@@ -38,6 +39,7 @@ import com.kabukabu.driver.components.utils_functions.convertUriToFile
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.req_body.ReUploadGuarantorDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectStateSheet
+import com.kabukabu.driver.features.auth.presentation.sign_up.view.validateFullName
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.ReUploadGuarantorDetailsUiState
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadGuarantorDetailsUiState
@@ -139,7 +141,7 @@ fun ReuploadGuarantorDetail(
 
             ScreenTitleText(
                 title = "Guarantor Details",
-                subtitle = "Tell us about your guarantors",
+                subtitle = "Reupload your guarantors details",
                 bottomPadding = 16,
                 modifier = Modifier.clickable{
 
@@ -150,14 +152,25 @@ fun ReuploadGuarantorDetail(
 
                 ProfileCard(
                     selectedImageUri = guarantorImageUri,
-                    onImageSelected = { guarantorImageUri = it }
+                    onImageSelected = { guarantorImageUri = it },
+                    modifier = Modifier.padding(6.dp)
                 )
 
                 FormTextfield(
                     title = "Full Name",
                     value = fullName,
                     hintText = "John Doe",
-                    onTextChanged = { fullName = it },
+                    onTextChanged = { newText ->
+                        val isValid = validateFullName(
+                            newText,
+                            fullNameError
+                        )
+                        if (isValid) {
+                            fullName = newText
+                        } else {
+                            return@FormTextfield
+                        }
+                    },
                     validationError = fullNameError.value.isNotEmpty(),
                     validationErrorMessage = fullNameError.value
                 )
@@ -186,12 +199,13 @@ fun ReuploadGuarantorDetail(
                     title = "Phone number",
                     value = phoneNumber,
                     hintText = "Phone number",
-                    onTextChanged = {
-//                        if (phoneNumber.length <= 11) {
-                        phoneNumber = it
-//                        }
+                    keyboardType = "phone number",
+                    onTextChanged = { newText ->
+                        val filtered = newText.filter { it.isDigit() }
+                        if (filtered.length <= 11) {
+                            phoneNumber = filtered
+                        }
                     },
-                    keyboardType = "number",
                     validationError = phoneNumberError.value.isNotEmpty(),
                     validationErrorMessage = phoneNumberError.value
                 )
@@ -207,7 +221,7 @@ fun ReuploadGuarantorDetail(
 
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    horizontalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     RowScopeFormTextfield(
                         title = "City",
@@ -231,71 +245,57 @@ fun ReuploadGuarantorDetail(
                     )
                 }
 
-                FormTextfield(
-                    title = "Referral Code (Optional)",
-                    value = referralCode,
-                    hintText = "Code here",
-                    isCompulsory = false,
-                    onTextChanged = { referralCode = it },
-                )
+//                FormTextfield(
+//                    title = "Referral Code (Optional)",
+//                    value = referralCode,
+//                    hintText = "Code here",
+//                    isCompulsory = false,
+//                    onTextChanged = { referralCode = it },
+//                )
 
             }
 
-            Row(
-                modifier = Modifier.padding(top = 30.dp),
-                horizontalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
 
-                KabuTransparentBottomButtonRowScope(
-                    "Previous",
-                    icon = R.drawable.arrow_left,
-                    onClick = { navigator.navigateUp() }
-                )
-
-                KabuBottomButtonRowScope(
-                    "Submit",
-                    icon = R.drawable.arrow_right,
-                    isLoading = reuploadGuarantorDetailsUiState == UploadGuarantorDetailsUiState.Loading,
-                    onClick = {
-//                        navigator.navToKabuRidePendingAccountApprovalScreen()
-                        if (guarantorImageUri?.path.isNullOrEmpty()) {
-                            context.displayToastMessage("Upload your Guarantor's image")
-                            return@KabuBottomButtonRowScope
-                        }
-                        isInputValidated.value = validateGuarantorDetails(
-                            fullName = fullName,
-                            phoneNumber = phoneNumber,
-                            email = email,
-                            houseAddress = houseAddress,
-                            relationship = guarantorRelationship,
-                            city = city,
-                            state = state,
-                            fullNameError = fullNameError,
-                            phoneNumberError = phoneNumberError,
-                            emailError = emailError,
-                            houseAddressError = houseAddressError,
-                            cityError = cityError,
-                            stateError = stateError,
-                            relationshipError = relationshipError
-                        )
-                        if (isInputValidated.value) {
-                            val uploadGuarantorDetailsReqBody = ReUploadGuarantorDetailsReqBody(
-                                guarantorImage = convertUriToFile(context, guarantorImageUri),
-                                guarantorFullName = fullName,
-                                guarantorRelationship = guarantorRelationship,
-                                guarantorHouseAddress = houseAddress,
-                                guarantorCity = city,
-                                guarantorState = state,
-                                guarantorPhoneNumber = phoneNumber,
-                                guarantorEmail = email,
-                            )
-                            authViewModel.reUploadGuarantorDetails(uploadGuarantorDetailsReqBody)
-                        }
-
-
+            KabuBottomButton(
+                text = "Submit",
+                isLoading = reuploadGuarantorDetailsUiState == UploadGuarantorDetailsUiState.Loading,
+                onClick = {
+                    if (guarantorImageUri?.path.isNullOrEmpty()) {
+                        context.displayToastMessage("Upload your Guarantor's image")
+                        return@KabuBottomButton
                     }
-                )
-            }
+                    isInputValidated.value = validateGuarantorDetails(
+                        fullName = fullName,
+                        phoneNumber = phoneNumber,
+                        email = email,
+                        houseAddress = houseAddress,
+                        relationship = guarantorRelationship,
+                        city = city,
+                        state = state,
+                        fullNameError = fullNameError,
+                        phoneNumberError = phoneNumberError,
+                        emailError = emailError,
+                        houseAddressError = houseAddressError,
+                        cityError = cityError,
+                        stateError = stateError,
+                        relationshipError = relationshipError
+                    )
+                    if (isInputValidated.value) {
+                        val uploadGuarantorDetailsReqBody = ReUploadGuarantorDetailsReqBody(
+                            guarantorImage = convertUriToFile(context, guarantorImageUri),
+                            guarantorFullName = fullName,
+                            guarantorRelationship = guarantorRelationship,
+                            guarantorHouseAddress = houseAddress,
+                            guarantorCity = city,
+                            guarantorState = state,
+                            guarantorPhoneNumber = phoneNumber,
+                            guarantorEmail = email,
+                        )
+                        authViewModel.reUploadGuarantorDetails(uploadGuarantorDetailsReqBody)
+                    }
+
+                }
+            )
 
         }
 

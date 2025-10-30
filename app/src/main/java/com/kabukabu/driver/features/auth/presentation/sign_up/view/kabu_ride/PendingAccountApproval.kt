@@ -44,6 +44,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
@@ -74,23 +75,20 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthView
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.core.net.toUri
+import com.kabukabu.driver.core.navigation.ApprovalStatus
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
 
 @Composable
 fun KabuRidePendingAccountApprovalScreen(
     navigator: Navigator
 ) {
-
     val context = LocalContext.current
-    // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
     val dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
     val authViewModel: AuthViewModel = koinViewModel()
-    val coroutineScope = rememberCoroutineScope()
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
     val listOfClips = dataPersistenceViewModel.videoClips.collectAsState().value
@@ -98,16 +96,12 @@ fun KabuRidePendingAccountApprovalScreen(
 
     BackHandler(enabled = true) {}
 
-
-
-
     LaunchedEffect(Unit) {
         authViewModel.fetchVideoClips()
-//        driverViewModel.fetchUserProfile()
     }
 
+    // Uncomment this block if you want to re-enable the periodic profile checks later.
 
-    //listen to state update and nav if status changed.
     LaunchedEffect(Unit) {
         var time = 1
         while (true) {
@@ -115,25 +109,31 @@ fun KabuRidePendingAccountApprovalScreen(
 
             val documents = userDetails?.documents ?: emptyList()
 
-            // If any document is DECLINED → navigate immediately
             if (documents.any { it.status == "DECLINED" }) {
                 navigator.navToKabuRideAccountDeclinedScreen()
                 return@LaunchedEffect
             }
 
-            // If all documents are APPROVED → show modal
-            if (documents.isNotEmpty() && documents.all { it.status == "APPROVED" }) {
-                delay(500)
+            if (userDetails?.user?.guarantorStatus?.lowercase() == ApprovalStatus.declined.name) {
+                navigator.navToKabuRideReuploadGuarantorDetails()
+                return@LaunchedEffect
+            }
+
+            if (userDetails?.user?.driver?.adminApproval?.lowercase() == ApprovalStatus.approved.name) {
                 showAccountApprovedModal = true
                 return@LaunchedEffect
             }
+//            if (documents.isNotEmpty() && documents.all { it.status == "APPROVED" }) {
+//                delay(500)
+//                showAccountApprovedModal = true
+//                return@LaunchedEffect
+//            }
 
             println("called endpoint $time")
             time++
             delay(5000)
         }
     }
-
 
 
     if (showAccountApprovedModal) {
@@ -144,51 +144,53 @@ fun KabuRidePendingAccountApprovalScreen(
         )
     }
 
-
-    val bgModifier = Modifier
-        .paint(
-            painter = painterResource(id = R.drawable.map_bg),
-            alpha = 0.1f,
-            contentScale = ContentScale.FillWidth
-        )
-        .fillMaxWidth()
-
     Scaffold { paddingValues ->
-        Column(
-            modifier = bgModifier
+        Box(
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-//                .verticalScroll(rememberScrollState())
         ) {
-            Column {
-                TitleText(
-                    text = "Your account is pending \napproval",
-                    fontSize = 25,
-                    fontWeight = FontWeight.W500,
-                    bottomPadding = 12,
-                    topPadding = 24,
-                    modifier = Modifier.clickable {
-                        val declinedDocuments = userDetails?.documents
-                        println("douments status.......$declinedDocuments")
-                    }
-                )
+            GIFImage(
+                gifImage = R.drawable.splash, // your GIF file (splash.gif)
+                modifier = Modifier
+                    .matchParentSize()
+                    .alpha(0.3f) // transparency to keep focus on content
+            )
 
-                TitleText(
-                    text = "We are doing background check. We will notify you immediately afterwards",
-                    bottomPadding = 16,
-                    topPadding = 8,
-                    fontWeight = FontWeight.W500
-                )
+            // ✅ Foreground content
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    TitleText(
+                        text = "Your account is pending \napproval",
+                        fontSize = 25,
+                        fontWeight = FontWeight.W500,
+                        bottomPadding = 12,
+                        topPadding = 24,
+                        modifier = Modifier.clickable {
+                            val declinedDocuments = userDetails?.documents
+                            println("documents status.......$declinedDocuments")
+                        }
+                    )
 
+                    TitleText(
+                        text = "We are doing background check. We will notify you immediately afterwards",
+                        bottomPadding = 16,
+                        topPadding = 8,
+                        fontWeight = FontWeight.W500
+                    )
+                }
+
+                LearnMoreAboutKabukabu(listOfClips)
             }
-
-            LearnMoreAboutKabukabu(listOfClips)
-
         }
     }
 }
+
 
 //@PreviewParameter
 @OptIn(ExperimentalMaterial3Api::class)

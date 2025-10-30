@@ -22,6 +22,10 @@ class Navigator(private val navController: NavHostController) {
         navController.navigate(Screen.KabuRideGuarantorDetails.route)
     }
 
+    fun navToKabuRideReuploadGuarantorDetails() {
+        navController.navigate(Screen.KabuRideGuarantorReUpload.route)
+    }
+
     fun navToKabuRidePendingAccountApprovalScreen() {
         navController.navigate(Screen.KabuRidePendingApproval.route)
     }
