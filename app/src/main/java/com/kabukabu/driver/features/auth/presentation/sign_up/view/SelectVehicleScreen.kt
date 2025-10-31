@@ -66,7 +66,6 @@ fun SelectVehicleScreen(
     onNavToTermsAndCondition: () -> Unit,
     authViewModel: AuthViewModel = koinViewModel(),
     dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
-
 ) {
 
     val context = LocalContext.current
@@ -82,33 +81,17 @@ fun SelectVehicleScreen(
     var selectedCar by remember { mutableStateOf<Boolean?>(null) }
 
 
-    LaunchedEffect(driverUiState) {
-        when (driverUiState) {
+    LaunchedEffect(driverUiState is OnboardDriverPersonalDetailsUiState.Success,
+        driverUiState is OnboardDriverPersonalDetailsUiState.Error) {
+        when (val state = driverUiState) {
             is OnboardDriverPersonalDetailsUiState.Success -> {
-                context.displayToastMessage(driverUiState.response.message)
+                context.displayToastMessage(state.response.message)
                 authViewModel.resetState()
                 onNavToTermsAndCondition()
             }
 
             is OnboardDriverPersonalDetailsUiState.Error -> {
-                context.displayToastMessage(driverUiState.message)
-                authViewModel.resetState()
-            }
-
-            else -> {}
-        }
-    }
-
-    LaunchedEffect(driverUiState) {
-        when (driverUiState) {
-            is OnboardDriverPersonalDetailsUiState.Success -> {
-                context.displayToastMessage(driverUiState.response.message)
-                authViewModel.resetState()
-                onNavToTermsAndCondition()
-            }
-
-            is OnboardDriverPersonalDetailsUiState.Error -> {
-                context.displayToastMessage(driverUiState.message)
+                context.displayToastMessage(state.message)
                 authViewModel.resetState()
             }
 
@@ -130,21 +113,21 @@ fun SelectVehicleScreen(
                     } else if (selectedCar == null) {
                         context.displayToastMessage("Vehicle type not selected")
                         return@KabuBottomButton
-                    }
+                    } else {
 
-                    val driverBiodata = DriverDetailsReqBody(
-                        fullName = currentUserDetails?.fullName ?: "",
-                        phoneNumber = currentUserDetails?.phoneNumber ?: "",
+                        val driverBiodata = DriverDetailsReqBody(
+                            fullName = currentUserDetails?.fullName ?: "",
+                            phoneNumber = currentUserDetails?.phoneNumber ?: "",
 //                        email = currentUserDetails?.email ?: "",
-                        houseAddress = currentUserDetails?.houseAddress ?: "",
-                        city = currentUserDetails?.city ?: "",
-                        state = currentUserDetails?.state ?: "",
-                        carOwner = selectedCar,
+                            houseAddress = currentUserDetails?.houseAddress ?: "",
+                            city = currentUserDetails?.city ?: "",
+                            state = currentUserDetails?.state ?: "",
+                            carOwner = selectedCar,
 //                        carCategory = currentUserDetails?.carCategory ?: "REGULAR"
-                    )
-
-                    coroutineScope.launch {
-                        authViewModel.uploadDriverBioData(driverBiodata)
+                        )
+                        coroutineScope.launch {
+                            authViewModel.uploadDriverBioData(driverBiodata)
+                        }
                     }
 
 

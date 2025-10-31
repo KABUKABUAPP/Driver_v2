@@ -169,6 +169,7 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
 
     fun uploadDriverBioData(driverPersonalDetailsReqBody: DriverDetailsReqBody) {
         viewModelScope.launch(Dispatchers.IO) {
+            println("launched view model scope")
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
                 Log.e("AuthViewModel", "Cannot fetch profile, token is missing.")

@@ -31,11 +31,15 @@ import android.os.Looper
 import androidx.compose.ui.res.colorResource
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
-fun SplashScreenCover() {
+fun SplashScreenCover(
+    authViewModel: AuthViewModel = koinViewModel()
+) {
     val context = LocalContext.current
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner

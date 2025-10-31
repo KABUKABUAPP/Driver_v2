@@ -41,8 +41,10 @@ import androidx.lifecycle.ViewModelStoreOwner
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.navigation.Navigator
+import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.DriverViewModel
 import kotlinx.coroutines.flow.firstOrNull
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun OtpVerificationScreen(
@@ -54,9 +56,10 @@ fun OtpVerificationScreen(
     onNavigateToLogin: () -> Unit, // Added navigation back to login
     navigator: Navigator,
     viewModel: OtpViewModel = viewModel(),
+    authViewModel: AuthViewModel = koinViewModel(),
     loginViewModel: LoginViewModel = viewModel(),// Add login view model for resending OTP
 //    driverViewModel: DriverViewModel = viewModel()
-    ) {
+) {
 
     val context = LocalContext.current
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
@@ -87,7 +90,6 @@ fun OtpVerificationScreen(
     LaunchedEffect(userDetails) {
         onboardingStep = userDetails?.user?.onboardingStep
     }
-
 
 
     // Start countdown timer
@@ -124,7 +126,7 @@ fun OtpVerificationScreen(
         isTimerRunning = true
     }
 
-     //Handle OTP verification state
+    //Handle OTP verification state
     LaunchedEffect(uiState) {
         Log.d("OtpVerificationScreen", "UI State changed: $uiState")
         when (uiState) {

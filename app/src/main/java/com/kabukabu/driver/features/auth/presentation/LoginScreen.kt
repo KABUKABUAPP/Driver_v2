@@ -37,12 +37,13 @@ import com.kabukabu.driver.R
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
 
+
 @Composable
 fun LoginScreen(
     onNavigateToOtp: (String) -> Unit,
     viewModel: LoginViewModel = viewModel(),
     authViewModel: AuthViewModel = koinViewModel()
-) {
+    ) {
     var email by remember { mutableStateOf(TextFieldValue()) }
     var isError by remember { mutableStateOf(false) }
     val uiState = viewModel.uiState
