@@ -66,10 +66,10 @@ fun OtpVerificationScreen(
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
-    val userPreference = KabukabuDriverApp.getInstance().userPreferences
+//    val userPreference = KabukabuDriverApp.getInstance().userPreferences
     val authToken = KabukabuDriverApp.getInstance().userPreferences.authToken.collectAsState(initial = null)
     val userDetails = UserPreferences.getInstance(context).userDetails.collectAsState(null).value
-    var onboardingStep = userDetails?.user?.onboardingStep
+    var onboardingStep = userDetails?.user?.onboardingStep ?: 0
 
     // Track resend OTP state
     val uiState = viewModel.uiState
@@ -89,9 +89,9 @@ fun OtpVerificationScreen(
     var isTimerRunning by remember { mutableStateOf(true) }
     // Request focus when the screen is first displayed
 
-    LaunchedEffect(userDetails) {
-        onboardingStep = userDetails?.user?.onboardingStep
-    }
+//    LaunchedEffect(userDetails) {
+//        onboardingStep = userDetails?.user?.onboardingStep
+//    }
 
 
     // Start countdown timer
@@ -138,17 +138,18 @@ fun OtpVerificationScreen(
 //                Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
 
                 // Add a delay before navigation to ensure token is saved
-                delay(1000)
+                delay(500)
 //                val authTok = userPreference.authToken
                 if (authToken.value?.isEmpty() == true){
-                    Log.d("OTPVerif Screen", "authToken not available")
+                    Log.d("OTPVerification Screen", "authToken not available")
+                    return@LaunchedEffect
                 }
 
                 if (uiState.response.data?.loggedInUser?.isOnboardingComplete == true) {
                     onNavigateToHome()
                     Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
                 } else {
-                    when (onboardingStep) {
+                    when (onboardingStep ?: 0) {
                         0 -> {
                             navigateToDriverDetailsScreen()
                         }
