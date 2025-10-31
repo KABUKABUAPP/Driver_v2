@@ -494,34 +494,29 @@ private fun navigateBasedOnOnboardingStatus(
             Log.d(TAG, "Step <= 5: User is in active onboarding flow.")
             when (step) {
                 0 -> {
-                    Log.d(TAG, "Step 0: Navigating to LoginScreen.")
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.SplashScreenCover.route) { inclusive = true }
-                    }
-//                    navController.navigate(Screen.OtpVerification.route)
+                    navController.navigate(Screen.DriverBioDataScreen.route)
                 }
-
                 1 -> {
                     Log.d(TAG, "Step 1: Navigating to KabuRideTAndC.")
                     navController.navigate(Screen.KabuRideTAndC.route)
                 }
-
                 2 -> {
                     Log.d(TAG, "Step 2: Navigating to KabuRideCarDetails.")
                     navigator.navToKabuRideCarDetails()
                 }
-
-                3, 4 -> {
+                3 -> {
                     Log.d(TAG, "Step 3 or 4: Navigating to KabuRideCarDocsUpload.")
                     navigator.navToKabuRideCarDocsUpload()
                 }
-
+                4 -> {
+                    Log.d(TAG, "Step 3 or 4: Navigating to KabuRideCarDocsUpload.")
+                    navigator.navToKabuRideCarDocsUpload()
+                }
                 5 -> {
                     Log.d(TAG, "Step 5: Navigating to KabuRideGuarantorDetailsScreen.")
                     navigator.navToKabuRideGuarantorDetailsScreen()
                 }
-
-                6 -> {
+                null -> {
                     // This code is unreachable because of the `if (step > 5)` check above.
                     Log.w(
                         TAG,
@@ -529,8 +524,8 @@ private fun navigateBasedOnOnboardingStatus(
                     )
                     navigator.navToKabuRidePendingAccountApprovalScreen()
                 }
-
                 else -> {
+                    navController.navigate(Screen.DriverBioDataScreen.route)
                     Log.w(TAG, "⚠️ Unhandled step in 0-5 range: $step. No navigation triggered.")
                 }
             }

@@ -10,10 +10,12 @@ import org.koin.core.logger.Level
 
 class KabukabuDriverApp : Application() {
     // Lazy initialization of UserPreferences
+
     val userPreferences: UserPreferences by lazy {
-        UserPreferences(applicationContext)
+        UserPreferences.getInstance(applicationContext)
     }
-    
+
+
     companion object {
         private lateinit var instance: KabukabuDriverApp
         

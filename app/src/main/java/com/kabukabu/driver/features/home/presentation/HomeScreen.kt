@@ -994,7 +994,7 @@ private fun FullScreenDrawer(
         val context = LocalContext.current
         LaunchedEffect(Unit) {
             try {
-                val userPreferences = UserPreferences(context)
+                val userPreferences = UserPreferences.getInstance(context)
                 val token = userPreferences.authToken.firstOrNull()
                 android.util.Log.d("AuthToken", "FULL TOKEN: $token")
             } catch (e: Exception) {

@@ -30,7 +30,7 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
     val isDeclining = _isDeclining.asStateFlow()
 
     private var countdownJob: Job? = null
-    private val userPreferences = UserPreferences(application)
+    private val userPreferences = UserPreferences.getInstance(application.applicationContext)
 
     init {
         viewModelScope.launch {

@@ -38,6 +38,7 @@ import android.util.Log
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.lifecycle.ViewModelStoreOwner
+import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.navigation.Navigator
@@ -65,8 +66,9 @@ fun OtpVerificationScreen(
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
-
-    val userDetails = UserPreferences(context).userDetails.collectAsState(null).value
+    val userPreference = KabukabuDriverApp.getInstance().userPreferences
+    val authToken = KabukabuDriverApp.getInstance().userPreferences.authToken.collectAsState(initial = null)
+    val userDetails = UserPreferences.getInstance(context).userDetails.collectAsState(null).value
     var onboardingStep = userDetails?.user?.onboardingStep
 
     // Track resend OTP state
@@ -131,11 +133,16 @@ fun OtpVerificationScreen(
         Log.d("OtpVerificationScreen", "UI State changed: $uiState")
         when (uiState) {
             is OtpUiState.Success -> {
+
                 Log.d("OtpVerificationScreen", "OTP Verification successful")
 //                Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
 
                 // Add a delay before navigation to ensure token is saved
-                delay(500)
+                delay(1000)
+//                val authTok = userPreference.authToken
+                if (authToken.value?.isEmpty() == true){
+                    Log.d("OTPVerif Screen", "authToken not available")
+                }
 
                 if (uiState.response.data?.loggedInUser?.isOnboardingComplete == true) {
                     onNavigateToHome()

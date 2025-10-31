@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuDivider
@@ -73,7 +74,7 @@ fun SelectVehicleScreen(
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
     val authViewModel: AuthViewModel = koinViewModel(viewModelStoreOwner = activityOwner)
-
+    val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val coroutineScope = rememberCoroutineScope()
     val driverUiState = authViewModel.onboardDriverBiodataUiState
     val userDetails = dataPersistenceViewModel.driverDetailsReqBody.collectAsState().value
@@ -83,8 +84,10 @@ fun SelectVehicleScreen(
     var selectedCar by remember { mutableStateOf<Boolean?>(null) }
 
 
-    LaunchedEffect(driverUiState is OnboardDriverPersonalDetailsUiState.Success,
-        driverUiState is OnboardDriverPersonalDetailsUiState.Error) {
+    LaunchedEffect(
+        driverUiState is OnboardDriverPersonalDetailsUiState.Success,
+        driverUiState is OnboardDriverPersonalDetailsUiState.Error
+    ) {
         when (val state = driverUiState) {
             is OnboardDriverPersonalDetailsUiState.Success -> {
                 context.displayToastMessage(state.response.message)
@@ -116,7 +119,7 @@ fun SelectVehicleScreen(
                         context.displayToastMessage("Vehicle type not selected")
                         return@KabuBottomButton
                     } else {
-
+                        println("auth token at this point is......${userPreferences.authToken}")
                         val driverBiodata = DriverDetailsReqBody(
                             fullName = currentUserDetails?.fullName ?: "",
                             phoneNumber = currentUserDetails?.phoneNumber ?: "",
@@ -127,7 +130,7 @@ fun SelectVehicleScreen(
                             carOwner = selectedCar,
 //                        carCategory = currentUserDetails?.carCategory ?: "REGULAR"
                         )
-                            authViewModel.uploadDriverBioData(driverBiodata)
+                        authViewModel.uploadDriverBioData(driverBiodata)
 
                     }
 
