@@ -64,7 +64,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SelectVehicleScreen(
     onNavToTermsAndCondition: () -> Unit,
-    authViewModel: AuthViewModel = koinViewModel(),
+//    authViewModel: AuthViewModel = koinViewModel(),
     dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
 ) {
 
@@ -72,6 +72,8 @@ fun SelectVehicleScreen(
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+    val authViewModel: AuthViewModel = koinViewModel(viewModelStoreOwner = activityOwner)
+
     val coroutineScope = rememberCoroutineScope()
     val driverUiState = authViewModel.onboardDriverBiodataUiState
     val userDetails = dataPersistenceViewModel.driverDetailsReqBody.collectAsState().value
@@ -125,9 +127,8 @@ fun SelectVehicleScreen(
                             carOwner = selectedCar,
 //                        carCategory = currentUserDetails?.carCategory ?: "REGULAR"
                         )
-                        coroutineScope.launch {
                             authViewModel.uploadDriverBioData(driverBiodata)
-                        }
+
                     }
 
 

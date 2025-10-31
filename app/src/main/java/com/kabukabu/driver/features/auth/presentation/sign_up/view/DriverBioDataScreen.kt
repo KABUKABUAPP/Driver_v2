@@ -59,7 +59,6 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun DriverBioDataScreen(
     navToSelectVehicleScreen: () -> Unit,
-    authViewModel: AuthViewModel = koinViewModel(),
     dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel()
 ) {
 
@@ -68,6 +67,7 @@ fun DriverBioDataScreen(
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
+    val authViewModel: AuthViewModel = koinViewModel(viewModelStoreOwner = activityOwner)
 
     var showStateSheet by remember { mutableStateOf(false) }
     var showCarCategorySheet by remember { mutableStateOf(false) }
