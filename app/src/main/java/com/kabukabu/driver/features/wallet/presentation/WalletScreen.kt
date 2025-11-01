@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.wallet.presentation
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -106,11 +109,12 @@ fun WalletScreen(
         ) {
             // Header yellow container with balance and actions
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
-                shape = RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp),
-                modifier = Modifier.fillMaxWidth()
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF161616)),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
             ) {
-                Spacer(modifier = Modifier.height(40.dp))
                 WalletHeaderSection(
                     balanceText = "₦${formatCurrency(uiState.balance)}",
                     onAddMoney = { showTopup = true },
@@ -136,21 +140,27 @@ fun WalletScreen(
             Column(modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)) {
-                // Info tiles similar to trip cap and kabu subscription
-                if (uiState.kabuSubscriptionAmount > 0) {
-                    InfoTile(
-                        leading = R.drawable.info_circle,
-                        text = buildString {
-                            append("₦"); append(formatCurrency(uiState.kabuSubscriptionAmount)); append(" Kabu subscription")
-                            uiState.kabuDueLabel?.let { append(" "); append(it) }
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                        if (uiState.kabuSubscriptionAmount > 0) {
+                            InfoTile(
+                                leading = R.drawable.info_circle,
+                                text = buildString {
+                                    append("₦"); append(formatCurrency(uiState.kabuSubscriptionAmount)); append(" Kabu subscription")
+                                    uiState.kabuDueLabel?.let { append(" "); append(it) }
+                                }
+                            )
                         }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                        InfoTile(
+                            leading = R.drawable.info_circle,
+                            text = "Trip charge cap ₦${formatCurrency(uiState.tripChargeCap)}"
+                        )
+                    }
                 }
-                InfoTile(
-                    leading = R.drawable.info_circle,
-                    text = "Trip charge cap ₦${formatCurrency(uiState.tripChargeCap)}"
-                )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -420,61 +430,75 @@ private fun WalletHeaderSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .height(160.dp)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Balance text
-        Text(
-            text = balanceText,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.W700,
-            fontSize = 28.sp
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = "Wallet balance",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.W500
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Balance text
+            Text(
+                text = balanceText,
+                color = Color(0xFFD8D8D8),
+                fontWeight = FontWeight.W700,
+                fontSize = 31.sp
             )
-        )
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Wallet balance",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = Color(0xFFD8D8D8),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W500
+                )
+            )
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             SmallAction(
-                text = "Add money",
-                background = SurfaceCard,
-                iconRes = R.drawable.wallet_grey,
-                onClick = onAddMoney
+                text = "Top up",
+                background = Color(0xFFFFBF00),
+                iconRes = R.drawable.money_bill_receive,
+                onClick = onAddMoney,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = Color(0xFF161616),
+                    fontWeight = FontWeight.Medium
+                ),
+                iconTint = Color(0xFF161616),
+                modifier = Modifier.weight(1f)
             )
-            Spacer(modifier = Modifier.width(10.dp))
             SmallAction(
                 text = "Withdraw",
-                background = SurfaceCard,
-                iconRes = R.drawable.wallet_grey,
-                onClick = onWithdraw
+                background = Color.Transparent,
+                iconRes = R.drawable.money_bill_receive,
+                onClick = onWithdraw,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = Color(0xFFFDFDFD),
+                    fontWeight = FontWeight.Medium
+                ),
+                iconTint = Color(0xFFFDFDFD),
+                borderColor = Color(0xFFFDFDFD),
+                modifier = Modifier.weight(1f)
             )
-            Spacer(modifier = Modifier.width(10.dp))
             Card(
                 onClick = onMore,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                border = BorderStroke(1.dp, Color(0xFFFDFDFD))
             ) {
                 Box(
                     modifier = Modifier
-                        .height(44.dp)
-                        .width(70.dp),
+                        .size(44.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "More",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.W600
+                    Icon(
+                        painter = painterResource(id = R.drawable.more_horizontal),
+                        contentDescription = "More",
+                        tint = Color(0xFFFDFDFD),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
@@ -483,11 +507,26 @@ private fun WalletHeaderSection(
 }
 
 @Composable
-private fun SmallAction(text: String, background: Color, iconRes: Int, onClick: () -> Unit) {
+private fun SmallAction(
+    text: String,
+    background: Color,
+    iconRes: Int,
+    onClick: () -> Unit,
+    textStyle: TextStyle = MaterialTheme.typography.bodyMedium.copy(
+        color = Color.Black,
+        fontWeight = FontWeight.W600,
+        fontSize = 12.sp
+    ),
+    iconTint: Color? = null,
+    borderColor: Color? = null,
+    modifier: Modifier = Modifier
+) {
     Card(
+        modifier = modifier,
         onClick = onClick,
         colors = CardDefaults.cardColors(containerColor = background),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = borderColor?.let { BorderStroke(1.dp, it) }
     ) {
         Row(
             modifier = Modifier
@@ -498,15 +537,13 @@ private fun SmallAction(text: String, background: Color, iconRes: Int, onClick: 
             Icon(
                 painter = painterResource(id = iconRes),
                 contentDescription = text,
-                tint = Color.Unspecified,
+                tint = iconTint ?: Color.Unspecified,
                 modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = text,
-                color = Color.Black,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.W600
+                style = textStyle
             )
         }
     }
