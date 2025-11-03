@@ -84,20 +84,21 @@ fun KabuRideAccountDeclinedScreen(
                 return@LaunchedEffect
             }
 
-            // 2️⃣ If all documents are APPROVED → show approved modal
+            // 2️⃣ If any documents is PENDING → nav to pending screen
             if (documents.any { it.status == "PENDING" }) {
                 navigator.navToKabuRidePendingAccountApprovalScreen()
                 return@LaunchedEffect
             }
 
-            // 3️⃣ Otherwise (no declined, not all approved → must have some pending)
-            if (userDetails?.user?.driver?.adminApproval == ApprovalStatus.approved.name) {
-                showAccountApprovedModal = true
+            if (userDetails?.user?.guarantorStatus?.lowercase() == ApprovalStatus.declined.name) {
+                navigator.navToKabuRideReuploadGuarantorDetails()
                 return@LaunchedEffect
             }
 
-            if (userDetails?.user?.guarantorStatus?.lowercase() == ApprovalStatus.declined.name) {
-                navigator.navToKabuRideReuploadGuarantorDetails()
+
+            // 3️⃣ Otherwise (no declined, not all approved → must have some pending)
+            if (userDetails?.user?.driver?.adminApproval == ApprovalStatus.approved.name) {
+                showAccountApprovedModal = true
                 return@LaunchedEffect
             }
 

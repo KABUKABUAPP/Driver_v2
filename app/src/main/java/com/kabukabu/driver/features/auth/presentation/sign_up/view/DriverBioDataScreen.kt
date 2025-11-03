@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -113,6 +114,8 @@ fun DriverBioDataScreen(
 //            }
 //        )
 //    }
+
+    BackHandler { true }
 
     Scaffold(
         bottomBar = {

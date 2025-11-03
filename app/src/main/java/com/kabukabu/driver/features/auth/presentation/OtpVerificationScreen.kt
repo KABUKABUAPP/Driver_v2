@@ -69,7 +69,7 @@ fun OtpVerificationScreen(
 //    val userPreference = KabukabuDriverApp.getInstance().userPreferences
     val authToken = KabukabuDriverApp.getInstance().userPreferences.authToken.collectAsState(initial = null)
     val userDetails = UserPreferences.getInstance(context).userDetails.collectAsState(null).value
-    var onboardingStep = userDetails?.user?.onboardingStep ?: 0
+    val onboardingStep = userDetails?.user?.onboardingStep ?: 0
 
     // Track resend OTP state
     val uiState = viewModel.uiState
@@ -149,7 +149,7 @@ fun OtpVerificationScreen(
                     onNavigateToHome()
                     Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
                 } else {
-                    when (onboardingStep ?: 0) {
+                    when (onboardingStep) {
                         0 -> {
                             navigateToDriverDetailsScreen()
                         }

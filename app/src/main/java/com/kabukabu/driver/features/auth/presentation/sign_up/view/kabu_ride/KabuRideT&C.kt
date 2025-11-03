@@ -31,9 +31,9 @@ fun KabuRideTermsAndConditionsScreen(onNavToSelfieVerification: () -> Unit) {
 
     BackHandler { true }
 
-    LaunchedEffect(Unit) {
-        driverViewModel.fetchUserProfile()
-    }
+//    LaunchedEffect(Unit) {
+//        driverViewModel.fetchUserProfile()
+//    }
 
     Scaffold(
     ) { paddingValues ->
