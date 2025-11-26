@@ -11,6 +11,7 @@ import com.kabukabu.driver.core.data.remote.ApiClient
 import com.kabukabu.driver.core.utils.LoginUiState
 import kotlinx.coroutines.launch
 import android.util.Patterns
+import kotlinx.coroutines.delay
 
 class LoginViewModel : ViewModel() {
     var uiState: LoginUiState by mutableStateOf(LoginUiState.Idle)

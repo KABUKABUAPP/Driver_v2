@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,10 +37,9 @@ import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
-import com.kabukabu.driver.core.navigation.ApprovalStatus
 import com.kabukabu.driver.features.auth.data.entity.response.InspectionHub
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
-import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
@@ -47,8 +47,6 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun InspectionHubsScreen(
     onNavToHome: () -> Unit,
-//    dataPersistenceViewModel: DataPersistenceViewModel = koinViewModel(),
-//    authViewModel: AuthViewModel = koinViewModel()
 ) {
 
     val context = LocalContext.current
@@ -63,24 +61,36 @@ fun InspectionHubsScreen(
 
     val userPreferences = KabukabuDriverApp.getInstance().userPreferences
     val userDetails by userPreferences.userDetails.collectAsState(initial = null)
-    val inspectionCode = userDetails?.user?.driver?.inspectionCode
+    val isOnboardingComplete = userDetails?.user?.isOnboardingComplete == true
+
+    Log.d("InspectionHubsScreen", "isOnboardingComplete: $isOnboardingComplete")
 
 
-    LaunchedEffect(Unit) {
-        while (true) {
+    // This effect will poll for profile updates as long as onboarding is not complete.
+    // When `isOnboardingComplete` becomes true, this effect will re-launch, the `if`
+    // condition will be false, and the polling will automatically stop.
+    // This effect will poll for profile updates as long as onboarding is not complete.
+    LaunchedEffect(isOnboardingComplete) {
+        if (!isOnboardingComplete) {
 
-            driverViewModel.fetchUserProfile()
-
-            if (userDetails?.user?.isOnboardingComplete == true) {
-                onNavToHome()
+            while (true) {
+                Log.d("InspectionHubsScreen", "Polling for profile update...")
+                driverViewModel.fetchUserProfile()
+                delay(5000) // Wait for 5 seconds before the next poll
             }
-
-            delay(5000)
         }
     }
 
+    // Show the modal directly based on the state.
+    if (isOnboardingComplete) {
+        AccountApprovedModal(
+            onClick = {
+                onNavToHome()
+            }
+        )
+    }
 
-
+    // Initial data fetch when the screen is first composed.
     LaunchedEffect(Unit) {
         authViewModel.fetchHubs()
         driverViewModel.fetchUserProfile()

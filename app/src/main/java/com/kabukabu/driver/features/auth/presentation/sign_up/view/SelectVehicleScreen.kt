@@ -1,6 +1,7 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -57,8 +58,7 @@ import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
-import com.kabukabu.driver.features.home.presentation.DriverViewModel
-import kotlinx.coroutines.launch
+import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -84,19 +84,23 @@ fun SelectVehicleScreen(
     var selectedCar by remember { mutableStateOf<Boolean?>(null) }
 
 
+    LaunchedEffect(Unit) {
+        driverViewModel.fetchUserProfile()
+    }
     LaunchedEffect(
         driverUiState is OnboardDriverPersonalDetailsUiState.Success,
         driverUiState is OnboardDriverPersonalDetailsUiState.Error
     ) {
-        when (val state = driverUiState) {
+        when (driverUiState) {
             is OnboardDriverPersonalDetailsUiState.Success -> {
-                context.displayToastMessage(state.response.message)
+                context.displayToastMessage(driverUiState.response.message)
                 authViewModel.resetState()
+                Log.e("SelectVehicle screen log", "Error re-uploading document",)
                 onNavToTermsAndCondition()
             }
 
             is OnboardDriverPersonalDetailsUiState.Error -> {
-                context.displayToastMessage(state.message)
+                context.displayToastMessage(driverUiState.message)
                 authViewModel.resetState()
             }
 

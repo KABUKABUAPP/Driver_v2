@@ -32,6 +32,9 @@ object SocketService {
     private val _tripFoundEvent = MutableSharedFlow<TripFoundEvent>()
     val tripFoundEvent: SharedFlow<TripFoundEvent> = _tripFoundEvent.asSharedFlow()
     
+    private val _tripCancelledEvent = MutableSharedFlow<TripCancelledEvent>()
+    val tripCancelledEvent: SharedFlow<TripCancelledEvent> = _tripCancelledEvent.asSharedFlow()
+
     init {
         // Start a periodic connection check
         coroutineScope.launch {
@@ -146,9 +149,24 @@ object SocketService {
             // TODO: Parse and handle message
         }
 
-        socket.on("onTripCancelled") { args ->
-            Log.d("SocketService", "RAW_DATA: 'onTripCancelled' Received: ${args.getOrNull(0)}")
-            // TODO: Parse and handle trip cancellation
+        socket.on("trip-cancelled") { args ->
+            Log.d("SocketService", "RAW_DATA: 'trip-cancelled' Received: ${args.getOrNull(0)}")
+            try {
+                val json = args.getOrNull(0)?.toString() ?: return@on
+                val adapter = moshi.adapter(TripCancelledEvent::class.java)
+                val tripCancelledData = adapter.fromJson(json)
+
+                if (tripCancelledData != null) {
+                    Log.d("SocketService", "Successfully parsed 'trip-cancelled' event: Trip ID: ${tripCancelledData.order.id}, Status: ${tripCancelledData.status}, EventId: ${tripCancelledData.eventId}")
+                    coroutineScope.launch {
+                        _tripCancelledEvent.emit(tripCancelledData)
+                    }
+                } else {
+                    Log.w("SocketService", "Failed to parse trip-cancelled event - tripCancelledData is null")
+                }
+            } catch (e: Exception) {
+                Log.e("SocketService", "Error parsing 'trip-cancelled' event: ${e.message}", e)
+            }
         }
 
         socket.on("onTyping") { args ->
@@ -220,6 +238,108 @@ object SocketService {
         Log.d("SocketService", "Emitting acknowledge for eventId: $eventId")
     }
     
-    // TODO: Add all other event emitters from the Flutter code
+    /**
+     * Emit driver location updates during trip
+     * @param lat Driver's current latitude
+     * @param long Driver's current longitude
+     * @param orderId The active trip/order ID
+     * @param time Time duration (in seconds or minutes depending on backend)
+     * @param distance Distance traveled (in meters or km depending on backend)
+     */
+    suspend fun emitLocation(
+        lat: Double,
+        long: Double,
+        orderId: String = "",
+        time: Int = 0,
+        distance: Double = 0.0
+    ) {
+        try {
+            val userId = userPreferences.userId.first()
+            if (userId.isNullOrEmpty()) {
+                Log.w("SocketService", "Cannot emit location: User ID is null or empty")
+                return
+            }
+
+            if (mSocket == null || !mSocket!!.connected()) {
+                Log.w("SocketService", "Cannot emit location: Socket is null or not connected")
+                return
+            }
+
+            val json = JSONObject().apply {
+                put("lat", lat)
+                put("long", long)
+                put("userId", userId)
+                put("user_type", "driver")
+                put("order", orderId)
+                put("time", time)
+                put("distance", distance)
+            }
+
+            mSocket?.emit("location", json)
+            Log.d("SocketService", "Emitting location: distance: $distance, time: $time, lat: $lat, long: $long, orderId: $orderId")
+        } catch (e: Exception) {
+            Log.e("SocketService", "Error emitting location: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Emit driver arrived at pickup location
+     * @param orderId The active trip/order ID
+     */
+    suspend fun emitArrivePickup(orderId: String = "") {
+        try {
+            val userId = userPreferences.userId.first()
+            if (userId.isNullOrEmpty()) {
+                Log.w("SocketService", "Cannot emit arrive pickup: User ID is null or empty")
+                return
+            }
+
+            if (mSocket == null || !mSocket!!.connected()) {
+                Log.w("SocketService", "Cannot emit arrive pickup: Socket is null or not connected")
+                return
+            }
+
+            val json = JSONObject().apply {
+                put("userId", userId)
+                put("user_type", "driver")
+                put("order", orderId)
+            }
+
+            mSocket?.emit("driver-arrived", json)
+            Log.d("SocketService", "Emitting driver arrive: orderId: $json")
+        } catch (e: Exception) {
+            Log.e("SocketService", "Error emitting arrive pickup: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Emit driver arrived at destination
+     * @param orderId The active trip/order ID
+     */
+    suspend fun emitArriveDestination(orderId: String = "") {
+        try {
+            val userId = userPreferences.userId.first()
+            if (userId.isNullOrEmpty()) {
+                Log.w("SocketService", "Cannot emit arrive destination: User ID is null or empty")
+                return
+            }
+
+            if (mSocket == null || !mSocket!!.connected()) {
+                Log.w("SocketService", "Cannot emit arrive destination: Socket is null or not connected")
+                return
+            }
+
+            val json = JSONObject().apply {
+                put("userId", userId)
+                put("user_type", "driver")
+                put("order", orderId)
+            }
+
+            mSocket?.emit("driver-arrived_destination", json)
+            Log.d("SocketService", "Emitting driver arrived destination: orderId: $orderId")
+        } catch (e: Exception) {
+            Log.e("SocketService", "Error emitting arrive destination: ${e.message}", e)
+        }
+    }
 
 } 

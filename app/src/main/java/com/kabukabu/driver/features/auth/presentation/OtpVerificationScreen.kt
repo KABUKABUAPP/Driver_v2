@@ -35,16 +35,16 @@ import com.kabukabu.driver.core.utils.LoginUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.util.Log
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.lifecycle.ViewModelStoreOwner
 import com.kabukabu.driver.KabukabuDriverApp
-import com.kabukabu.driver.components.ui.displayToastMessage
+import com.kabukabu.driver.components.ui.LoadingOverlay
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
-import com.kabukabu.driver.features.home.presentation.DriverViewModel
-import kotlinx.coroutines.flow.firstOrNull
+import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -83,7 +83,7 @@ fun OtpVerificationScreen(
     var isError by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
-
+    val keyboardController = LocalSoftwareKeyboardController.current
     // Countdown timer state
     var secondsLeft by remember { mutableIntStateOf(15) }
     var isTimerRunning by remember { mutableStateOf(true) }
@@ -149,9 +149,14 @@ fun OtpVerificationScreen(
                     onNavigateToHome()
                     Toast.makeText(context, "Login successful!", Toast.LENGTH_LONG).show()
                 } else {
+                    Log.d("OTPVerification Screen", "onboarding step is $onboardingStep")
                     when (onboardingStep) {
                         0 -> {
                             navigateToDriverDetailsScreen()
+                        }
+
+                        1 ->  {
+                            navigator.navToTermsAndConditions()
                         }
 
                         2 -> {
@@ -274,6 +279,7 @@ fun OtpVerificationScreen(
 
                         // Auto-submit when 4 digits are entered
                         if (newValue.text.length == 4) {
+                            keyboardController?.hide()
                             coroutineScope.launch {
                                 delay(300) // Small delay before submission
 //                                onNavigateToDriverDetailsScreen()
@@ -444,10 +450,11 @@ fun OtpVerificationScreen(
 
         // Show loading indicator for either OTP verification or resend OTP
         if (uiState is OtpUiState.Loading || loginUiState is LoginUiState.Loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color = amber
-            )
+            LoadingOverlay()
+//            CircularProgressIndicator(
+//                modifier = Modifier.align(Alignment.Center),
+//                color = amber
+//            )
         }
     }
 }

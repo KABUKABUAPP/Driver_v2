@@ -29,6 +29,8 @@ import com.kabukabu.driver.features.auth.data.entity.response.ReUploadDocumentRe
 import com.kabukabu.driver.features.auth.data.entity.response.ReuploadGuarantorDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDocsResponse
+import com.kabukabu.driver.features.profile.data.PreferredPaymentMethods
+import com.kabukabu.driver.features.profile.data.PreferredPaymentMethodsRequest
 import com.kabukabu.driver.features.trips.data.TripHistoryResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -156,6 +158,26 @@ interface ApiService {
     @GET("user/profile")
     suspend fun getProfile(@Header("Authorization") token: String): Response<ResponseBody>
 
+    @GET("trip/today")
+    suspend fun getTodayTripStats(@Header("Authorization") token: String): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("repair-loan/request-new")
+    suspend fun calculateDistanceAndTime(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Field("amount") amount: Int,
+        @Field("reason") reason: String
+    ): Response<ResponseBody>
+
+
+    @FormUrlEncoded
+    @PUT("trip/start-trip/{orderId}")
+    suspend fun startTrip(
+        @Header("Authorization") bearerToken: String,
+        @Path("orderId") orderId: String
+    ): Response<ResponseBody>
+
 
     @PUT("driver/online_status")
     suspend fun updateOnlineStatus(
@@ -182,6 +204,12 @@ interface ApiService {
         @Path("orderId") orderId: String,
         @Body request: DeclineTripRequest
     ): DeclineTripResponse
+
+    @PUT("driver/preferred_payment")
+    suspend fun updatePaymentPreference(
+        @Header("Authorization") bearerToken: String,
+        @Body request: PreferredPaymentMethodsRequest
+    ): Response<ResponseBody>
 
     // Wallet / Payments
     @GET("payment/my-due-payments")
@@ -287,4 +315,8 @@ interface ApiService {
         @Field("subject") subject: String,
         @Field("message") message: String
     ): Response<ResponseBody>
+
+    ///getDriverTodayStat
+
+    //calcaulatedistanceAndTime
 }

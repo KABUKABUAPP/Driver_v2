@@ -8,10 +8,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -28,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,6 +36,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -44,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.components.ui.FormTextfield
-import com.kabukabu.driver.components.ui.FormTextfieldDropdown
 import com.kabukabu.driver.components.ui.KabuBottomButton
 import com.kabukabu.driver.components.ui.KabuDivider
 import com.kabukabu.driver.components.ui.KabuSearchBar
@@ -55,7 +56,7 @@ import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
-import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -92,6 +93,11 @@ fun DriverBioDataScreen(
     val houseAddressError = remember { mutableStateOf("") }
     val cityError = remember { mutableStateOf("") }
     val stateError = remember { mutableStateOf("") }
+
+
+    LaunchedEffect(Unit) {
+        driverViewModel.fetchUserProfile()
+    }
 
     if (showStateSheet) {
         SelectStateSheet(
@@ -168,7 +174,7 @@ fun DriverBioDataScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .imePadding()
+//                .imePadding()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Top
@@ -279,7 +285,7 @@ internal fun validateFullName(
 
     var isValid = true
     fullNameError.value = ""
-    if (!fullName.matches(Regex("^[A-Za-z\\s]+\$"))) {
+    if (!fullName.matches(Regex("^[A-Za-z\\s]*\$"))) {
         fullNameError.value = "Full name must contain only letters"
         isValid = false
     }
@@ -370,6 +376,15 @@ internal fun SelectStateSheet(
     val nigeriaStates = LocalDataSource().nigeriaStates
     var filterText by remember { mutableStateOf("") }
 
+    // 1. Get the screen height from the current device configuration.
+    //    You'll need to import androidx.compose.ui.platform.LocalConfiguration
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+
+    // 2. Calculate the min and max heights as a percentage of the screen height.
+    val minHeight = screenHeight * 0.5f // 40% of screen height
+    val maxHeight = screenHeight * 0.7f // 90% of screen height
+
+
     val filteredList = if (filterText.isBlank()) nigeriaStates else nigeriaStates.filter {
         it.contains(
             filterText,
@@ -377,20 +392,24 @@ internal fun SelectStateSheet(
         )
     }
 
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
+//    val sheetState = rememberModalBottomSheetState(
+//        skipPartiallyExpanded = true
+//    )
+
+    val sheetState = rememberModalBottomSheetState()
 
     ModalBottomSheet(
+        containerColor = Color.White,
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         sheetState = sheetState,
         dragHandle = { BottomSheetDefaults.DragHandle() },
-        windowInsets = WindowInsets.ime,
+//        windowInsets = WindowInsets.ime,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(min = minHeight, max = maxHeight)
                 .imePadding()
                 .navigationBarsPadding()
                 .padding(vertical = 8.dp, horizontal = 16.dp)

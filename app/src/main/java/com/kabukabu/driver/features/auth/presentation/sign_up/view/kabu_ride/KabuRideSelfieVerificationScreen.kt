@@ -43,7 +43,7 @@ import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.utils_functions.convertUriToFile
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.EditDriverProfileUiState
-import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -64,8 +64,10 @@ fun KabuRideSelfieVerificationScreen(
     var launchCamera by remember { mutableStateOf(false) }
 
 
-    BackHandler {
-        if (launchCamera) {
+    BackHandler(enabled = launchCamera || selfieUri != null) {
+        if (selfieUri != null) {
+            selfieUri = null
+        } else if (launchCamera) {
             launchCamera = false
         }
     }
@@ -78,14 +80,13 @@ fun KabuRideSelfieVerificationScreen(
         when (uiState) {
             is EditDriverProfileUiState.Success -> {
                 context.displayToastMessage(uiState.response.message)
-                authViewModel.resetState()
                 onNavToKabuCarDetailsScreen()
-
+                authViewModel.resetEditDriverProfileState()
             }
 
             is EditDriverProfileUiState.Error -> {
                 context.displayToastMessage(uiState.message)
-                authViewModel.resetState()
+                authViewModel.resetEditDriverProfileState()
             }
 
             else -> {}

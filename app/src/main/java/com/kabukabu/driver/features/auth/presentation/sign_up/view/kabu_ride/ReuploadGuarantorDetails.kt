@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.KabukabuDriverApp
-import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.CustomLinearProgressIndicator
 import com.kabukabu.driver.components.ui.FormTextfield
 import com.kabukabu.driver.components.ui.FormTextfieldDropdown
@@ -40,8 +39,7 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectStateSh
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.validateFullName
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.ReUploadGuarantorDetailsUiState
-import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadGuarantorDetailsUiState
-import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable

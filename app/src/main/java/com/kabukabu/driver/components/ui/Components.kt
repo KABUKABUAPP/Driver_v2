@@ -656,7 +656,7 @@ internal fun AnnotatedTextfieldTitle(title: String, isCompulsory: Boolean = true
         TitleText(
             title,
             fontWeight = FontWeight.W500,
-            endPadding = 3, fontSize = 13
+            endPadding = 3, fontSize = 14
         )
         if (isCompulsory)
             TitleText(

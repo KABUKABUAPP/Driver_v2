@@ -14,6 +14,10 @@ class Navigator(private val navController: NavHostController) {
         navController.navigate(Screen.KabuRideCarDetails.route)
     }
 
+    fun navToTermsAndConditions() {
+        navController.navigate(Screen.KabuRideTAndC.route)
+    }
+
     fun navToKabuRideCarDocsUpload() {
         navController.navigate(Screen.KabuRideCarDocsUpload.route)
     }

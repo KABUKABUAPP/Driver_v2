@@ -4,12 +4,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -26,13 +24,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
-import android.os.Handler
-import android.os.Looper
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
-import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -41,6 +38,7 @@ fun SplashScreenCover(
     authViewModel: AuthViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
+    val view = LocalView.current
     // Create DriverViewModel at Activity scope so it's shared across Splash and Home
     val activityOwner = context as ViewModelStoreOwner
     val driverViewModel: DriverViewModel = viewModel(viewModelStoreOwner = activityOwner)
@@ -48,6 +46,19 @@ fun SplashScreenCover(
 
     // Get the dark gray color from resources
     val darkGrayColor = colorResource(id = R.color.dark_gray)
+
+    // This effect changes the status bar icons to light (for the dark background)
+    // and reverts the change when this composable leaves the screen.
+//    DisposableEffect(Unit) {
+//        val window = (view.context as? Activity)?.window ?: return@DisposableEffect onDispose {}
+//        val insetsController = WindowCompat.getInsetsController(window, view)
+//        val originalAppearance = insetsController.isAppearanceLightStatusBars
+//        insetsController.isAppearanceLightStatusBars = false // Use light icons
+//        onDispose {
+//            // Restore original appearance
+//            insetsController.isAppearanceLightStatusBars = originalAppearance
+//        }
+//    }
 
     // Create custom ImageLoader that can handle GIFs
     val imageLoader = remember {

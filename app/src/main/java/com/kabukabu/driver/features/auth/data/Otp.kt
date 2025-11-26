@@ -63,10 +63,21 @@ data class ConfirmOtpResponse(
 
 @JsonClass(generateAdapter = true)
 data class LoginSuccessData(
-    @Json(name = "driver") val loggedInUser: Driver?, // maps to "driver"
-    @Json(name = "token") val accessTokens: String?,  // maps to "token"
+    @Json(name = "logged_in_user") private val _loggedInUser: Driver?,
+    @Json(name = "driver") private val _driver: Driver?,
+    @Json(name = "token") private val _token: String?,
+    @Json(name = "access_tokens") private val _accessTokens: String?,  // maps to "token"
     @Json(name = "pendingUpdates") val pendingUpdates: PendingUpdates? = null
-)
+) {
+    val loggedInUser: Driver?
+        get() = _loggedInUser ?: _driver
+
+    val accessTokens: String?
+        get() = _accessTokens ?: _token
+}
+
+
+
 
 @JsonClass(generateAdapter = true)
 data class Driver(

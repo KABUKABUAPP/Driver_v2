@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.home.data
 
+import com.kabukabu.driver.features.profile.data.PreferredPaymentMethods
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -40,4 +41,9 @@ data class DeclineTripRequest(
 data class DeclineTripResponse(
     @Json(name = "status") val status: String,
     @Json(name = "message") val message: String
-) 
+)
+
+
+data class UpdatePaymentMethodRequest(
+    val preferredPaymentMethods: PreferredPaymentMethods
+)

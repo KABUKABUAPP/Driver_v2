@@ -2,7 +2,6 @@ package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 
 import androidx.compose.foundation.clickable
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,18 +16,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -38,47 +32,37 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.bumptech.glide.Glide
 import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.GIFImage
 import com.kabukabu.driver.components.ui.KabuBottomButton
-import com.kabukabu.driver.components.ui.KabuSpacer
 import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
-import com.kabukabu.driver.core.data.local.LocalDataSource
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.data.entity.response.VideoClipsResponse
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
-import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.core.net.toUri
+import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.navigation.ApprovalStatus
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun KabuRidePendingAccountApprovalScreen(
@@ -121,6 +105,8 @@ fun KabuRidePendingAccountApprovalScreen(
 
             if (userDetails?.user?.driver?.adminApproval?.lowercase() == ApprovalStatus.approved.name) {
                 showAccountApprovedModal = true
+                context.displayToastMessage("Account approved")
+                navigator.navToKabuRideInspection()
                 return@LaunchedEffect
             }
 //            if (documents.isNotEmpty() && documents.all { it.status == "APPROVED" }) {
@@ -137,24 +123,28 @@ fun KabuRidePendingAccountApprovalScreen(
 
 
     if (showAccountApprovedModal) {
-        AccountApprovedModal(
-            onClick = {
-                navigator.navToKabuRideInspection()
-            }
-        )
+//        AccountApprovedModal(
+//            onClick = {
+//                navigator.navToKabuRideInspection()
+//            }
+//        )
     }
 
-    Scaffold { paddingValues ->
+    Scaffold(
+//        containerColor = Color.Transparent
+    ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
             GIFImage(
-                gifImage = R.drawable.splash, // your GIF file (splash.gif)
+                gifImage = R.drawable.splash_light, // your GIF file (splash.gif)
                 modifier = Modifier
-                    .matchParentSize()
-                    .alpha(0.3f) // transparency to keep focus on content
+                  .matchParentSize()
+//                    .fillMaxWidth()
+//                    .fillMaxHeight(0.6f)
+//                    .alpha(0.3f) // transparency to keep focus on content
             )
 
             // ✅ Foreground content
@@ -244,6 +234,13 @@ internal fun AccountApprovedModal(
 @Composable
 fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
     val context = LocalContext.current
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+
+    // 2. Calculate the min and max heights as a percentage of the screen height.
+    val minWidth = screenWidth* 0.384f // 40% of screen height
+    val minHeight = screenHeight* 0.106f
+
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
@@ -260,7 +257,7 @@ fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
             items(videos) { video ->
                 Column(
                     modifier = Modifier
-                        .width(160.dp)
+                        .width(minWidth)
                         .clickable {
                             val intent = Intent(Intent.ACTION_VIEW, video.clip.toUri())
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -269,7 +266,7 @@ fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
                 ) {
                     Box(
                         modifier = Modifier
-                            .height(100.dp)
+                            .height(minHeight)
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                     ) {

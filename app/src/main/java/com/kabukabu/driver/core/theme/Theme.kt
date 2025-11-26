@@ -52,8 +52,8 @@ fun KabukabuDriverTheme(
             window.statusBarColor = android.graphics.Color.TRANSPARENT
             window.navigationBarColor = android.graphics.Color.TRANSPARENT
             // Always use dark status bar icons for light theme (so they're visible)
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
-            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = false
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = true
         }
     }
 
@@ -64,4 +64,3 @@ fun KabukabuDriverTheme(
         content = content
     )
 }
- 

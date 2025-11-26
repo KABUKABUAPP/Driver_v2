@@ -32,7 +32,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
-import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -135,7 +135,7 @@ fun SplashScreen(
                     Text(
                         text = "Get Started",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF161616) // rgba(22, 22, 22, 1)
+                        color = Color(0xFF161616)
                     )
                 }
             }

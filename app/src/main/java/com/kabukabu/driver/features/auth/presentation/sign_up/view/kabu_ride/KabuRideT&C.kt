@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.components.ui.KabuBottomButton
-import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 
 
 @Composable
@@ -31,9 +31,9 @@ fun KabuRideTermsAndConditionsScreen(onNavToSelfieVerification: () -> Unit) {
 
     BackHandler { true }
 
-//    LaunchedEffect(Unit) {
-//        driverViewModel.fetchUserProfile()
-//    }
+    LaunchedEffect(Unit) {
+        driverViewModel.fetchUserProfile()
+    }
 
     Scaffold(
     ) { paddingValues ->

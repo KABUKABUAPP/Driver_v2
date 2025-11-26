@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,7 +22,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,10 +39,9 @@ import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.core.navigation.ApprovalStatus
 import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
-import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import com.kabukabu.driver.features.profile.data.Document
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.firstOrNull
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -209,45 +208,50 @@ private fun ReasonForApprovalDeclineCard(
     onClick: () -> Unit
 ) {
 
-    Row(
-        modifier = Modifier
-            .background(color = Color(0xFFF8F8F8), RoundedCornerShape(12.dp))
-            .fillMaxWidth()
-            .clickable { onClick() },
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-
-        Icon(
-            painter = painterResource(id = R.drawable.document),
-            contentDescription = null,
-            tint = Color.Gray,
+    Column {
+        Row(
             modifier = Modifier
-                .padding(start = 16.dp)
-                .size(30.dp)
-        )
-
-
-        Column(
-            horizontalAlignment = Alignment.Start,
-            modifier = Modifier.padding(all = 16.dp)
+                .background(color = Color(0xFFF8F8F8), RoundedCornerShape(12.dp))
+                .fillMaxWidth()
+                .clickable { onClick() },
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            TitleText(
-                text = formatDeclinedDocumentName(document.title ?: ""),
-                fontWeight = FontWeight.W500,
-                fontSize = 16, topPadding = 0,
-                bottomPadding = 0
+
+            Icon(
+                painter = painterResource(id = R.drawable.document),
+                contentDescription = null,
+                tint = Color.Gray,
+                modifier = Modifier
+                    .padding(start = 16.dp)
+                    .size(30.dp)
             )
 
-            TitleText(
-                text = document.status ?: "",
-                color = Color(0xFF686868),
-                bottomPadding = 0,
-                fontSize = 13
-            )
+
+            Column(
+                horizontalAlignment = Alignment.Start,
+                modifier = Modifier.padding(all = 16.dp)
+            ) {
+                TitleText(
+                    text = formatDeclinedDocumentName(document.title ?: ""),
+                    fontWeight = FontWeight.W500,
+                    fontSize = 16, topPadding = 0,
+                    bottomPadding = 0
+                )
+
+                TitleText(
+                    text = "Tap to re-upload",
+                    //                text = document.status ?: "",
+                    color = Color(0xFF686868),
+                    bottomPadding = 0,
+                    fontSize = 13
+                )
+            }
+
+            Box(modifier = Modifier.height(15.dp))
+
+
         }
-
-
     }
 
 }

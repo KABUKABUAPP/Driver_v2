@@ -528,6 +528,7 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
     }
 
     fun resetState() {
+
         onboardDriverBiodataUiState = OnboardDriverPersonalDetailsUiState.Idle
         uploadCarDetailsUiState = UploadCarDetailsUiState.Idle
         uploadCarDocsUiState = UploadCarDocsUiState.Idle
@@ -535,6 +536,10 @@ class AuthViewModel(private val dataPersistenceViewModel: DataPersistenceViewMod
         editDriverProfileUiState = EditDriverProfileUiState.Idle
         reUploadDocUiState = ReUploadDocUiState.Idle
         reUploadGuarantorDetailsUiState = ReUploadGuarantorDetailsUiState.Idle
+    }
+
+    fun resetEditDriverProfileState() {
+        editDriverProfileUiState = EditDriverProfileUiState.Idle
     }
 
 

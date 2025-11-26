@@ -1,5 +1,9 @@
 package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
+import android.app.Activity
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import android.net.Uri
 import android.util.Patterns
 import androidx.activity.compose.BackHandler
@@ -17,7 +21,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -53,6 +59,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -76,14 +83,13 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectStateSh
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.validateFullName
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadGuarantorDetailsUiState
-import com.kabukabu.driver.features.home.presentation.DriverViewModel
+import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
 fun KabuRideGuarantorDetail(
-    navigator: Navigator,
-    authViewModel: AuthViewModel = koinViewModel()
+    navigator: Navigator, authViewModel: AuthViewModel = koinViewModel()
 ) {
 
     val context = LocalContext.current
@@ -120,6 +126,31 @@ fun KabuRideGuarantorDetail(
     val stateError = remember { mutableStateOf("") }
     val relationshipError = remember { mutableStateOf("") }
 
+    val desiredStatusBarColor = Color(0x5DF1F1F1)
+    val view = LocalView.current
+
+    if (!view.isInEditMode) {
+        DisposableEffect(Unit) {
+            val window = (view.context as Activity).window
+            val insetsController = WindowCompat.getInsetsController(window, view)
+
+            // Save the original system bar colors and icon appearances
+            val originalStatusBarColor = window.statusBarColor
+            val originalIsLightStatusBars = insetsController.isAppearanceLightStatusBars
+
+            // Set the new color and icon appearance
+            window.statusBarColor = desiredStatusBarColor.toArgb()
+            // Set to 'true' because the status bar color is light
+            insetsController.isAppearanceLightStatusBars = true
+
+            // When the composable is disposed, restore the original values
+            onDispose {
+                window.statusBarColor = originalStatusBarColor
+                insetsController.isAppearanceLightStatusBars = originalIsLightStatusBars
+            }
+        }
+    }
+
     BackHandler { true }
 
     if (showGuarantorSheet) {
@@ -129,18 +160,14 @@ fun KabuRideGuarantorDetail(
                 guarantorRelationship = guarantor
                 showStateSheet = false
                 focusManager.clearFocus()
-            }
-        )
+            })
     }
 
     if (showStateSheet) {
-        SelectStateSheet(
-            onDismiss = { showStateSheet = false },
-            onSelectState = { selectedState ->
-                state = selectedState
-                showStateSheet = false
-            }
-        )
+        SelectStateSheet(onDismiss = { showStateSheet = false }, onSelectState = { selectedState ->
+            state = selectedState
+            showStateSheet = false
+        })
     }
 
     LaunchedEffect(Unit) {
@@ -149,7 +176,7 @@ fun KabuRideGuarantorDetail(
 
     LaunchedEffect(userDetails) {
         if (userDetails?.user?.onboardingStep == 6) {
-        navigator.navToKabuRidePendingAccountApprovalScreen()
+//            navigator.navToKabuRidePendingAccountApprovalScreen()
         }
     }
 
@@ -176,195 +203,211 @@ fun KabuRideGuarantorDetail(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .imePadding()
-                .padding(top = 30.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
+//                .imePadding()
+                .padding(top = 0.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-
-            CustomLinearProgressIndicator(
-                progress = 1.0f,
-                modifier = Modifier.padding(bottom = 50.dp)
-            )
-
-            ScreenTitleText(
-                title = "Guarantor Details",
-                subtitle = "Tell us about your guarantors",
-                bottomPadding = 16,
-                modifier = Modifier.clickable {
-
-                }
-            )
-
-            GrayBackgroundContainer {
-
-                ProfileCard(
-                    selectedImageUri = guarantorImageUri,
-                    onImageSelected = { guarantorImageUri = it },
-                    modifier = Modifier.padding(6.dp)
-                )
-
-                FormTextfield(
-                    title = "Full Name",
-                    value = fullName,
-                    hintText = "John Doe",
-                    onTextChanged = { newText ->
-                        val isValid = validateFullName(
-                            newText,
-                            fullNameError
-                        )
-                        if (isValid) {
-                            fullName = newText
-                        } else {
-                            return@FormTextfield
-                        }
-                    },
-                    validationError = fullNameError.value.isNotEmpty(),
-                    validationErrorMessage = fullNameError.value
-                )
-
-                FormTextfieldDropdown(
-                    "Relationship",
-                    value = guarantorRelationship,
-                    isCompulsory = false,
-                    onClick = {
-                        showGuarantorSheet = true
-                    },
-                    validationError = relationshipError.value.isNotEmpty(),
-                    validationErrorMessage = relationshipError.value
-                )
-
-                FormTextfield(
-                    title = "Email Address",
-                    value = email,
-                    hintText = "Email",
-                    onTextChanged = { email = it },
-                    validationError = emailError.value.isNotEmpty(),
-                    validationErrorMessage = emailError.value
-                )
-
-                FormTextfield(
-                    title = "Phone number",
-                    value = phoneNumber,
-                    hintText = "Phone number",
-                    keyboardType = "phone number",
-                    onTextChanged = { newText ->
-                        val filtered = newText.filter { it.isDigit() }
-                        if (filtered.length <= 11) {
-                            phoneNumber = filtered
-                        }
-                    },
-                    validationError = phoneNumberError.value.isNotEmpty(),
-                    validationErrorMessage = phoneNumberError.value
-                )
-
-                FormTextfield(
-                    title = "House address",
-                    value = houseAddress,
-                    hintText = "House address",
-                    onTextChanged = { houseAddress = it },
-                    validationError = houseAddressError.value.isNotEmpty(),
-                    validationErrorMessage = houseAddressError.value
-                )
-
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
-                    RowScopeFormTextfield(
-                        title = "City",
-                        value = city,
-                        hintText = "City here",
-                        isDropdown = false,
-                        onTextChanged = { city = it },
-                        imeAction = ImeAction.Done,
-                        validationError = cityError.value.isNotEmpty(),
-                        validationErrorMessage = cityError.value
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .background(
+                        color = Color(0x5DF1F1F1),
+                        // This shape applies a 16.dp radius to the bottom corners only.
+                        shape = RoundedCornerShape(bottomStart = 25.dp, bottomEnd = 25.dp)
                     )
-                    RowScopeFormTextfield(
-                        title = "State",
-                        value = state,
-                        hintText = "Abia",
-                        isDropdown = true,
-                        onClick = { showStateSheet = true },
-                        onTextChanged = {},
-                        validationError = stateError.value.isNotEmpty(),
-                        validationErrorMessage = stateError.value
-                    )
-                }
-
-                FormTextfield(
-                    title = "Referral Code (Optional)",
-                    value = referralCode,
-                    hintText = "Code here",
-                    isCompulsory = false,
-                    onTextChanged = { referralCode = it },
+            ) {
+                CustomLinearProgressIndicator(
+                    progress = 1.0f, modifier = Modifier
                 )
-
             }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
 
-            Row(
-                modifier = Modifier.padding(top = 30.dp),
-                horizontalArrangement = Arrangement.spacedBy(24.dp)
+                    .padding(top = 10.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
+
+
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
 
-                KabuTransparentBottomButtonRowScope(
-                    "Previous",
-                    icon = R.drawable.arrow_left,
-                    onClick = {
-//                        navigator.navigateUp()
-                    }
-                )
 
-                KabuBottomButtonRowScope(
-                    "Submit",
-                    icon = R.drawable.arrow_right,
-                    isLoading = uploadGuarantorDetailsUiState == UploadGuarantorDetailsUiState.Loading,
-                    onClick = {
-//                        navigator.navToKabuRidePendingAccountApprovalScreen()
-                        if (guarantorImageUri?.path.isNullOrEmpty()) {
-                            context.displayToastMessage("Upload your Guarantor's image")
-                            return@KabuBottomButtonRowScope
-                        }
-                        isInputValidated.value = validateGuarantorDetails(
-                            fullName = fullName,
-                            phoneNumber = phoneNumber,
-                            email = email,
-                            houseAddress = houseAddress,
-                            relationship = guarantorRelationship,
-                            city = city,
-                            state = state,
-                            fullNameError = fullNameError,
-                            phoneNumberError = phoneNumberError,
-                            emailError = emailError,
-                            houseAddressError = houseAddressError,
-                            cityError = cityError,
-                            stateError = stateError,
-                            relationshipError = relationshipError
-                        )
-                        if (isInputValidated.value) {
-                            val uploadGuarantorDetailsReqBody = UploadGuarantorDetailsReqBody(
-                                guarantorImage = convertUriToFile(context, guarantorImageUri),
-                                guarantorFullName = fullName,
-                                guarantorRelationship = guarantorRelationship,
-                                guarantorHouseAddress = houseAddress,
-                                guarantorCity = city,
-                                guarantorState = state,
-                                guarantorPhoneNumber = phoneNumber,
-                                guarantorEmail = email,
-                                referralCode = referralCode,
-                                sharpProgramType = "HIRE_PURCHASE"
-                                //RENTAL
+                ScreenTitleText(
+                    title = "Guarantor Details",
+                    titleFontSize = 25,
+                    subtitleFontSize = 14,
+                    subtitle = "Tell us about your guarantors",
+                    bottomPadding = 16,
+                    modifier = Modifier.clickable {
+
+                    })
+
+                GrayBackgroundContainer {
+
+                    ProfileCard(
+                        selectedImageUri = guarantorImageUri,
+                        onImageSelected = { guarantorImageUri = it },
+                        modifier = Modifier.padding(6.dp)
+                    )
+
+                    FormTextfield(
+                        title = "Full Name",
+                        value = fullName,
+                        hintText = "John Doe",
+                        onTextChanged = { newText ->
+                            val isValid = validateFullName(
+                                newText, fullNameError
                             )
-                            authViewModel.uploadGuarantorDetails(uploadGuarantorDetailsReqBody)
-                        }
+                            if (isValid) {
+                                fullName = newText
+                            } else {
+                                return@FormTextfield
+                            }
+                        },
+                        validationError = fullNameError.value.isNotEmpty(),
+                        validationErrorMessage = fullNameError.value
+                    )
+
+                    FormTextfieldDropdown(
+                        "Relationship",
+                        value = guarantorRelationship,
+                        isCompulsory = false,
+                        onClick = {
+                            showGuarantorSheet = true
+                        },
+                        validationError = relationshipError.value.isNotEmpty(),
+                        validationErrorMessage = relationshipError.value
+                    )
+
+                    FormTextfield(
+                        title = "Email Address",
+                        value = email,
+                        hintText = "Email",
+                        onTextChanged = { email = it },
+                        validationError = emailError.value.isNotEmpty(),
+                        validationErrorMessage = emailError.value
+                    )
+
+                    FormTextfield(
+                        title = "Phone number",
+                        value = phoneNumber,
+                        hintText = "Phone number",
+                        keyboardType = "phone number",
+                        onTextChanged = { newText ->
+                            val filtered = newText.filter { it.isDigit() }
+                            if (filtered.length <= 11) {
+                                phoneNumber = filtered
+                            }
+                        },
+                        validationError = phoneNumberError.value.isNotEmpty(),
+                        validationErrorMessage = phoneNumberError.value
+                    )
+
+                    FormTextfield(
+                        title = "House address",
+                        value = houseAddress,
+                        hintText = "House address",
+                        onTextChanged = { houseAddress = it },
+                        validationError = houseAddressError.value.isNotEmpty(),
+                        validationErrorMessage = houseAddressError.value
+                    )
 
 
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(24.dp)
+                    ) {
+                        RowScopeFormTextfield(
+                            title = "City",
+                            value = city,
+                            hintText = "City here",
+                            isDropdown = false,
+                            onTextChanged = { city = it },
+                            imeAction = ImeAction.Done,
+                            validationError = cityError.value.isNotEmpty(),
+                            validationErrorMessage = cityError.value
+                        )
+                        RowScopeFormTextfield(
+                            title = "State",
+                            value = state,
+                            hintText = "Abia",
+                            isDropdown = true,
+                            onClick = { showStateSheet = true },
+                            onTextChanged = {},
+                            validationError = stateError.value.isNotEmpty(),
+                            validationErrorMessage = stateError.value
+                        )
                     }
-                )
-            }
 
+                    FormTextfield(
+                        title = "Referral Code (Optional)",
+                        value = referralCode,
+                        hintText = "Code here",
+                        isCompulsory = false,
+                        onTextChanged = { referralCode = it },
+                    )
+
+                }
+
+                Row(
+                    modifier = Modifier.padding(top = 30.dp),
+                    horizontalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+
+                    KabuTransparentBottomButtonRowScope(
+                        "Previous", icon = R.drawable.arrow_left, onClick = {
+                            //                        navigator.navigateUp()
+                        })
+
+                    KabuBottomButtonRowScope(
+                        "Submit",
+                        icon = R.drawable.arrow_right,
+                        isLoading = uploadGuarantorDetailsUiState == UploadGuarantorDetailsUiState.Loading,
+                        onClick = {
+                            //                        navigator.navToKabuRidePendingAccountApprovalScreen()
+                            if (guarantorImageUri?.path.isNullOrEmpty()) {
+                                context.displayToastMessage("Upload your Guarantor's image")
+                                return@KabuBottomButtonRowScope
+                            }
+                            isInputValidated.value = validateGuarantorDetails(
+                                fullName = fullName,
+                                phoneNumber = phoneNumber,
+                                email = email,
+                                houseAddress = houseAddress,
+                                relationship = guarantorRelationship,
+                                city = city,
+                                state = state,
+                                fullNameError = fullNameError,
+                                phoneNumberError = phoneNumberError,
+                                emailError = emailError,
+                                houseAddressError = houseAddressError,
+                                cityError = cityError,
+                                stateError = stateError,
+                                relationshipError = relationshipError
+                            )
+                            if (isInputValidated.value) {
+                                val uploadGuarantorDetailsReqBody = UploadGuarantorDetailsReqBody(
+                                    guarantorImage = convertUriToFile(context, guarantorImageUri),
+                                    guarantorFullName = fullName,
+                                    guarantorRelationship = guarantorRelationship,
+                                    guarantorHouseAddress = houseAddress,
+                                    guarantorCity = city,
+                                    guarantorState = state,
+                                    guarantorPhoneNumber = phoneNumber,
+                                    guarantorEmail = email,
+                                    referralCode = referralCode,
+                                    sharpProgramType = "HIRE_PURCHASE"
+                                    //RENTAL
+                                )
+                                authViewModel.uploadGuarantorDetails(uploadGuarantorDetailsReqBody)
+                            }
+
+
+                        })
+                }
+
+            }
         }
 
     }
@@ -409,9 +452,7 @@ internal fun validateGuarantorDetails(
         isValid = false
     }
 
-    if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email)
-            .matches()
-    ) {
+    if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
         emailError.value = "Invalid email address"
         isValid = false
     }
@@ -447,8 +488,7 @@ internal fun validateGuarantorDetails(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SelectGuarantorRelationshipModal(
-    onDismiss: () -> Unit,
-    onSelectRelationship: (String) -> Unit
+    onDismiss: () -> Unit, onSelectRelationship: (String) -> Unit
 ) {
 
     val relationship = LocalDataSource().guarantorRelationship
@@ -462,6 +502,8 @@ internal fun SelectGuarantorRelationshipModal(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp, horizontal = 16.dp)
+                .navigationBarsPadding()
+                .imePadding()
         ) {
             Text(
                 text = "Select Guarantor Relationship",
@@ -489,8 +531,7 @@ internal fun SelectGuarantorRelationshipModal(
                                     onDismiss()
                                 }
 //                                .background(color = Color(0x2DD3D3D3))
-                                .padding(vertical = 12.dp, horizontal = 16.dp)
-                        )
+                                .padding(vertical = 12.dp, horizontal = 16.dp))
                     }
                 }
             }
@@ -501,8 +542,7 @@ internal fun SelectGuarantorRelationshipModal(
 
 @Composable
 fun ProfileCard(
-    selectedImageUri: Uri?,
-    onImageSelected: (Uri?) -> Unit,
+    selectedImageUri: Uri?, onImageSelected: (Uri?) -> Unit,
 //    showImageSelection: Boolean = true,
     modifier: Modifier = Modifier
 ) {
@@ -510,8 +550,7 @@ fun ProfileCard(
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri -> onImageSelected(uri) }
-    )
+        onResult = { uri -> onImageSelected(uri) })
 
     Box(
         modifier = modifier
@@ -526,8 +565,7 @@ fun ProfileCard(
 //                } else {
 //                context.displayToastMessage("Please complete required fields before uploading.")
 //                }
-            },
-        contentAlignment = Alignment.Center
+            }, contentAlignment = Alignment.Center
     ) {
         if (selectedImageUri == null || selectedImageUri == Uri.EMPTY) {
             Icon(
@@ -538,11 +576,8 @@ fun ProfileCard(
             )
         } else {
             AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(selectedImageUri)
-                    .size(800)
-                    .crossfade(true)
-                    .build(),
+                model = ImageRequest.Builder(context).data(selectedImageUri).size(800)
+                    .crossfade(true).build(),
                 contentDescription = "Selected profile image",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop

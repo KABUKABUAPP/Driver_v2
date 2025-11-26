@@ -45,13 +45,13 @@ class OtpViewModel : ViewModel() {
                     }
                     
                     // Save user email
-                    user.email?.let { email ->
+                    user?.email?.let { email ->
                         Log.d("OtpViewModel", "Saving email: $email")
                         userPreferences.saveUserEmail(email)
                     }
 
                     // Save user ID
-                    user.id?.let { id ->
+                    user?.id?.let { id ->
                         Log.d("OtpViewModel", "Saving user ID: $id")
                         userPreferences.saveUserId(id)
                     }

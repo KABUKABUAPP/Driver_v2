@@ -36,7 +36,8 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.Kab
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideSelfieVerificationScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideTermsAndConditionsScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.ReuploadGuarantorDetail
-import com.kabukabu.driver.features.home.presentation.HomeScreen
+import com.kabukabu.driver.features.home.presentation.views.HomeScreen
+import com.kabukabu.driver.features.home.presentation.views.HomeScreenWithIntegratedTrip
 import com.kabukabu.driver.features.profile.data.Document
 import com.kabukabu.driver.features.profile.data.ProfileData
 import com.kabukabu.driver.features.profile.presentation.ProfileScreen
@@ -65,11 +66,11 @@ fun AppNavigation() {
 
     // Log changes whenever userDetails updates
     LaunchedEffect(userDetails) {
-        Log.i("DataStoreDebug", "userDetails emitted: $userDetails")
+        Log.i("DataStoreDebug in AppNav", "userDetails emitted: $userDetails")
     }
 
     // Auth check logic
-    LaunchedEffect(authToken, userDetails) {
+    LaunchedEffect(authToken  ) {
         delay(400)
 
         if (userDetails == null) {
@@ -252,7 +253,7 @@ fun AppNavigation() {
 
         composable(Screen.Home.route) {
             Log.d("AppNavigation", "Home screen composable called")
-            HomeScreen(
+            HomeScreenWithIntegratedTrip(
                 onLogout = {
                     coroutineScope.launch {
                         userPreferences.clearUserDetails()
@@ -420,6 +421,7 @@ private fun navigateBasedOnOnboardingStatus(
                                         TAG,
                                         "Navigating to: KabuRideInspection (Internal status 'pending')."
                                     )
+                                    //here is the issue
                                     navigator.navToKabuRideInspection()
                                 }
 
@@ -449,7 +451,8 @@ private fun navigateBasedOnOnboardingStatus(
                             navigator.navToKabuRidePendingAccountApprovalScreen()
                         }
                     }
-                } else {
+                }
+                else {
                     // user doesn't own a car → KabuSharp
                     Log.d(TAG, "Driver type: KabuSharp (No Car).")
                     val sharpStatus = driver.sharpApprovalStatus?.lowercase()

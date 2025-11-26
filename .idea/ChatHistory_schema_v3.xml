@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChatHistoryState">
+    <option name="chatSessions" value="{&quot;7542642d-dccd-4275-b091-72e182b8163c&quot;:{&quot;id&quot;:&quot;7542642d-dccd-4275-b091-72e182b8163c&quot;,&quot;name&quot;:&quot;Which LLM Are You Using?&quot;,&quot;timestamp&quot;:1763810197210,&quot;messages&quot;:[{&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:[{&quot;type&quot;:&quot;text&quot;,&quot;text&quot;:&quot;\u003cuser_query\u003e\nwhich llm are you using\n\u003c/user_query\u003e&quot;}]},{&quot;role&quot;:&quot;assistant&quot;,&quot;content&quot;:[]}]},&quot;02d405c5-a5eb-40a7-aea5-cb655e411f5f&quot;:{&quot;id&quot;:&quot;02d405c5-a5eb-40a7-aea5-cb655e411f5f&quot;,&quot;name&quot;:&quot;New Chat&quot;,&quot;timestamp&quot;:1763981688422,&quot;messages&quot;:[]}}" />
+  </component>
+</project>

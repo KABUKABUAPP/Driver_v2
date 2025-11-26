@@ -28,12 +28,14 @@ import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import com.kabukabu.driver.R
+import com.kabukabu.driver.components.ui.LoadingOverlay
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -50,6 +52,7 @@ fun LoginScreen(
     val context = LocalContext.current
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused = interactionSource.collectIsFocusedAsState()
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     // Define colors
     val lightGray = Color(0xFFF1F1F1) // rgba(241, 241, 241, 1)
@@ -135,10 +138,7 @@ fun LoginScreen(
                     { Text("Please enter a valid email") }
                 } else null,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(lightGray),
+                    .fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = amber,
                     unfocusedBorderColor = Color.Transparent,
@@ -162,7 +162,7 @@ fun LoginScreen(
             // Continue button with amber background and black text
             Button(
                 onClick = {
-
+                    keyboardController?.hide()
                     if (viewModel.isValidEmail(email.text)) {
                         viewModel.login(email.text)
                     } else {
@@ -187,7 +187,7 @@ fun LoginScreen(
         }
 
         if (uiState is LoginUiState.Loading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            LoadingOverlay()
         }
     }
 }
