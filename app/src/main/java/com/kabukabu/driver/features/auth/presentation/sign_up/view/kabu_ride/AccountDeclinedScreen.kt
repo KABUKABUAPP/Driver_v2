@@ -208,7 +208,9 @@ private fun ReasonForApprovalDeclineCard(
     onClick: () -> Unit
 ) {
 
-    Column {
+    Column(
+        modifier = Modifier.padding(bottom = 12.dp) // Add spacing between cards
+    ) {
         Row(
             modifier = Modifier
                 .background(color = Color(0xFFF8F8F8), RoundedCornerShape(12.dp))

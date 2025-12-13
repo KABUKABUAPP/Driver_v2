@@ -29,9 +29,11 @@ import com.kabukabu.driver.features.auth.data.entity.response.ReUploadDocumentRe
 import com.kabukabu.driver.features.auth.data.entity.response.ReuploadGuarantorDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDetailsResponse
 import com.kabukabu.driver.features.auth.data.entity.response.UploadCarDocsResponse
-import com.kabukabu.driver.features.profile.data.PreferredPaymentMethods
+import com.kabukabu.driver.features.chat.data.ChatResponse
+import com.kabukabu.driver.features.home.data.RatingRequest
 import com.kabukabu.driver.features.profile.data.PreferredPaymentMethodsRequest
 import com.kabukabu.driver.features.trips.data.TripHistoryResponse
+import com.kabukabu.driver.features.wallet.data.PaymentHistoryResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Multipart
@@ -159,7 +161,7 @@ interface ApiService {
     suspend fun getProfile(@Header("Authorization") token: String): Response<ResponseBody>
 
     @GET("trip/today")
-    suspend fun getTodayTripStats(@Header("Authorization") token: String): Response<ResponseBody>
+    suspend fun getTodayTripStats(@Header("Authorization") token: String): Response<com.kabukabu.driver.features.home.data.TripTodayResponse>
 
     @FormUrlEncoded
     @POST("repair-loan/request-new")
@@ -171,7 +173,15 @@ interface ApiService {
     ): Response<ResponseBody>
 
 
-    @FormUrlEncoded
+    @PUT("trip/rate-rider/{orderId}")
+    suspend fun rateRider(
+        @Header("Authorization") bearerToken: String,
+        @Path("orderId") orderId: String,
+        @Body request: RatingRequest
+    ): Response<ResponseBody>
+
+
+//    @FormUrlEncoded
     @PUT("trip/start-trip/{orderId}")
     suspend fun startTrip(
         @Header("Authorization") bearerToken: String,
@@ -179,12 +189,21 @@ interface ApiService {
     ): Response<ResponseBody>
 
 
-    @PUT("driver/online_status")
+    @PUT("trip/end-trip/{orderId}")
+    suspend fun endTrip(
+        @Header("Authorization") bearerToken: String,
+        @Path("orderId") orderId: String
+    ): Response<com.kabukabu.driver.features.home.data.EndTripResponse>
+
+
+    @PUT("driver/v2/online-status")
     suspend fun updateOnlineStatus(
         @Header("Authorization") token: String,
         @Header("authid") userId: String,
         @Body request: OnlineStatusRequest
     ): Response<OnlineStatusResponse>
+
+
 
 
     @PUT("order/match-order/{orderId}")
@@ -235,6 +254,17 @@ interface ApiService {
         @Query("page") page: Int? = null,
         @Query("limit") limit: Int? = null
     ): TripHistoryResponse
+
+
+
+    // Trips (support pagination like Flutter models)
+    @GET("payment/history")
+    suspend fun getPaymentHistory(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Query("page") page: Int? = null,
+        @Query("limit") limit: Int? = null
+    ): PaymentHistoryResponse
 
     // Promotions
     @GET("promotions/all-promo")
@@ -315,6 +345,28 @@ interface ApiService {
         @Field("subject") subject: String,
         @Field("message") message: String
     ): Response<ResponseBody>
+
+
+    @GET("chat/messages/{orderId}")
+    suspend fun fetchChats(
+        @Path("orderId") orderId: String,
+        @Query("limit") limit: Int = 20,
+        @Query("page") page: Int = 1,
+        @Query("date") date: String? = null
+    ): ChatResponse
+
+
+    @FormUrlEncoded
+    @POST("payment/subscription/initiate")
+    suspend fun payDuePayment(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Field("pin") subject: String,
+
+    ): Response<ResponseBody>
+
+
+//    payment/subscription/initiate
 
     ///getDriverTodayStat
 

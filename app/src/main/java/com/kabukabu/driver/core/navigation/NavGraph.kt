@@ -7,7 +7,10 @@ sealed class Screen(val route: String) {
     object Login : Screen("login")
     object OtpVerification : Screen("otp_verification")
     object Home : Screen("home")
-    object Wallet : Screen("wallet")
+    object Wallet : Screen("wallet") {
+        // Helper to build route with optional refresh flag
+        fun withRefresh(refresh: Boolean): String = if (refresh) "wallet?refresh=true" else "wallet?refresh=false"
+    }
     object PaymentHistory : Screen("payment_history")
     object SharpPayment : Screen("sharp_payment")
     object Analytics : Screen("analytics")
@@ -31,6 +34,9 @@ sealed class Screen(val route: String) {
     object KabuRideDocReUpload : Screen("/kabu-ride-document-re-upload")
     object KabuRideGuarantorReUpload : Screen("/kabu-ride-guarantor-re-upload")
     object KabuRideInspection : Screen("/kabu-ride-inspection")
+    object Chat : Screen("chat/{orderId}/{riderName}/{riderPhone}") {
+        fun createRoute(orderId: String, riderName: String = "Rider", riderPhone: String = "") = "chat/$orderId/$riderName/$riderPhone"
+    }
 
 }
 
@@ -42,4 +48,4 @@ sealed class NavArg(val key: String) {
     object Email : NavArg("email")
     object SupportId : NavArg("supportId")
     object documentId: NavArg("documentId")
-} 
+}

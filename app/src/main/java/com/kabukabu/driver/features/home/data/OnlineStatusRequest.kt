@@ -5,5 +5,13 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class OnlineStatusRequest(
-    @Json(name = "online_status") val onlineStatus: String
-) 
+    @Json(name = "status") val onlineStatus: String
+)
+
+@JsonClass(generateAdapter = true)
+data class RatingRequest(
+    @Json(name = "rating") val rating: Double,
+    @Json(name = "comment") val comment: String? = null
+)
+
+

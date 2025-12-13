@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -36,8 +37,9 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.Kab
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideSelfieVerificationScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.KabuRideTermsAndConditionsScreen
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride.ReuploadGuarantorDetail
-import com.kabukabu.driver.features.home.presentation.views.HomeScreen
+//import com.kabukabu.driver.features.home.presentation.views.HomeScreen
 import com.kabukabu.driver.features.home.presentation.views.HomeScreenWithIntegratedTrip
+import com.kabukabu.driver.features.chat.presentation.view.ChatScreenIntegrated
 import com.kabukabu.driver.features.profile.data.Document
 import com.kabukabu.driver.features.profile.data.ProfileData
 import com.kabukabu.driver.features.profile.presentation.ProfileScreen
@@ -47,9 +49,13 @@ import com.kabukabu.driver.features.support.presentation.SupportDetailScreen
 import com.kabukabu.driver.features.support.presentation.SupportNewTicketScreen
 import com.kabukabu.driver.features.support.presentation.SupportScreen
 import com.kabukabu.driver.features.trips.presentation.MyTripsScreen
+import com.kabukabu.driver.features.wallet.presentation.KabukabuWalletApp
 import com.kabukabu.driver.features.wallet.presentation.PaymentHistoryScreen
+import com.kabukabu.driver.features.wallet.presentation.PaymentHistoryScreen2
 import com.kabukabu.driver.features.wallet.presentation.SharpPaymentScreen
-import com.kabukabu.driver.features.wallet.presentation.WalletScreen
+import com.kabukabu.driver.features.wallet.presentation.PaymentWebViewScreen
+import com.kabukabu.driver.features.wallet.presentation.WithdrawalScreen
+//import com.kabukabu.driver.features.wallet.presentation.WalletScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -64,9 +70,13 @@ fun AppNavigation() {
     val coroutineScope = rememberCoroutineScope()
     val navigation = Navigator(navController)
 
+    // Create shared ChatViewModel at NavHost level so it persists across navigation
+    val sharedChatViewModel: com.kabukabu.driver.features.chat.presentation.viewmodel.ChatViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel()
+
     // Log changes whenever userDetails updates
     LaunchedEffect(userDetails) {
-        Log.i("DataStoreDebug in AppNav", "userDetails emitted: $userDetails")
+//        Log.i("DataStoreDebug in AppNav", "userDetails emitted: $userDetails")
     }
 
     // Auth check logic
@@ -264,7 +274,8 @@ fun AppNavigation() {
                     }
                 },
                 onNavigateToWallet = {
-                    navController.navigate(Screen.Wallet.route)
+                    // Navigate to wallet with refresh=false on normal entry
+                    navController.navigate(Screen.Wallet.withRefresh(false))
                 },
                 onNavigateToAnalytics = { navController.navigate(Screen.Analytics.route) },
                 onNavigateToMyTrips = { navController.navigate(Screen.MyTrips.route) },
@@ -272,23 +283,117 @@ fun AppNavigation() {
                 onNavigateToSupport = { navController.navigate(Screen.Support.route) },
                 onNavigateToAbout = { navController.navigate(Screen.About.route) },
                 onNavigateToRepairLoan = { navController.navigate(Screen.RepairLoan.route) },
-                onNavigateToProfile = { navController.navigate(Screen.Profile.route) }
+                onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
+                onNavigateToChat = { orderId, riderName, riderPhone ->
+                    navController.navigate(Screen.Chat.createRoute(orderId, riderName, riderPhone ?: ""))
+                },
+                chatViewModel = sharedChatViewModel
             )
         }
 
-        composable(Screen.Wallet.route) {
-            WalletScreen(
+        // Chat screen route with orderId, riderName, and riderPhone parameters
+        composable(
+            route = Screen.Chat.route,
+            arguments = listOf(
+                navArgument("orderId") { type = NavType.StringType },
+                navArgument("riderName") {
+                    type = NavType.StringType
+                    defaultValue = "Rider"
+                },
+                navArgument("riderPhone") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+            val riderName = backStackEntry.arguments?.getString("riderName") ?: "Rider"
+            val riderPhone = backStackEntry.arguments?.getString("riderPhone")?.takeIf { it.isNotBlank() }
+
+            android.util.Log.d("AppNavigation", "Chat composable created for orderId: $orderId, ViewModel: ${sharedChatViewModel.hashCode()}")
+
+            ChatScreenIntegrated(
+                orderId = orderId,
+                riderName = riderName,
+                riderPhone = riderPhone,
+                onBackClick = { navController.popBackStack() },
+                viewModel = sharedChatViewModel
+            )
+        }
+
+        composable(
+            route = Screen.Wallet.route + "?refresh={refresh}",
+            arguments = listOf(
+                navArgument("refresh") {
+                    type = NavType.BoolType
+                    defaultValue = false
+                }
+            )
+        ) { backStackEntry ->
+            val refresh = backStackEntry.arguments?.getBoolean("refresh") ?: false
+
+            // Scope ViewModel to the navigation graph (not individual back stack entry)
+            // This ensures the ViewModel persists across all wallet navigations
+            // The ViewModel will only be cleared when the user fully exits the wallet flow
+            val viewModel: com.kabukabu.driver.features.wallet.presentation.WalletViewModel =
+                androidx.lifecycle.viewmodel.compose.viewModel(
+                    viewModelStoreOwner = navController.getViewModelStoreOwner(navController.graph.id)
+                )
+
+            // Use backStackEntry.id as navigation key to detect each navigation
+            val navigationKey = backStackEntry.id
+
+            KabukabuWalletApp(
                 onBack = { navController.popBackStack() },
-                onNavigatePaymentHistory = { navController.navigate(Screen.PaymentHistory.route) },
-                onNavigateSharpPayment = { navController.navigate(Screen.SharpPayment.route) }
+                onNavigateToPaymentHistory = { navController.navigate(Screen.PaymentHistory.route) },
+                onNavigateToPaymentWebView = { paymentUrl ->
+                    val encodedUrl = java.net.URLEncoder.encode(paymentUrl, "UTF-8")
+                    navController.navigate("paymentWebView/$encodedUrl")
+                },
+                onNavigateToWithdrawal = { navController.navigate("withdrawal") },
+                refreshOnLaunch = refresh,
+                navigationKey = navigationKey,
+                viewModel = viewModel
             )
         }
 
         composable(Screen.PaymentHistory.route) {
             PaymentHistoryScreen(onBack = { navController.popBackStack() })
         }
+
+        composable("withdrawal") {
+            WithdrawalScreen(onBack = { navController.popBackStack() })
+        }
+
         composable(Screen.SharpPayment.route) {
             SharpPaymentScreen(onBack = { navController.popBackStack() })
+        }
+
+        // Payment WebView route for top-up payments
+        composable(
+            route = "paymentWebView/{paymentUrl}",
+            arguments = listOf(
+                navArgument("paymentUrl") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val encodedUrl = backStackEntry.arguments?.getString("paymentUrl") ?: ""
+            val paymentUrl = java.net.URLDecoder.decode(encodedUrl, "UTF-8")
+
+            PaymentWebViewScreen(
+                paymentUrl = paymentUrl,
+                onPaymentSuccess = {
+                    // On success, navigate to Wallet with refresh=true and clear previous Wallet from stack
+                    navController.navigate(Screen.Wallet.withRefresh(true)) {
+                        popUpTo(Screen.Wallet.route) { inclusive = true }
+                    }
+                },
+                onPaymentCancelled = {
+                    navController.popBackStack()
+                },
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable(Screen.Analytics.route) {

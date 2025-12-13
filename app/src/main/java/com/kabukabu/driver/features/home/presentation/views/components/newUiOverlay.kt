@@ -54,6 +54,8 @@ import com.kabukabu.driver.core.theme.BorderSubtle
 import com.kabukabu.driver.core.theme.Success
 import com.kabukabu.driver.core.theme.TextSecondary
 import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
+import java.text.NumberFormat
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -178,6 +180,7 @@ private fun ExpandableDriverStatusCard(
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     val isUpdatingOnlineStatus by driverViewModel.isUpdatingOnlineStatus.collectAsState()
+    val todayTripData by driverViewModel.todayTripData.collectAsState()
 
     Column {
         // Anchored map controls (above the card) with animated padding
@@ -251,19 +254,19 @@ private fun ExpandableDriverStatusCard(
                             OfflineStatus(isOnline = isOnline)
                             Spacer(modifier = Modifier.height(16.dp))
                             DriverStats(
-                                tripsCount = "0",
+                                tripsCount = "${todayTripData.totalTrips ?: 0}",
                                 tripsLabel = "Trip Today",
-                                earningsAmount = "0",
-                                earningsLabel = "Km covered today"
+                                earningsAmount = formatNaira(todayTripData.totalEarnedToday ?: 0.0),
+                                earningsLabel =  "Earned today",
 
                             )
                         }
 
                         if (isExpanded) {
                             DriverStats(
-                                tripsCount = "₦0",
-                                tripsLabel = "Earned today",
-                                earningsAmount = "6.5",
+                                tripsCount =  String.format("%.1f", todayTripData.totalKMToday ?: 0.0),
+                                tripsLabel = "Km covered today",
+                                earningsAmount = "0",
                                 earningsLabel = "Driver Score"
 
                             )
@@ -505,5 +508,9 @@ private fun OfflineStatus(isOnline: Boolean) {
     }
 }
 
-
-
+private fun formatNaira(amount: Double): String {
+    val formatter = NumberFormat.getNumberInstance(Locale("en", "NG"))
+    formatter.minimumFractionDigits = 2
+    formatter.maximumFractionDigits = 2
+    return "₦" + formatter.format(amount)
+}

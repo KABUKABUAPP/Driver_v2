@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.kabukabu.driver.R
+import com.kabukabu.driver.features.home.presentation.viewmodel.TripStatus
 import com.kabukabu.driver.features.profile.data.ActiveTrip
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.MapboxDirections
@@ -68,6 +69,8 @@ data class RouteState(
  fun MapComponent(
     currentLocation: Location?,
     activeTrip: ActiveTrip? = null,
+    pendingTripEvent: com.kabukabu.driver.core.data.socket.TripFoundEvent? = null,
+    tripStatus: TripStatus? = null,
     onRouteInfoUpdated: (RouteState) -> Unit = {},
     mapViewState: MutableState<MapView?>? = null,
     modifier: Modifier = Modifier
@@ -102,6 +105,9 @@ data class RouteState(
     val lastRouteCalcPosition = remember { mutableStateOf<Location?>(null) }
     val lastRouteCalcTime = remember { mutableStateOf<Long>(0L) }
 
+    // Track last marker type to detect when we need to change the icon
+    val lastMarkerWasDestination = remember { mutableStateOf(false) }
+
     // Minimum distance (in meters) before redrawing route to avoid flickering
     val minDistanceForRouteRedraw = 50f
 
@@ -111,8 +117,13 @@ data class RouteState(
     )
 
     // Periodic route updates for active trips (hybrid: time-based OR distance-based)
-    LaunchedEffect(activeTrip?.id) {
-        if (activeTrip?.id != null && activeTrip.startPoint.size >= 2) {
+    // Use activeTrip if available, otherwise use pendingTripEvent
+    LaunchedEffect(activeTrip?.id, pendingTripEvent?.eventId, tripStatus) {
+        // Get trip data from either source
+        val tripId = activeTrip?.id ?: pendingTripEvent?.eventId
+        val startPoint = activeTrip?.startPoint ?: pendingTripEvent?.startPoint
+
+        if (tripId != null && startPoint != null && startPoint.size >= 2) {
             while (true) {
                 delay(60000) // Check every 60 seconds
 
@@ -126,14 +137,29 @@ data class RouteState(
 
                 if (shouldUpdate && currentLocation != null) {
                     Log.d("MapComponent", "Periodic route update triggered")
-                    val driverPoint = Point.fromLngLat(currentLocation.longitude, currentLocation.latitude)
-                    val riderPoint = Point.fromLngLat(activeTrip.startPoint[0], activeTrip.startPoint[1])
+
+                    // Determine route based on trip status
+                    val isTripStarted = tripStatus == com.kabukabu.driver.features.home.presentation.viewmodel.TripStatus.TRIP_STARTED
+                    val routeOrigin: Point
+                    val routeDestination: Point
+
+                    val endPoint = activeTrip?.endPoint
+
+                    if (isTripStarted && endPoint != null && endPoint.size >= 2) {
+                        // TRIP STARTED: Show driver's current location to destination
+                        routeOrigin = Point.fromLngLat(currentLocation.longitude, currentLocation.latitude)
+                        routeDestination = Point.fromLngLat(endPoint[0], endPoint[1])
+                    } else {
+                        // TRIP NOT STARTED: Show driver's current location to pickup
+                        routeOrigin = Point.fromLngLat(currentLocation.longitude, currentLocation.latitude)
+                        routeDestination = Point.fromLngLat(startPoint[0], startPoint[1])
+                    }
 
                     polylineAnnotationManager.value?.let { polyMgr ->
                         fetchAndDrawRoute(
                             mapView,
-                            driverPoint,
-                            riderPoint,
+                            routeOrigin,
+                            routeDestination,
                             polyMgr,
                             onRouteInfoUpdated
                         )
@@ -147,12 +173,13 @@ data class RouteState(
 
     // Initial map setup - Load style FIRST
     LaunchedEffect(mapView) {
-        mapView.getMapboxMap().loadStyleUri(
-            "mapbox://styles/kabukabuapp/cmd1e8u2s009k01s913jc4ywh"
-        ) {
+        Log.d("MapComponent", "Loading map style...")
+
+        // Use the modern Mapbox API for loading styles
+        mapView.mapboxMap.loadStyle("mapbox://styles/kabukabuapp/cmd1e8u2s009k01s913jc4ywh") { style ->
             // This callback fires when style is fully loaded
             isStyleLoaded.value = true
-            Log.d("MapComponent", "Map style loaded successfully")
+            Log.d("MapComponent", "✅ Map style loaded successfully")
         }
 
         // Enable map interaction using the gestures plugin
@@ -177,7 +204,8 @@ data class RouteState(
             return@LaunchedEffect
         }
 
-        val currentTripId = activeTrip?.id
+        // Use activeTrip ID if available, otherwise use pendingTripEvent ID
+        val currentTripId = activeTrip?.id ?: pendingTripEvent?.eventId
         val tripChanged = currentTripId != previousTripId.value
 
         if (tripChanged) {
@@ -194,11 +222,18 @@ data class RouteState(
             driverAnnotationId.value = null
             riderAnnotationId.value = null
             routeAnnotationId.value = null
+
+            // Reset marker type tracking
+            lastMarkerWasDestination.value = false
         }
     }
 
+    // Track previous trip status to detect changes
+    val lastTripStatus = remember { mutableStateOf<com.kabukabu.driver.features.home.presentation.viewmodel.TripStatus?>(null) }
+
     // Update markers when location changes - WITHOUT resetting camera (unless initial)
-    LaunchedEffect(currentLocation, activeTrip?.id, isStyleLoaded.value) {
+    // Include pendingTripEvent in dependencies to react immediately when trip is accepted
+    LaunchedEffect(currentLocation, activeTrip?.id, pendingTripEvent?.eventId, tripStatus, isStyleLoaded.value) {
         // Wait for style to be loaded before adding any annotations
         if (!isStyleLoaded.value || currentLocation == null) {
             Log.d("MapComponent", "Waiting for style to load or location... Style: ${isStyleLoaded.value}, Location: $currentLocation")
@@ -208,30 +243,72 @@ data class RouteState(
         val driverPoint = Point.fromLngLat(currentLocation.longitude, currentLocation.latitude)
         val shouldSetCamera = !initialCameraSet.value
 
-        // Handle active trip with route
-        if (activeTrip?.startPoint != null && activeTrip.startPoint.size >= 2) {
-            // startPoint is [longitude, latitude]
-            val riderPoint = Point.fromLngLat(activeTrip.startPoint[0], activeTrip.startPoint[1])
+        // Get trip data from either activeTrip or pendingTripEvent
+        val startPoint = activeTrip?.startPoint ?: pendingTripEvent?.startPoint
+        val endPoint = activeTrip?.endPoint
 
-            // Check if we need to redraw the route (only if driver moved significantly)
+        // Handle active trip with route (use pendingTripEvent as fallback)
+        if (startPoint != null && startPoint.size >= 2) {
+            // Determine which route to show based on trip status
+            val isTripStarted = tripStatus == TripStatus.TRIP_STARTED
+
+            val routeOrigin: Point
+            val routeDestination: Point
+            val riderMarkerPoint: Point // Position for the rider/destination marker
+
+            if (isTripStarted && endPoint != null && endPoint.size >= 2) {
+                // Trip has started: Show route from pickup (startPoint) to destination (endPoint)
+                routeOrigin = Point.fromLngLat(startPoint[0], startPoint[1])
+                routeDestination = Point.fromLngLat(endPoint[0], endPoint[1])
+                riderMarkerPoint = routeDestination // Marker shows destination
+                Log.d("MapComponent", "Trip started - showing route from pickup to destination")
+            } else {
+                // Trip not started yet: Show route from driver to pickup (startPoint)
+                routeOrigin = driverPoint
+                routeDestination = Point.fromLngLat(startPoint[0], startPoint[1])
+                riderMarkerPoint = routeDestination // Marker shows pickup
+                Log.d("MapComponent", "Trip not started - showing route from driver to pickup (using ${if (activeTrip != null) "activeTrip" else "pendingTripEvent"})")
+            }
+
+            // Check if trip status changed (force redraw if status changed)
+            val tripStatusChanged = lastTripStatus.value != tripStatus
+            if (tripStatusChanged) {
+                Log.d("MapComponent", "Trip status changed from ${lastTripStatus.value} to $tripStatus - forcing route redraw")
+                lastTripStatus.value = tripStatus
+            }
+
+            // Check if marker icon type needs to change (pickup icon -> destination icon)
+            val markerIconNeedsUpdate = lastMarkerWasDestination.value != isTripStarted
+            if (markerIconNeedsUpdate) {
+                Log.d("MapComponent", "Marker icon type changed (was destination: ${lastMarkerWasDestination.value}, now: $isTripStarted) - forcing marker recreation")
+                // Clear rider marker ID to force recreation with new icon
+                riderAnnotationId.value = null
+                lastMarkerWasDestination.value = isTripStarted
+            }
+
+            // Check if we need to redraw the route (if driver moved significantly OR trip status changed)
             val lastCalcPosition = lastRouteCalcPosition.value
             val shouldRedrawRoute = lastCalcPosition == null ||
-                currentLocation.distanceTo(lastCalcPosition) > minDistanceForRouteRedraw
+                currentLocation.distanceTo(lastCalcPosition) > minDistanceForRouteRedraw ||
+                tripStatusChanged // ✅ Force redraw when status changes
 
-            Log.d("MapComponent", "Active Trip - Updating markers (camera reset: $shouldSetCamera, redraw route: $shouldRedrawRoute)")
+            Log.d("MapComponent", "Active Trip - Updating markers (camera reset: $shouldSetCamera, redraw route: $shouldRedrawRoute, status changed: $tripStatusChanged, marker icon changed: $markerIconNeedsUpdate)")
 
             // Update route and markers with smart redrawing
             updateRouteWithMarkers(
                 mapView,
+                routeOrigin,
+                routeDestination,
                 driverPoint,
-                riderPoint,
+                riderMarkerPoint,
                 context,
                 pointAnnotationManager,
                 polylineAnnotationManager,
                 driverAnnotationId,
                 riderAnnotationId,
                 shouldRedrawRoute,
-                onRouteInfoUpdated
+                onRouteInfoUpdated,
+                isTripStarted
             )
 
             // Track position for distance-based updates (only if we redrew the route)
@@ -240,11 +317,11 @@ data class RouteState(
                 lastRouteCalcTime.value = System.currentTimeMillis()
             }
 
-            // Only adjust camera on initial load or trip change
-            if (shouldSetCamera) {
-                adjustCameraToShowRoute(mapView, driverPoint, riderPoint)
+            // Adjust camera on initial load, trip change, or trip status change
+            if (shouldSetCamera || tripStatusChanged) {
+                adjustCameraToShowRoute(mapView, routeOrigin, routeDestination)
                 initialCameraSet.value = true
-                Log.d("MapComponent", "Initial camera set for active trip")
+                Log.d("MapComponent", "Camera adjusted for active trip (initial: $shouldSetCamera, status changed: $tripStatusChanged)")
             } else {
                 Log.d("MapComponent", "Markers updated, preserving user's camera position")
             }
@@ -267,7 +344,7 @@ data class RouteState(
                     center(driverPoint)
                     zoom(17.0)
                 }
-                mapView.getMapboxMap().setCamera(cameraOptions)
+                mapView.mapboxMap.setCamera(cameraOptions)
                 initialCameraSet.value = true
                 Log.d("MapComponent", "Initial camera set for driver")
             } else {
@@ -330,9 +407,16 @@ private fun createDriverMarker(
 
 /**
  * Updates the route line and both driver/rider markers - smoothly updates without flickering
+ * @param routeOrigin The starting point for the route line
+ * @param routeDestination The ending point for the route line
+ * @param driverPoint The current driver location for the driver marker
+ * @param riderPoint The destination marker position (pickup before trip starts, destination after)
+ * @param isTripStarted Whether the trip has started (affects marker display)
  */
 private fun updateRouteWithMarkers(
     mapView: MapView,
+    routeOrigin: Point,
+    routeDestination: Point,
     driverPoint: Point,
     riderPoint: Point,
     context: Context,
@@ -341,9 +425,10 @@ private fun updateRouteWithMarkers(
     driverAnnotationIdState: MutableState<String?>,
     riderAnnotationIdState: MutableState<String?>,
     shouldRedrawRoute: Boolean,
-    onRouteInfoUpdated: (RouteState) -> Unit = {}
+    onRouteInfoUpdated: (RouteState) -> Unit = {},
+    isTripStarted: Boolean = false
 ) {
-    Log.d("MapComponent", "Updating route from driver to rider (redraw route: $shouldRedrawRoute)")
+    Log.d("MapComponent", "Updating route (redraw route: $shouldRedrawRoute, trip started: $isTripStarted)")
 
     // IMPORTANT: Create polyline manager FIRST, then point manager
     // This ensures polyline is drawn under the markers
@@ -361,11 +446,12 @@ private fun updateRouteWithMarkers(
 
     // Draw route FIRST (if needed) so it appears under markers
     if (shouldRedrawRoute) {
-        Log.d("MapComponent", "Redrawing route (driver moved significantly)")
+        Log.d("MapComponent", "Redrawing route - clearing ${polylineManager.annotations.size} existing routes")
         polylineManager.deleteAll()
-        fetchAndDrawRoute(mapView, driverPoint, riderPoint, polylineManager, onRouteInfoUpdated)
+        // Fetch and draw the new route (asynchronous operation)
+        fetchAndDrawRoute(mapView, routeOrigin, routeDestination, polylineManager, onRouteInfoUpdated)
     } else {
-        Log.d("MapComponent", "Keeping existing route (driver movement minimal)")
+        Log.d("MapComponent", "Keeping existing route (${polylineManager.annotations.size} routes)")
     }
 
     // Then update markers (they will appear on top of the route)
@@ -375,17 +461,41 @@ private fun updateRouteWithMarkers(
             annotation.point = driverPoint
             pointManager.update(annotation)
             Log.d("MapComponent", "Driver marker smoothly updated")
-        } ?: createMarkers(pointManager, driverPoint, riderPoint, context, driverAnnotationIdState, riderAnnotationIdState)
+        } ?: createMarkers(pointManager, driverPoint, riderPoint, context, driverAnnotationIdState, riderAnnotationIdState, isTripStarted)
     } else {
-        createMarkers(pointManager, driverPoint, riderPoint, context, driverAnnotationIdState, riderAnnotationIdState)
+        createMarkers(pointManager, driverPoint, riderPoint, context, driverAnnotationIdState, riderAnnotationIdState, isTripStarted)
     }
 
-    // Smoothly update rider marker (usually static, but update for consistency)
+    // Smoothly update rider/pickup/destination marker
     val riderAnnotationId = riderAnnotationIdState.value
     if (riderAnnotationId != null) {
         pointManager.annotations.find { it.id == riderAnnotationId }?.let { annotation ->
             annotation.point = riderPoint
             pointManager.update(annotation)
+            Log.d("MapComponent", "Rider/destination marker position smoothly updated")
+        } ?: run {
+            // Marker was deleted or doesn't exist, recreate it with correct icon
+            Log.d("MapComponent", "Rider marker not found, recreating with correct icon")
+            val riderIconRes = if (isTripStarted) R.drawable.destination else R.drawable.ride
+            bitmapFromDrawable(context, riderIconRes)?.let { bitmap ->
+                val riderAnnotation = PointAnnotationOptions()
+                    .withPoint(riderPoint)
+                    .withIconImage(bitmap)
+                val annotation = pointManager.create(riderAnnotation)
+                riderAnnotationIdState.value = annotation.id
+                Log.d("MapComponent", if (isTripStarted) "Destination marker recreated" else "Pickup (rider) marker recreated")
+            }
+        }
+    } else {
+        // First time creating rider marker
+        val riderIconRes = if (isTripStarted) R.drawable.destination else R.drawable.ride
+        bitmapFromDrawable(context, riderIconRes)?.let { bitmap ->
+            val riderAnnotation = PointAnnotationOptions()
+                .withPoint(riderPoint)
+                .withIconImage(bitmap)
+            val annotation = pointManager.create(riderAnnotation)
+            riderAnnotationIdState.value = annotation.id
+            Log.d("MapComponent", if (isTripStarted) "Destination marker created" else "Pickup (rider) marker created")
         }
     }
 }
@@ -396,9 +506,10 @@ private fun createMarkers(
     riderPoint: Point,
     context: Context,
     driverAnnotationIdState: MutableState<String?>,
-    riderAnnotationIdState: MutableState<String?>
+    riderAnnotationIdState: MutableState<String?>,
+    isTripStarted: Boolean
 ) {
-    // Create driver marker
+    // Create driver marker (unchanged)
     bitmapFromDrawable(context, R.drawable._d_cars)?.let { bitmap ->
         val driverAnnotation = PointAnnotationOptions()
             .withPoint(driverPoint)
@@ -408,14 +519,21 @@ private fun createMarkers(
         Log.d("MapComponent", "Driver marker created")
     }
 
-    // Create rider marker
-    bitmapFromDrawable(context, R.drawable.ride)?.let { bitmap ->
+    // Choose icon based on trip phase:
+    // - Before trip starts: rider/pickup marker uses existing pickup icon (ride)
+    // - After trip starts: destination marker uses new destination.png
+    val riderIconRes = if (isTripStarted) R.drawable.destination else R.drawable.ride
+
+    bitmapFromDrawable(context, riderIconRes)?.let { bitmap ->
         val riderAnnotation = PointAnnotationOptions()
             .withPoint(riderPoint)
             .withIconImage(bitmap)
         val annotation = manager.create(riderAnnotation)
         riderAnnotationIdState.value = annotation.id
-        Log.d("MapComponent", "Rider marker created")
+        Log.d(
+            "MapComponent",
+            if (isTripStarted) "Destination marker created" else "Pickup (rider) marker created"
+        )
     }
 }
 
@@ -430,6 +548,13 @@ private fun fetchAndDrawRoute(
     onRouteInfoUpdated: (RouteState) -> Unit = {}
 ) {
     Log.d("DirectionsAPI", "Fetching route from ${origin.longitude()},${origin.latitude()} to ${destination.longitude()},${destination.latitude()}")
+
+    // Validate that origin and destination are different
+    val distance = origin.distanceTo(destination)
+    if (distance < 10.0) {
+        Log.w("DirectionsAPI", "Origin and destination are too close (${distance}m), skipping route fetch")
+        return
+    }
 
     val accessToken = mapView.context.getString(R.string.mapbox_access_token)
     Log.d("DirectionsAPI", "Using token: ${accessToken.take(10)}...")
@@ -469,13 +594,20 @@ private fun fetchAndDrawRoute(
             try {
                 val points = LineString.fromPolyline(routeGeometry, Constants.PRECISION_6).coordinates()
 
+                if (points.isEmpty()) {
+                    Log.e("DirectionsAPI", "Route points list is empty after parsing")
+                    drawStraightLine(polylineAnnotationManager, origin, destination)
+                    return
+                }
+
+                Log.d("DirectionsAPI", "Creating polyline with ${points.size} points")
                 val polylineOptions = PolylineAnnotationOptions()
                     .withPoints(points)
                     .withLineColor("#000000") // Black color
                     .withLineWidth(5.0) // Increased width for visibility
 
-                polylineAnnotationManager.create(polylineOptions)
-                Log.d("DirectionsAPI", "✅ Route drawn successfully with ${points.size} points")
+                val createdAnnotation = polylineAnnotationManager.create(polylineOptions)
+                Log.d("DirectionsAPI", "✅ Route drawn successfully - annotation ID: ${createdAnnotation.id}, total annotations: ${polylineAnnotationManager.annotations.size}")
 
                 // Extract distance and duration
                 val distance = currentRoute.distance()
@@ -492,7 +624,7 @@ private fun fetchAndDrawRoute(
                 Log.d("DirectionsAPI", "Route info updated: ${routeState.formattedDistance}, ${routeState.formattedDuration}")
 
             } catch (e: Exception) {
-                Log.e("DirectionsAPI", "Error parsing route geometry", e)
+                Log.e("DirectionsAPI", "Error parsing route geometry: ${e.message}", e)
                 drawStraightLine(polylineAnnotationManager, origin, destination)
             }
         }
@@ -561,7 +693,7 @@ private fun adjustCameraToShowRoute(mapView: MapView, driverPoint: Point, riderP
         .zoom(zoom)
         .build()
 
-    mapView.getMapboxMap().flyTo(
+    mapView.mapboxMap.flyTo(
         cameraOptions = cameraOptions,
         animationOptions = MapAnimationOptions.Builder().duration(1500L).build()
     )
@@ -581,4 +713,19 @@ private fun bitmapFromDrawable(context: Context, @DrawableRes resId: Int): Bitma
         drawable.draw(canvas)
         bitmap
     }
+}
+
+/**
+ * Calculate distance between two Points in meters
+ */
+private fun Point.distanceTo(other: Point): Double {
+    val results = FloatArray(1)
+    android.location.Location.distanceBetween(
+        this.latitude(),
+        this.longitude(),
+        other.latitude(),
+        other.longitude(),
+        results
+    )
+    return results[0].toDouble()
 }

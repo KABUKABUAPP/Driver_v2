@@ -28,6 +28,10 @@ class LocationRepository private constructor(
     private var locationCallback: LocationCallback? = null
     private var isLocationUpdatesActive = false
 
+    // Constants for location filtering
+    private val MINIMUM_ACCURACY_METERS = 20f // Only accept locations with accuracy better than 20 meters
+    private val MINIMUM_DISTANCE_METERS = 10f // Only update if moved at least 10 meters
+
     companion object {
         @Volatile
         private var INSTANCE: LocationRepository? = null
@@ -79,9 +83,36 @@ class LocationRepository private constructor(
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
-                locationResult.lastLocation?.let { location ->
-                    Log.d("LocationRepository", "Location updated: ${location.latitude}, ${location.longitude}")
-                    _currentLocation.value = location
+                locationResult.lastLocation?.let { newLocation ->
+                    // Check if location is accurate enough
+                    if (newLocation.hasAccuracy() && newLocation.accuracy > MINIMUM_ACCURACY_METERS) {
+                        Log.d("LocationRepository", "Location rejected - poor accuracy: ${newLocation.accuracy}m")
+                        return
+                    }
+
+                    val currentLoc = _currentLocation.value
+
+                    // If no previous location, accept this one
+                    if (currentLoc == null) {
+                        Log.d("LocationRepository", "Initial location: ${newLocation.latitude}, ${newLocation.longitude}, accuracy: ${newLocation.accuracy}m")
+                        _currentLocation.value = newLocation
+                        return
+                    }
+
+                    // Calculate distance from previous location
+                    val distance = currentLoc.distanceTo(newLocation)
+
+                    // Only update if moved significantly OR accuracy improved significantly
+                    val accuracyImproved = newLocation.hasAccuracy() && currentLoc.hasAccuracy() &&
+                                          newLocation.accuracy < (currentLoc.accuracy * 0.7f)
+
+                    if (distance >= MINIMUM_DISTANCE_METERS || accuracyImproved) {
+                        Log.d("LocationRepository", "Location updated: ${newLocation.latitude}, ${newLocation.longitude}, " +
+                              "accuracy: ${newLocation.accuracy}m, distance moved: ${distance}m")
+                        _currentLocation.value = newLocation
+                    } else {
+                        Log.d("LocationRepository", "Location change too small: ${distance}m (threshold: ${MINIMUM_DISTANCE_METERS}m)")
+                    }
                 }
             }
         }

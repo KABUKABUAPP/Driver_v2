@@ -13,7 +13,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
  * NOTE: TRANSACTION_BASE_URL is set to the same as ride BASE_URL for now. Update if different.
  */
 object TransactionApiClient {
-    private const val TRANSACTION_BASE_URL = "https://rideservice-dev.up.railway.app/"
+    private const val TRANSACTION_BASE_URL = "https://transactionservice-dev.up.railway.app"
     private const val API_KEY = "3yBrArNb838bdyIPpLith6dpr0NHCcc66J4AR313"
 
     val moshi: Moshi = Moshi.Builder()

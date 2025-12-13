@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.kabukabu.driver.core.data.socket.TripCancelledEvent
 import com.kabukabu.driver.core.utils.DistanceMatrixHelper
 import kotlinx.coroutines.flow.StateFlow
 
@@ -55,6 +56,12 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
                 } else {
                     Log.w("TripViewModel", "Cannot calculate distance - driver location: $currentDriverLocation, startPoint size: ${tripFoundEvent.startPoint.size}")
                 }
+//                _distanceInfo.value = DistanceInfo(
+//                    distanceText =  "Unknown",
+//                    distanceMeters =  0,
+//                    durationText =  "Unknown",
+//                    durationSeconds =  0
+//                )
                 _uiState.value = TripUiState.TripRequest(tripFoundEvent)
 
                 startCountdown()
@@ -99,7 +106,7 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
             }
             // If countdown finishes, automatically decline
             if (_uiState.value is TripUiState.TripRequest) {
-                declineTrip()
+                declineTrip(null)
             }
         }
     }
@@ -128,18 +135,22 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
                 if (response.status == "success") {
                     val orderId = currentState.tripDetails.eventId
                     userPreferences.saveActiveOrderId(orderId)
-                    //i need to fetch profile to get active trip
 
-                    val profileFetchedSuccessfully = driverViewModel.awaitableFetchUserProfile()
+                    // Pass TripFoundEvent to DriverViewModel for immediate display
+                    driverViewModel.setPendingTripEvent(currentState.tripDetails)
+                    Log.d("TripViewModel", "TripFoundEvent passed to DriverViewModel")
 
-                    if (profileFetchedSuccessfully) {
-                        Log.d("TripViewModel", "Profile fetched. Now joining trip room for orderId: $orderId")
-                        SocketService.joinTripRoom(orderId)
-                        _uiState.value = TripUiState.TripAccepted(response.message)
-                    } else {
-                        // Handle the case where fetching the profile failed after accepting the trip.
-                        _uiState.value = TripUiState.Error("Trip accepted, but failed to refresh profile.")
-                        Log.e("TripViewModel", "Trip accepted, but awaitableFetchUserProfile failed.")
+                    // Join trip room immediately
+                    SocketService.joinTripRoom(orderId)
+
+                    // Fetch profile in background (non-blocking)
+                    viewModelScope.launch {
+                        val profileFetchedSuccessfully = driverViewModel.awaitableFetchUserProfile()
+                        if (profileFetchedSuccessfully) {
+                            Log.d("TripViewModel", "Profile fetched successfully in background")
+                        } else {
+                            Log.w("TripViewModel", "Background profile fetch failed, but trip is already accepted")
+                        }
                     }
 
                     _uiState.value = TripUiState.TripAccepted(response.message)
@@ -159,7 +170,7 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
 
 
 
-    fun declineTrip() {
+    fun declineTrip(driverViewModel: DriverViewModel?) {
         countdownJob?.cancel()
         SoundPlayer.stopTripAlert()
         viewModelScope.launch {
@@ -184,8 +195,19 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
 
                     if (response.status == "success") {
                         userPreferences.saveActiveOrderId("") // Clear active order
-//                        val profileFetchedSuccessfully = driverViewModel.awaitableFetchUserProfile()
+
+                        // Update UI immediately
                         _uiState.value = TripUiState.NoTrip
+
+                        // Fetch profile in background (non-blocking)
+                        viewModelScope.launch {
+                            val profileFetchedSuccessfully = driverViewModel?.awaitableFetchUserProfile()
+                            if (profileFetchedSuccessfully == true) {
+                                Log.d("TripViewModel", "Profile fetched successfully in background after declining trip")
+                            } else {
+                                Log.w("TripViewModel", "Background profile fetch failed after declining trip")
+                            }
+                        }
                     } else {
                         _uiState.value = TripUiState.Error("Failed to decline trip: ${response.message}")
                     }
@@ -198,9 +220,62 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
+     * Cancel an active trip (called from trip screen)
+     * Similar to declineTrip but for active trips
+     */
+    fun cancelActiveTrip(orderId: String, reason: String = "Driver cancelled", driverViewModel: DriverViewModel?) {
+        viewModelScope.launch {
+            _isDeclining.value = true
+            try {
+                val rawToken = userPreferences.authToken.firstOrNull()
+                val userId = userPreferences.userId.firstOrNull()
+                if (rawToken == null || userId == null) {
+                    Log.e("TripViewModel", "Cannot cancel trip, user not authenticated")
+                    return@launch
+                }
+
+                Log.d("TripViewModel", "Canceling active trip: $orderId")
+
+                val response = ApiClient.rideService.declineTrip(
+                    bearerToken = "Bearer $rawToken",
+                    rawToken = rawToken,
+                    userId = userId,
+                    orderId = orderId,
+                    request = DeclineTripRequest(reasonForCancel = reason)
+                )
+
+                if (response.status == "success") {
+                    Log.d("TripViewModel", "Trip cancelled successfully")
+                    userPreferences.saveActiveOrderId("") // Clear active order
+
+                    // Clear pending trip event in DriverViewModel immediately
+                    driverViewModel?.setPendingTripEvent(null)
+                    driverViewModel?.setActiveTripEvent()
+
+                    // Fetch profile in background (non-blocking)
+                    viewModelScope.launch {
+                        val profileFetchedSuccessfully = driverViewModel?.awaitableFetchUserProfile()
+                        if (profileFetchedSuccessfully == true) {
+                            Log.d("TripViewModel", "Profile fetched successfully in background after canceling trip")
+                        } else {
+                            Log.w("TripViewModel", "Background profile fetch failed after canceling trip")
+                        }
+                    }
+                } else {
+                    Log.e("TripViewModel", "Failed to cancel trip: ${response.message}")
+                }
+            } catch (e: Exception) {
+                Log.e("TripViewModel", "Exception canceling trip: ${e.message}", e)
+            } finally {
+                _isDeclining.value = false
+            }
+        }
+    }
+
+    /**
      * Handle trip cancelled event from socket
      */
-    private fun handleTripCancelled(tripCancelledEvent: com.kabukabu.driver.core.data.socket.TripCancelledEvent) {
+    private fun handleTripCancelled(tripCancelledEvent: TripCancelledEvent) {
         Log.d("TripViewModel", "Trip cancelled: Trip ID: ${tripCancelledEvent.order.id}, Status: ${tripCancelledEvent.status}")
 
         // Stop any ongoing countdown
@@ -209,6 +284,7 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
 
         // Update UI state to show cancellation
         val message = "Trip has been cancelled"
+
 
         _uiState.value = TripUiState.Error(message)
 

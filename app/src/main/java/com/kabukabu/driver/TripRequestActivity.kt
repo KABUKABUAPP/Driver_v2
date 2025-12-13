@@ -44,7 +44,7 @@ class TripRequestActivity : ComponentActivity() {
                     finish()
                 }
                 "com.kabukabu.driver.DECLINE_TRIP" -> {
-                    tripViewModel.declineTrip()
+                    tripViewModel.declineTrip(null)
                     finish()
                 }
             }
@@ -131,11 +131,11 @@ class TripRequestActivity : ComponentActivity() {
                         finish()
                     },
                     onDecline = {
-                        tripViewModel.declineTrip()
+                        tripViewModel.declineTrip(null)
                         finish()
                     },
                     onTimeout = {
-                        tripViewModel.declineTrip()
+                        tripViewModel.declineTrip(null)
                         finish()
                     },
 

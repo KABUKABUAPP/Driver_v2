@@ -152,7 +152,7 @@ fun TripRequestModalAnimated(
                                 textAlign = TextAlign.Center,
                             )
                             Text(
-                                text = tripDetails?.pickupLocation?.name ?: "Ikeja, Lagos",
+                                text = tripDetails?.destinationLocation?.name ?: "Ikeja, Lagos",
                                 textAlign = TextAlign.Center,
                                 fontSize = 14.sp,
                                 color = TextDark,

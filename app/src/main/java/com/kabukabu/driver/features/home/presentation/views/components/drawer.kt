@@ -63,6 +63,7 @@ import kotlinx.coroutines.flow.firstOrNull
     onNavigateToAbout: () -> Unit,
     onNavigateToRepairLoan: () -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToSocketDebug: () -> Unit,
 ) {
     Surface(
         modifier = Modifier
@@ -93,9 +94,6 @@ import kotlinx.coroutines.flow.firstOrNull
                         color = Color.Black,
                         fontWeight = FontWeight.W600,
                         fontSize = 18.sp,
-                        // TODO: Replace with actual Sofia Sans font if available in the project assets
-                        // fontFamily = FontFamily(Font(R.font.sofia_sans_semibold))
-                        // Fallback until font is provided:
                         fontFamily = FontFamily.SansSerif
                     )
                 },
@@ -185,7 +183,7 @@ import kotlinx.coroutines.flow.firstOrNull
                                 text = (userProfile?.averageRating?.value ?: 0.0).let { String.format("%.1f", it) },
                                 color = Color(0xFF161616),
                                 fontWeight = FontWeight.W700,
-                                fontSize = 12.sp
+                                fontSize = 12.sp,
                             )
                         }
                     }
@@ -264,6 +262,11 @@ import kotlinx.coroutines.flow.firstOrNull
                                 iconRes = R.drawable.message_text,
                                 title = "Support",
                                 onClick = { onNavigateToSupport() }
+                            )
+                            DrawerMenuItem(
+                                iconRes = R.drawable.ic_launcher_foreground, // Using default icon
+                                title = "🔧 Socket Debug",
+                                onClick = { onNavigateToSocketDebug() }
                             )
                         }
                     }
