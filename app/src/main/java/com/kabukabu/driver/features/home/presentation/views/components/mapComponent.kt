@@ -625,49 +625,6 @@ private fun updateRouteWithMarkers(
  * @deprecated Use inline marker creation in updateRouteWithMarkers instead
  */
 
-private fun createMarkers(
-    manager: com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager,
-    driverPoint: Point,
-    destinationPoint: Point,
-    context: Context,
-    driverAnnotationIdState: MutableState<String?>,
-    riderAnnotationIdState: MutableState<String?>,
-    isTripStarted: Boolean
-) {
-    // Create driver marker (always shown)
-    bitmapFromDrawable(context, R.drawable._d_cars)?.let { bitmap ->
-        val driverAnnotation = PointAnnotationOptions()
-            .withPoint(driverPoint)
-            .withIconImage(bitmap)
-        val annotation = manager.create(driverAnnotation)
-        driverAnnotationIdState.value = annotation.id
-        Log.d("MapComponent", "Driver marker created")
-    }
-
-    // When trip has started: only show destination marker (no rider marker)
-    // When trip not started: show rider/pickup marker
-    if (isTripStarted) {
-        // Trip started - create destination marker only
-        bitmapFromDrawable(context, R.drawable.destination)?.let { bitmap ->
-            val destinationAnnotation = PointAnnotationOptions()
-                .withPoint(destinationPoint)
-                .withIconImage(bitmap)
-            val annotation = manager.create(destinationAnnotation)
-            riderAnnotationIdState.value = annotation.id
-            Log.d("MapComponent", "Destination marker created (trip started)")
-        }
-    } else {
-        // Trip not started - create rider/pickup marker
-        bitmapFromDrawable(context, R.drawable.ride)?.let { bitmap ->
-            val riderAnnotation = PointAnnotationOptions()
-                .withPoint(destinationPoint)
-                .withIconImage(bitmap)
-            val annotation = manager.create(riderAnnotation)
-            riderAnnotationIdState.value = annotation.id
-            Log.d("MapComponent", "Pickup (rider) marker created")
-        }
-    }
-}
 
 /**
  * Fetches route from Mapbox Directions API and draws it
@@ -680,7 +637,7 @@ private fun fetchAndDrawRoute(
     onRouteInfoUpdated: (RouteState) -> Unit = {},
     routeRequestVersion: MutableState<Int>,
     routeAnnotationId: MutableState<String?>,
-    routeCallState: MutableState<com.mapbox.api.directions.v5.MapboxDirections?>
+    routeCallState: MutableState<MapboxDirections?>
 ) {
     Log.d("DirectionsAPI", "Fetching route from ${origin.longitude()},${origin.latitude()} to ${destination.longitude()},${destination.latitude()}")
 

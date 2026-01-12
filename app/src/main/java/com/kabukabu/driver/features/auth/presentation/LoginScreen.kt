@@ -34,6 +34,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.ImeAction
 import com.kabukabu.driver.R
 import com.kabukabu.driver.components.ui.LoadingOverlay
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
@@ -148,7 +149,7 @@ fun LoginScreen(
                     cursorColor = amber
                 ),
                 interactionSource = interactionSource,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done),
                 shape = RoundedCornerShape(10.dp),
                 textStyle = LocalTextStyle.current.copy(
                     fontWeight = FontWeight.W500,

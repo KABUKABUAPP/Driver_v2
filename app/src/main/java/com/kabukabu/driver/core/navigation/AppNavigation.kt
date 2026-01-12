@@ -1,6 +1,8 @@
 package com.kabukabu.driver.core.navigation
 
 import ProfileScreen
+import SupportScreenNew
+import TicketListScreen
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -47,7 +49,6 @@ import com.kabukabu.driver.features.promotions.presentation.PromotionsScreen
 import com.kabukabu.driver.features.repair_loan.presentation.RepairLoanScreen
 import com.kabukabu.driver.features.support.presentation.SupportDetailScreen
 import com.kabukabu.driver.features.support.presentation.SupportNewTicketScreen
-import com.kabukabu.driver.features.support.presentation.SupportScreen
 import com.kabukabu.driver.features.trips.presentation.TripDetailScreen
 import com.kabukabu.driver.features.trips.presentation.TripsScreen
 import com.kabukabu.driver.features.wallet.presentation.KabukabuWalletApp
@@ -76,6 +77,17 @@ fun AppNavigation() {
 
     // Create a nav-scoped TripSharedViewModel to pass TripItem objects between list and detail
     val tripSharedViewModel: com.kabukabu.driver.features.trips.presentation.TripSharedViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel()
+
+    // Create nav-graph scoped ViewModels for HomeScreen to preserve state across navigations
+    // This ensures the map doesn't reload when navigating away and back
+    val sharedDriverViewModel: com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel()
+
+    val sharedTripViewModel: com.kabukabu.driver.features.home.presentation.viewmodel.TripViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel()
+
+    val sharedHomeMapViewModel: com.kabukabu.driver.features.home.presentation.viewmodel.HomeMapViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel()
 
     // Log changes whenever userDetails updates
@@ -176,11 +188,9 @@ fun AppNavigation() {
                 },
                 onNavigateToHome = {
                     Log.d("AppNavigation", "Navigating to home from OTP screen")
-//                    coroutineScope.launch {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(0) { inclusive = true }
                     }
-//                    }
                 },
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login.route) {
@@ -292,6 +302,10 @@ fun AppNavigation() {
                     coroutineScope.launch {
                         userPreferences.clearUserDetails()
                     }
+                    // Clear map state on logout
+                    sharedHomeMapViewModel.clearState()
+                    // Clear the cached MapView to ensure fresh map on next login
+                    com.kabukabu.driver.core.utils.MapViewManager.clearMapView()
                     Log.d("AppNavigation", "Logout triggered, navigating to login")
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
@@ -299,19 +313,55 @@ fun AppNavigation() {
                 },
                 onNavigateToWallet = {
                     // Navigate to wallet with refresh=false on normal entry
-                    navController.navigate(Screen.Wallet.withRefresh(false))
+                    // Use launchSingleTop to prevent duplicate destinations
+                    navController.navigate(Screen.Wallet.withRefresh(false)) {
+                        launchSingleTop = true
+                    }
                 },
-                onNavigateToAnalytics = { navController.navigate(Screen.Analytics.route) },
-                onNavigateToMyTrips = { navController.navigate(Screen.MyTrips.route) },
-                onNavigateToPromotions = { navController.navigate(Screen.Promotions.route) },
-                onNavigateToSupport = { navController.navigate(Screen.Support.route) },
-                onNavigateToAbout = { navController.navigate(Screen.About.route) },
-                onNavigateToRepairLoan = { navController.navigate(Screen.RepairLoan.route) },
-                onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
+                onNavigateToAnalytics = {
+                    navController.navigate(Screen.Analytics.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToMyTrips = {
+                    navController.navigate(Screen.MyTrips.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToPromotions = {
+                    navController.navigate(Screen.Promotions.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToSupport = {
+                    navController.navigate(Screen.Support.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToAbout = {
+                    navController.navigate(Screen.About.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToRepairLoan = {
+                    navController.navigate(Screen.RepairLoan.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route) {
+                        launchSingleTop = true
+                    }
+                },
                 onNavigateToChat = { orderId, riderName, riderPhone ->
-                    navController.navigate(Screen.Chat.createRoute(orderId, riderName, riderPhone ?: ""))
+                    navController.navigate(Screen.Chat.createRoute(orderId, riderName, riderPhone ?: "")) {
+                        launchSingleTop = true
+                    }
                 },
-                chatViewModel = sharedChatViewModel
+                chatViewModel = sharedChatViewModel,
+//                driverViewModel = sharedDriverViewModel,
+//                tripViewModel = sharedTripViewModel,
+//                homeMapViewModel = sharedHomeMapViewModel
             )
         }
 
@@ -437,14 +487,18 @@ fun AppNavigation() {
         composable(Screen.Promotions.route) {
             PromotionsScreen(onBack = { navController.popBackStack() })
         }
+
         composable(Screen.Support.route) {
-            SupportScreen(
+            SupportScreenNew(
                 onBack = { navController.popBackStack() },
                 onOpenTicket = { sid ->
                     navController.navigate("${Screen.SupportDetail.route}/$sid")
                 },
-                onCreateNew = { navController.navigate(Screen.SupportNew.route) }
+                onClickSupport = { navController.navigate(Screen.SupportTickets.route) }
             )
+        }
+        composable(Screen.SupportTickets.route) {
+            TicketListScreen(onBack = { navController.popBackStack() },  )
         }
         composable(
             route = "${Screen.SupportDetail.route}/{${NavArg.SupportId.key}}",

@@ -1,4 +1,3 @@
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,11 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.core.theme.KabukabuDriverTheme
+import com.kabukabu.driver.core.utils.safeClickable
+import com.kabukabu.driver.features.support.presentation.SupportViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SupportScreen() {
+fun SupportScreenNew(onBack: () -> Unit, onOpenTicket: (String) -> Unit, onClickSupport: () -> Unit = {}, vm: SupportViewModel = viewModel()) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -35,7 +37,7 @@ fun SupportScreen() {
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* Handle navigation back */ }) {
+                    IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
@@ -74,7 +76,8 @@ fun SupportScreen() {
             SupportOptionCard(
                 icon = Icons.Default.Phone,
                 title = "Contact support",
-                description = "Get help about a trip (e.g report stolen property, etc.)"
+                description = "Get help about a trip (e.g report stolen property, etc.)",
+                onClick = onClickSupport
             )
 
             Spacer(modifier = Modifier.height(48.dp))
@@ -115,10 +118,11 @@ fun SupportScreen() {
 fun SupportOptionCard(
     icon: ImageVector,
     title: String,
-    description: String
+    description: String,
+    onClick: () -> Unit = {}
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().safeClickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         color = Color(0xFFF7F7F7) // Light gray background per design
     ) {
@@ -162,6 +166,6 @@ fun SupportOptionCard(
 @Composable
 fun SupportScreenPreview() {
     KabukabuDriverTheme {
-        SupportScreen()
+        SupportScreenNew(onBack = {}, onOpenTicket = {})
     }
 }

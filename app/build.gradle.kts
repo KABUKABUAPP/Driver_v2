@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.kotlin.compose.compiler)
     // Add the Google services Gradle plugin
     id("com.google.gms.google-services")
+    // OneSignal Gradle Plugin
+    id("com.onesignal.androidsdk.onesignal-gradle-plugin")
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -17,7 +19,7 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "com.kabukabu.driver"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.kabukabu.driver"
@@ -94,6 +96,7 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
     implementation(libs.compose.navigation)
+    implementation(libs.androidx.compose.ui.text)
     debugImplementation(libs.compose.ui.tooling)
     
     // Splash Screen
@@ -148,6 +151,9 @@ dependencies {
     implementation(libs.koin.core)
 //    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.koin.compose.viewmodel.v401)
+
+    // OneSignal Push Notifications
+    implementation("com.onesignal:OneSignal:[5.0.0, 5.99.99]")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

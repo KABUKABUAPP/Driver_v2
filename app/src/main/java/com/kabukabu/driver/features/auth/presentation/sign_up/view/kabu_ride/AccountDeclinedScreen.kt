@@ -240,8 +240,15 @@ private fun ReasonForApprovalDeclineCard(
             )
 
             TitleText(
+//                text = "Tap to re-upload",
+             text = document.reason ?: "",
+                color = Color(0xFF686868),
+                bottomPadding = 0,
+                fontSize = 13
+            )
+
+            TitleText(
                 text = "Tap to re-upload",
-                //                text = document.status ?: "",
                 color = Color(0xFF686868),
                 bottomPadding = 0,
                 fontSize = 13

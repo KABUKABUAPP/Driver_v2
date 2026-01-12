@@ -134,7 +134,7 @@ fun HomeScreenWithIntegratedTrip(
     onNavigateToRepairLoan: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToChat: (orderId: String, riderName: String, riderPhone: String?) -> Unit = { _, _, _ -> },
-    chatViewModel: com.kabukabu.driver.features.chat.presentation.viewmodel.ChatViewModel
+    chatViewModel: ChatViewModel
 ) {
     val context = LocalContext.current
     var hasLocationPermission by remember { mutableStateOf(false) }
@@ -235,7 +235,7 @@ fun HomeScreenWithIntegratedTrip(
         val tripId = activeTrip?.order ?: pendingTripEvent?.eventId
         if (tripId != null) {
             Log.d("HomeScreen", "Active trip detected - joining room: $tripId")
-            com.kabukabu.driver.core.data.socket.SocketService.joinTripRoom(tripId)
+           SocketService.joinTripRoom(tripId)
         }
     }
 
@@ -1687,7 +1687,6 @@ fun TripCompletionContainerBox(content: @Composable () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = Color.White
     ) {
-        // Inner box for the gray border
         Box(
             modifier = Modifier.border(
                     width = 1.dp,

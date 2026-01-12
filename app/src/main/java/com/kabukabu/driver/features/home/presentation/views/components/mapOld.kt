@@ -16,6 +16,8 @@
 //import androidx.compose.ui.platform.LocalContext
 //import androidx.compose.ui.viewinterop.AndroidView
 //import com.kabukabu.driver.R
+//import com.kabukabu.driver.core.data.socket.TripFoundEvent
+//import com.kabukabu.driver.core.utils.MapViewManager
 //import com.kabukabu.driver.features.home.presentation.viewmodel.TripStatus
 //import com.kabukabu.driver.features.profile.data.ActiveTrip
 //import com.mapbox.api.directions.v5.DirectionsCriteria
@@ -39,10 +41,22 @@
 //import com.mapbox.maps.plugin.gestures.gestures
 //import com.mapbox.maps.plugin.logo.logo
 //import com.mapbox.maps.plugin.scalebar.scalebar
+//import com.mapbox.maps.extension.style.layers.addLayer
+//import com.mapbox.maps.extension.style.layers.addLayerBelow
+//import com.mapbox.maps.extension.style.layers.generated.lineLayer
+//import com.mapbox.maps.extension.style.sources.addSource
+//import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
+//import com.mapbox.maps.extension.style.sources.getSourceAs
+//import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
+//import com.mapbox.geojson.Feature
 //import retrofit2.Call
 //import retrofit2.Callback
 //import retrofit2.Response
 //import kotlinx.coroutines.delay
+//
+//// Constants for dashed line layer (driver to route start connector)
+//private const val DASHED_LINE_SOURCE_ID = "dashed-connector-source"
+//private const val DASHED_LINE_LAYER_ID = "dashed-connector-layer"
 //
 ///**
 // * Holds real-time route information from Mapbox Directions API
@@ -65,18 +79,52 @@
 //        get() = distanceInKm?.let { "%.1f km".format(it) } ?: "Calculating..."
 //}
 //
+///**
+// * Holds the result of trimming route points for the driver.
+// * Separates the prepended segment (driver to route start) from the main route
+// * to allow drawing them with different line styles (dashed vs solid).
+// */
+//data class TrimmedRouteResult(
+//    val prependedSegment: List<Point>, // Driver position to route start (draw as dashed line)
+//    val mainRoute: List<Point>         // Actual route from API (draw as solid line)
+//) {
+//    val allPoints: List<Point>
+//        get() = if (prependedSegment.isNotEmpty() && mainRoute.isNotEmpty()) {
+//            // Prepended segment already ends at mainRoute start, avoid duplication
+//            prependedSegment.dropLast(1) + mainRoute
+//        } else if (prependedSegment.isNotEmpty()) {
+//            prependedSegment
+//        } else {
+//            mainRoute
+//        }
+//}
+//
 //@Composable
 //fun MapComponent(
 //    currentLocation: Location?,
 //    activeTrip: ActiveTrip? = null,
-//    pendingTripEvent: com.kabukabu.driver.core.data.socket.TripFoundEvent? = null,
+//    pendingTripEvent: TripFoundEvent? = null,
 //    tripStatus: TripStatus? = null,
 //    onRouteInfoUpdated: (RouteState) -> Unit = {},
 //    mapViewState: MutableState<MapView?>? = null,
+//    // Parameters for preserving map state across navigations
+//    savedCameraPosition: CameraOptions? = null,
+//    onCameraPositionChanged: (CameraOptions) -> Unit = {},
+//    isMapAlreadyInitialized: Boolean = false,
+//    onMapInitialized: () -> Unit = {},
 //    modifier: Modifier = Modifier
 //) {
 //    val context = LocalContext.current
-//    val mapView = remember { MapView(context) }
+//
+//    // Use MapViewManager to get a cached MapView that persists across navigations
+//    // This prevents the map from reloading every time the user navigates away and back
+//    val mapViewManager = com.kabukabu.driver.core.utils.MapViewManager
+//    val mapView = remember {
+//        mapViewManager.getOrCreateMapView(context)
+//    }
+//
+//    // Track if this is a fresh map or a restored one
+//    val isRestoredMap = remember { mapViewManager.isMapStyleLoaded() }
 //
 //    // Expose mapView to parent if requested
 //    LaunchedEffect(mapView) {
@@ -87,7 +135,8 @@
 //    val isStyleLoaded = remember { mutableStateOf(false) }
 //
 //    // Track if initial camera has been set
-//    val initialCameraSet = remember { mutableStateOf(false) }
+//    // Use saved state if map was already initialized
+//    val initialCameraSet = remember { mutableStateOf(isMapAlreadyInitialized) }
 //
 //    // Track the active trip ID to detect when it changes
 //    val previousTripId = remember { mutableStateOf<String?>(null) }
@@ -99,7 +148,8 @@
 //    // Track individual annotation instances for smooth updates
 //    val driverAnnotationId = remember { mutableStateOf<String?>(null) }
 //    val riderAnnotationId = remember { mutableStateOf<String?>(null) }
-//    val routeAnnotationId = remember { mutableStateOf<String?>(null) }
+//    val routeAnnotationId = remember { mutableStateOf<String?>(null) } // track current visible route polyline annotation id (solid main route)
+//    val dashedRouteAnnotationId = remember { mutableStateOf<String?>(null) } // track dashed line annotation (prepended segment)
 //
 //    // Track last route calculation position for distance-based updates
 //    val lastRouteCalcPosition = remember { mutableStateOf<Location?>(null) }
@@ -111,8 +161,26 @@
 //    // Minimum distance (in meters) before redrawing route to avoid flickering
 //    val minDistanceForRouteRedraw = 50f
 //
+//    // Simple integer version counter to ignore stale responses
+//    val routeRequestVersion = remember { mutableStateOf(0) }
+//
+//    // Remember the currently in-flight directions client so we can cancel it when a new request starts
+//    val routeCallState = remember { mutableStateOf<MapboxDirections?>(null) }
+//
 //    AndroidView(
-//        factory = { mapView },
+//        factory = { ctx ->
+//            // Detach mapView from any existing parent before returning
+//            // This is needed because we're reusing the same MapView instance
+//            mapViewManager.detachFromParent()
+//            Log.d("MapComponent", "AndroidView factory - returning cached MapView")
+//            mapView
+//        },
+//        update = { view ->
+//            // This is called when the composable recomposes
+//            // The MapView is already attached to the parent, so no action needed
+//            // Just log for debugging
+//            Log.d("MapComponent", "AndroidView update - MapView reattached, style loaded: ${isStyleLoaded.value}")
+//        },
 //        modifier = modifier
 //    )
 //
@@ -139,7 +207,7 @@
 //                    Log.d("MapComponent", "Periodic route update triggered")
 //
 //                    // Determine route based on trip status
-//                    val isTripStarted = tripStatus == com.kabukabu.driver.features.home.presentation.viewmodel.TripStatus.TRIP_STARTED
+//                    val isTripStarted = tripStatus == TripStatus.TRIP_STARTED
 //                    val routeOrigin: Point
 //                    val routeDestination: Point
 //
@@ -156,12 +224,17 @@
 //                    }
 //
 //                    polylineAnnotationManager.value?.let { polyMgr ->
+//                        // Use improved fetch that versions responses
 //                        fetchAndDrawRoute(
 //                            mapView,
 //                            routeOrigin,
 //                            routeDestination,
 //                            polyMgr,
-//                            onRouteInfoUpdated
+//                            onRouteInfoUpdated,
+//                            routeRequestVersion,
+//                            routeAnnotationId,
+//                            dashedRouteAnnotationId,
+//                            routeCallState
 //                        )
 //                        lastRouteCalcPosition.value = currentLocation
 //                        lastRouteCalcTime.value = System.currentTimeMillis()
@@ -171,15 +244,47 @@
 //        }
 //    }
 //
-//    // Initial map setup - Load style FIRST
+//    // Initial map setup - Load style FIRST (or restore if already loaded)
 //    LaunchedEffect(mapView) {
-//        Log.d("MapComponent", "Loading map style...")
-//
-//        // Use the modern Mapbox API for loading styles
-//        mapView.mapboxMap.loadStyle("mapbox://styles/kabukabuapp/cmd1e8u2s009k01s913jc4ywh") { style ->
-//            // This callback fires when style is fully loaded
+//        // Check if we're restoring a map with style already loaded
+//        if (isRestoredMap) {
+//            Log.d("MapComponent", "Restoring existing map - style already loaded")
 //            isStyleLoaded.value = true
-//            Log.d("MapComponent", "✅ Map style loaded successfully")
+//
+//            // Restore camera position from MapViewManager if available
+//            val savedCamera = mapViewManager.getSavedCameraState()
+//            if (savedCamera != null) {
+//                Log.d("MapComponent", "Restoring saved camera position from MapViewManager")
+//                mapView.mapboxMap.setCamera(savedCamera)
+//                initialCameraSet.value = true
+//            } else if (savedCameraPosition != null) {
+//                Log.d("MapComponent", "Restoring saved camera position from parameter")
+//                mapView.mapboxMap.setCamera(savedCameraPosition)
+//                initialCameraSet.value = true
+//            }
+//
+//            // Notify that map is initialized
+//            onMapInitialized()
+//        } else {
+//            Log.d("MapComponent", "Loading map style for the first time...")
+//
+//            // Use the modern Mapbox API for loading styles
+//            mapView.mapboxMap.loadStyle("mapbox://styles/kabukabuapp/cmd1e8u2s009k01s913jc4ywh") { style ->
+//                // This callback fires when style is fully loaded
+//                isStyleLoaded.value = true
+//                mapViewManager.setStyleLoaded(true)
+//                Log.d("MapComponent", "✅ Map style loaded successfully")
+//
+//                // Restore saved camera position if available and map was already initialized
+//                if (isMapAlreadyInitialized && savedCameraPosition != null) {
+//                    Log.d("MapComponent", "Restoring saved camera position")
+//                    mapView.mapboxMap.setCamera(savedCameraPosition)
+//                    initialCameraSet.value = true
+//                }
+//
+//                // Notify that map is initialized
+//                onMapInitialized()
+//            }
 //        }
 //
 //        // Enable map interaction using the gestures plugin
@@ -197,8 +302,72 @@
 //        mapView.scalebar.enabled = false
 //    }
 //
+//    // Save camera position when it changes for later restoration
+//    LaunchedEffect(isStyleLoaded.value) {
+//        if (isStyleLoaded.value) {
+//            // Listen for camera changes and save position
+//            mapView.mapboxMap.subscribeCameraChanged { cameraChangedEvent ->
+//                val cameraState = mapView.mapboxMap.cameraState
+//                val cameraOptions = CameraOptions.Builder()
+//                    .center(cameraState.center)
+//                    .zoom(cameraState.zoom)
+//                    .bearing(cameraState.bearing)
+//                    .pitch(cameraState.pitch)
+//                    .build()
+//                // Save to both the callback and MapViewManager
+//                onCameraPositionChanged(cameraOptions)
+//                mapViewManager.saveCameraState(cameraOptions)
+//            }
+//        }
+//    }
+//
+//    // Initial cleanup check: When MapComponent first loads without an active trip,
+//    // ensure any stale annotations from previous trips are cleaned up.
+//    // This handles the edge case where the user dismissed the trip completion sheet
+//    // and we're now showing the normal home screen's MapComponent.
+//    LaunchedEffect(isStyleLoaded.value) {
+//        if (!isStyleLoaded.value) return@LaunchedEffect
+//
+//        // Only perform cleanup if:
+//        // 1. There's no active trip or pending trip event
+//        // 2. MapViewManager indicates there are stale annotations OR the map has annotations visible
+//        val hasNoTrip = activeTrip == null && pendingTripEvent == null
+//        val needsCleanup = mapViewManager.needsAnnotationCleanup()
+//
+//        if (hasNoTrip && needsCleanup) {
+//            Log.d("MapComponent", "🧹 Initial cleanup: No active trip but stale annotations detected")
+//
+//            // Clear dashed line layer
+//            clearDashedLine(mapView)
+//
+//            // Clear all annotations
+//            try {
+//                mapView.annotations.cleanup()
+//                Log.d("MapComponent", "Initial global annotations cleanup completed")
+//            } catch (e: Exception) {
+//                Log.w("MapComponent", "Error in initial annotations cleanup: ${e.message}")
+//            }
+//
+//            // Mark cleanup complete
+//            mapViewManager.markAnnotationsCleanedUp()
+//
+//            // Reset annotation managers
+//            pointAnnotationManager.value = null
+//            polylineAnnotationManager.value = null
+//
+//            // Reset annotation tracking IDs
+//            driverAnnotationId.value = null
+//            riderAnnotationId.value = null
+//            routeAnnotationId.value = null
+//            dashedRouteAnnotationId.value = null
+//            lastMarkerWasDestination.value = false
+//
+//            Log.d("MapComponent", "✅ Initial cleanup complete - map ready for standby mode")
+//        }
+//    }
+//
 //    // Handle trip changes (when trip starts/ends) - This SHOULD reset camera
-//    LaunchedEffect(activeTrip?.id, isStyleLoaded.value) {
+//    LaunchedEffect(activeTrip?.id, pendingTripEvent?.eventId, isStyleLoaded.value) {
 //        if (!isStyleLoaded.value) {
 //            Log.d("MapComponent", "Waiting for style to load...")
 //            return@LaunchedEffect
@@ -207,29 +376,94 @@
 //        // Use activeTrip ID if available, otherwise use pendingTripEvent ID
 //        val currentTripId = activeTrip?.id ?: pendingTripEvent?.eventId
 //        val tripChanged = currentTripId != previousTripId.value
+//        val tripEnded = previousTripId.value != null && currentTripId == null
 //
-//        if (tripChanged) {
-//            Log.d("MapComponent", "Trip status changed: ${previousTripId.value} -> $currentTripId")
+//        // Also check MapViewManager for stale annotations from previous MapComponent instances
+//        // This handles the case where IntegratedActiveTripScreen's MapComponent had a trip
+//        // and now we're in the normal HomeScreen's MapComponent with no trip
+//        val needsGlobalCleanup = mapViewManager.needsAnnotationCleanup()
+//
+//        if (tripChanged || needsGlobalCleanup) {
+//            Log.d("MapComponent", "Trip status changed: ${previousTripId.value} -> $currentTripId (tripEnded: $tripEnded, needsGlobalCleanup: $needsGlobalCleanup)")
+//
+//            // Update MapViewManager with new trip ID (for cross-component tracking)
+//            mapViewManager.updateTripId(currentTripId)
+//
+//            // If trip ended OR there are stale annotations from another MapComponent, perform thorough cleanup
+//            if (tripEnded || needsGlobalCleanup) {
+//                Log.d("MapComponent", "🧹 Trip ended or stale annotations detected - performing thorough cleanup")
+//
+//                // Clear dashed line layer FIRST (uses style layer, not annotations)
+//                clearDashedLine(mapView)
+//
+//                // Delete all annotations using existing managers BEFORE nullifying them
+//                polylineAnnotationManager.value?.let { polyMgr ->
+//                    try {
+//                        polyMgr.deleteAll()
+//                        Log.d("MapComponent", "Deleted all polyline annotations")
+//                    } catch (e: Exception) {
+//                        Log.w("MapComponent", "Error deleting polylines: ${e.message}")
+//                    }
+//                }
+//
+//                pointAnnotationManager.value?.let { pointMgr ->
+//                    try {
+//                        // Delete ALL point annotations including destination marker
+//                        // We need to delete everything because we want a clean slate
+//                        // The driver marker will be recreated when the location updates
+//                        pointMgr.deleteAll()
+//                        Log.d("MapComponent", "Deleted all point annotations (driver + destination)")
+//                    } catch (e: Exception) {
+//                        Log.w("MapComponent", "Error deleting point annotations: ${e.message}")
+//                    }
+//                }
+//
+//                // Also try to clear via the global MapView annotations API
+//                // This handles edge cases where managers weren't properly stored
+//                try {
+//                    mapView.annotations.cleanup()
+//                    Log.d("MapComponent", "Global annotations cleanup completed")
+//                } catch (e: Exception) {
+//                    Log.w("MapComponent", "Error in global annotations cleanup: ${e.message}")
+//                }
+//
+//                // Mark cleanup complete in MapViewManager
+//                mapViewManager.markAnnotationsCleanedUp()
+//
+//                // Nullify managers so they get recreated fresh
+//                pointAnnotationManager.value = null
+//                polylineAnnotationManager.value = null
+//            } else {
+//                // Trip changed but not ended (e.g., new trip started) - still clean up old annotations
+//                Log.d("MapComponent", "🔄 New trip started - clearing old annotations")
+//
+//                // Clear dashed line layer
+//                clearDashedLine(mapView)
+//
+//                // Clear all annotations for a fresh start
+//                mapView.annotations.cleanup()
+//                pointAnnotationManager.value = null
+//                polylineAnnotationManager.value = null
+//            }
+//
 //            previousTripId.value = currentTripId
 //            initialCameraSet.value = false // Reset camera flag when trip changes
 //
-//            // Clean up old annotations when trip changes
-//            mapView.annotations.cleanup()
-//            pointAnnotationManager.value = null
-//            polylineAnnotationManager.value = null
-//
-//            // Clear annotation IDs to force fresh markers
+//            // Clear annotation IDs to force fresh markers (for all trip changes)
 //            driverAnnotationId.value = null
 //            riderAnnotationId.value = null
 //            routeAnnotationId.value = null
+//            dashedRouteAnnotationId.value = null
 //
 //            // Reset marker type tracking
 //            lastMarkerWasDestination.value = false
+//
+//            Log.d("MapComponent", "✅ Cleanup complete - ready for ${if (currentTripId != null) "new trip" else "standby"}")
 //        }
 //    }
 //
 //    // Track previous trip status to detect changes
-//    val lastTripStatus = remember { mutableStateOf<com.kabukabu.driver.features.home.presentation.viewmodel.TripStatus?>(null) }
+//    val lastTripStatus = remember { mutableStateOf<TripStatus?>(null) }
 //
 //    // Update markers when location changes - WITHOUT resetting camera (unless initial)
 //    // Include pendingTripEvent in dependencies to react immediately when trip is accepted
@@ -313,7 +547,11 @@
 //                riderAnnotationId,
 //                shouldRedrawRoute,
 //                onRouteInfoUpdated,
-//                isTripStarted
+//                isTripStarted,
+//                routeRequestVersion,
+//                routeAnnotationId,
+//                dashedRouteAnnotationId,
+//                routeCallState
 //            )
 //
 //            // Track position for distance-based updates (only if we redrew the route)
@@ -333,6 +571,61 @@
 //        } else {
 //            // No active trip - just show driver marker
 //            Log.d("MapComponent", "No active trip - updating driver marker (camera reset: $shouldSetCamera)")
+//
+//            // Clear any existing route polylines and destination marker when trip ends
+//            // This ensures the map is clean when there's no active trip
+//            polylineAnnotationManager.value?.let { polyMgr ->
+//                // Clear all polyline annotations (route lines)
+//                // Use try-catch to handle potential edge cases
+//                try {
+//                    val annotations = polyMgr.annotations
+//                    if (annotations.isNotEmpty()) {
+//                        polyMgr.deleteAll()
+//                        Log.d("MapComponent", "Cleared ${annotations.size} route polylines - no active trip")
+//                    }
+//                } catch (e: Exception) {
+//                    Log.w("MapComponent", "Error clearing polylines: ${e.message}")
+//                }
+//                routeAnnotationId.value = null
+//                dashedRouteAnnotationId.value = null
+//            }
+//
+//            // Clear dashed line layer (uses style layer, not annotations)
+//            clearDashedLine(mapView)
+//
+//            // Clear rider/destination marker (keep only driver marker)
+//            pointAnnotationManager.value?.let { pointMgr ->
+//                // Try to find and delete the destination marker by ID
+//                riderAnnotationId.value?.let { riderId ->
+//                    pointMgr.annotations.find { it.id == riderId }?.let { annotation ->
+//                        pointMgr.delete(annotation)
+//                        Log.d("MapComponent", "Cleared destination marker by ID - no active trip")
+//                    }
+//                }
+//
+//                // Also delete any annotations that aren't the driver marker (safety net)
+//                val driverId = driverAnnotationId.value
+//                if (driverId != null) {
+//                    val nonDriverAnnotations = pointMgr.annotations.filter { it.id != driverId }
+//                    if (nonDriverAnnotations.isNotEmpty()) {
+//                        nonDriverAnnotations.forEach { annotation ->
+//                            try {
+//                                pointMgr.delete(annotation)
+//                            } catch (e: Exception) {
+//                                Log.w("MapComponent", "Error deleting non-driver annotation: ${e.message}")
+//                            }
+//                        }
+//                        Log.d("MapComponent", "Cleared ${nonDriverAnnotations.size} extra annotations - no active trip")
+//                    }
+//                }
+//
+//                riderAnnotationId.value = null
+//            }
+//
+//            // Reset route calculation tracking
+//            lastRouteCalcPosition.value = null
+//            lastRouteCalcTime.value = 0L
+//            lastTripStatus.value = null
 //
 //            // Update driver marker smoothly
 //            updateDriverMarker(
@@ -373,6 +666,8 @@
 //    val manager = managerState.value ?: run {
 //        val newManager = mapView.annotations.createPointAnnotationManager()
 //        managerState.value = newManager
+//        // Register with MapViewManager so it can be cleared when trip ends
+//        MapViewManager.registerPointAnnotationManager(newManager)
 //        newManager
 //    }
 //
@@ -431,7 +726,11 @@
 //    riderAnnotationIdState: MutableState<String?>,
 //    shouldRedrawRoute: Boolean,
 //    onRouteInfoUpdated: (RouteState) -> Unit = {},
-//    isTripStarted: Boolean = false
+//    isTripStarted: Boolean = false,
+//    routeRequestVersion: MutableState<Int>,
+//    routeAnnotationId: MutableState<String?>,
+//    dashedRouteAnnotationId: MutableState<String?>,
+//    routeCallState: MutableState<MapboxDirections?>
 //) {
 //    Log.d("MapComponent", "Updating route (redraw route: $shouldRedrawRoute, trip started: $isTripStarted)")
 //
@@ -440,23 +739,80 @@
 //    val polylineManager = polylineManagerState.value ?: run {
 //        val newPolylineManager = mapView.annotations.createPolylineAnnotationManager()
 //        polylineManagerState.value = newPolylineManager
+//        // Register with MapViewManager so it can be cleared when trip ends
+//        MapViewManager.registerPolylineAnnotationManager(newPolylineManager)
 //        newPolylineManager
 //    }
 //
 //    val pointManager = pointManagerState.value ?: run {
 //        val newPointManager = mapView.annotations.createPointAnnotationManager()
 //        pointManagerState.value = newPointManager
+//        // Register with MapViewManager so it can be cleared when trip ends
+//        MapViewManager.registerPointAnnotationManager(newPointManager)
 //        newPointManager
 //    }
 //
 //    // Draw route FIRST (if needed) so it appears under markers
 //    if (shouldRedrawRoute) {
 //        Log.d("MapComponent", "Redrawing route - clearing ${polylineManager.annotations.size} existing routes")
-//        polylineManager.deleteAll()
+//        // polylineManager.deleteAll() // Don't delete immediately, we'll manage this in fetchAndDrawRoute
+//
+//        // Increment version to ignore stale responses
+//        routeRequestVersion.value++
+//
 //        // Fetch and draw the new route (asynchronous operation)
-//        fetchAndDrawRoute(mapView, routeOrigin, routeDestination, polylineManager, onRouteInfoUpdated)
+//        fetchAndDrawRoute(mapView, routeOrigin, routeDestination, polylineManager, onRouteInfoUpdated, routeRequestVersion, routeAnnotationId, dashedRouteAnnotationId, routeCallState)
 //    } else {
 //        Log.d("MapComponent", "Keeping existing route (${polylineManager.annotations.size} routes)")
+//
+//        // Continuous trimming: as the driver moves, update both main route and dashed connector
+//        // Only attempt trimming if we have a known current route annotation id
+//        val currentRouteId = routeAnnotationId.value
+//        if (currentRouteId != null) {
+//            polylineManager.annotations.find { it.id == currentRouteId }?.let { existingPolyline ->
+//                try {
+//                    val existingPoints = existingPolyline.points
+//                    if (existingPoints != null && existingPoints.isNotEmpty()) {
+//                        // Use the new function that separates prepended segment from main route
+//                        val trimmedResult = try {
+//                            trimRoutePointsForDriverWithSegments(existingPoints, driverPoint, 50.0)
+//                        } catch (e: Exception) {
+//                            Log.w("DirectionsAPI", "Trimming existing polyline failed: ${e.message}")
+//                            TrimmedRouteResult(emptyList(), existingPoints)
+//                        }
+//
+//                        // Update main route polyline if it changed
+//                        val mainRouteChanged = trimmedResult.mainRoute.size != existingPoints.size ||
+//                                (trimmedResult.mainRoute.isNotEmpty() && trimmedResult.mainRoute[0] != existingPoints[0])
+//
+//                        if (mainRouteChanged && trimmedResult.mainRoute.isNotEmpty()) {
+//                            existingPolyline.points = trimmedResult.mainRoute
+//                            try {
+//                                polylineManager.update(existingPolyline)
+//                                Log.d("DirectionsAPI", "Updated main route polyline in-place. New points: ${trimmedResult.mainRoute.size}")
+//                            } catch (e: Exception) {
+//                                Log.w("DirectionsAPI", "Failed to update main route polyline: ${e.message}")
+//                            }
+//                        }
+//
+//                        // Update or clear dashed line (prepended segment from driver to route start)
+//                        // Uses proper Mapbox style layer for actual dashed line effect
+//                        if (trimmedResult.prependedSegment.size >= 2) {
+//                            drawOrUpdateDashedLine(mapView, trimmedResult.prependedSegment)
+//                            dashedRouteAnnotationId.value = "dashed-layer"
+//                            Log.d("DirectionsAPI", "Updated dashed connector line (style layer)")
+//                        } else {
+//                            // No prepended segment needed, clear the dashed line
+//                            clearDashedLine(mapView)
+//                            dashedRouteAnnotationId.value = null
+//                            Log.d("DirectionsAPI", "Cleared dashed connector (driver near route)")
+//                        }
+//                    }
+//                } catch (e: Exception) {
+//                    Log.w("DirectionsAPI", "Error while trimming existing polyline: ${e.message}")
+//                }
+//            }
+//        }
 //    }
 //
 //    // Then update markers (they will appear on top of the route)
@@ -564,63 +920,20 @@
 //}
 //
 ///**
-// * Creates markers for driver and destination/pickup
-// * @deprecated Use inline marker creation in updateRouteWithMarkers instead
-// */
-//
-//private fun createMarkers(
-//    manager: com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager,
-//    driverPoint: Point,
-//    destinationPoint: Point,
-//    context: Context,
-//    driverAnnotationIdState: MutableState<String?>,
-//    riderAnnotationIdState: MutableState<String?>,
-//    isTripStarted: Boolean
-//) {
-//    // Create driver marker (always shown)
-//    bitmapFromDrawable(context, R.drawable._d_cars)?.let { bitmap ->
-//        val driverAnnotation = PointAnnotationOptions()
-//            .withPoint(driverPoint)
-//            .withIconImage(bitmap)
-//        val annotation = manager.create(driverAnnotation)
-//        driverAnnotationIdState.value = annotation.id
-//        Log.d("MapComponent", "Driver marker created")
-//    }
-//
-//    // When trip has started: only show destination marker (no rider marker)
-//    // When trip not started: show rider/pickup marker
-//    if (isTripStarted) {
-//        // Trip started - create destination marker only
-//        bitmapFromDrawable(context, R.drawable.destination)?.let { bitmap ->
-//            val destinationAnnotation = PointAnnotationOptions()
-//                .withPoint(destinationPoint)
-//                .withIconImage(bitmap)
-//            val annotation = manager.create(destinationAnnotation)
-//            riderAnnotationIdState.value = annotation.id
-//            Log.d("MapComponent", "Destination marker created (trip started)")
-//        }
-//    } else {
-//        // Trip not started - create rider/pickup marker
-//        bitmapFromDrawable(context, R.drawable.ride)?.let { bitmap ->
-//            val riderAnnotation = PointAnnotationOptions()
-//                .withPoint(destinationPoint)
-//                .withIconImage(bitmap)
-//            val annotation = manager.create(riderAnnotation)
-//            riderAnnotationIdState.value = annotation.id
-//            Log.d("MapComponent", "Pickup (rider) marker created")
-//        }
-//    }
-//}
-//
-///**
 // * Fetches route from Mapbox Directions API and draws it
+// * Draws the prepended segment (driver to route start) as a dashed line
+// * and the main route as a solid line
 // */
 //private fun fetchAndDrawRoute(
 //    mapView: MapView,
 //    origin: Point,
 //    destination: Point,
 //    polylineAnnotationManager: com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager,
-//    onRouteInfoUpdated: (RouteState) -> Unit = {}
+//    onRouteInfoUpdated: (RouteState) -> Unit = {},
+//    routeRequestVersion: MutableState<Int>,
+//    routeAnnotationId: MutableState<String?>,
+//    dashedRouteAnnotationId: MutableState<String?>,
+//    routeCallState: MutableState<MapboxDirections?>
 //) {
 //    Log.d("DirectionsAPI", "Fetching route from ${origin.longitude()},${origin.latitude()} to ${destination.longitude()},${destination.latitude()}")
 //
@@ -634,6 +947,18 @@
 //    val accessToken = mapView.context.getString(R.string.mapbox_access_token)
 //    Log.d("DirectionsAPI", "Using token: ${accessToken.take(10)}...")
 //
+//    // Cancel any previous in-flight MapboxDirections request to avoid overlapping responses and wasted bandwidth
+//    routeCallState.value?.let { previousClient ->
+//        try {
+//            // MapboxDirections exposes cancelCall() to cancel the underlying request
+//            previousClient.cancelCall()
+//            Log.d("DirectionsAPI", "Cancelled previous MapboxDirections request")
+//        } catch (e: Exception) {
+//            Log.w("DirectionsAPI", "Failed to cancel previous directions client: ${e.message}")
+//        }
+//    }
+//
+//    // Build a new MapboxDirections client (this client enqueues an internal retrofit call)
 //    val client = MapboxDirections.builder()
 //        .origin(origin)
 //        .destination(destination)
@@ -642,11 +967,27 @@
 //        .accessToken(accessToken)
 //        .build()
 //
+//    // Store the new MapboxDirections client so future requests can cancel it
+//    routeCallState.value = client
+//
+//    // Capture the version for this request so we can ignore stale responses
+//    val thisRequestVersion = routeRequestVersion.value
+//
+//    // Start the call and keep a reference so it can be cancelled by subsequent requests
 //    client.enqueueCall(object : Callback<DirectionsResponse> {
 //        override fun onResponse(call: Call<DirectionsResponse>, response: Response<DirectionsResponse>) {
+//            // Ignore stale responses using the versioning mechanism
+//            if (thisRequestVersion != routeRequestVersion.value) {
+//                Log.d("DirectionsAPI", "Ignored stale response (version mismatch). thisRequest=$thisRequestVersion current=${routeRequestVersion.value}")
+//                // Clear stored client reference only if it still points to this client
+//                if (routeCallState.value === client) routeCallState.value = null
+//                return
+//            }
+//
 //            if (!response.isSuccessful) {
 //                Log.e("DirectionsAPI", "Request failed with code: ${response.code()}")
 //                drawStraightLine(polylineAnnotationManager, origin, destination)
+//                if (routeCallState.value === client) routeCallState.value = null
 //                return
 //            }
 //
@@ -654,6 +995,7 @@
 //            if (routes.isNullOrEmpty()) {
 //                Log.e("DirectionsAPI", "No routes found in response")
 //                drawStraightLine(polylineAnnotationManager, origin, destination)
+//                if (routeCallState.value === client) routeCallState.value = null
 //                return
 //            }
 //
@@ -662,7 +1004,8 @@
 //
 //            if (routeGeometry == null) {
 //                Log.e("DirectionsAPI", "Route geometry is null")
-//                drawStraightLine(polylineAnnotationManager, origin, destination)
+//                drawStraightLine(polylineAnnotationManager, origin, destination, routeAnnotationId, dashedRouteAnnotationId)
+//                if (routeCallState.value === client) routeCallState.value = null
 //                return
 //            }
 //
@@ -671,18 +1014,62 @@
 //
 //                if (points.isEmpty()) {
 //                    Log.e("DirectionsAPI", "Route points list is empty after parsing")
-//                    drawStraightLine(polylineAnnotationManager, origin, destination)
+//                    drawStraightLine(polylineAnnotationManager, origin, destination, routeAnnotationId, dashedRouteAnnotationId)
+//                    if (routeCallState.value === client) routeCallState.value = null
 //                    return
 //                }
 //
 //                Log.d("DirectionsAPI", "Creating polyline with ${points.size} points")
-//                val polylineOptions = PolylineAnnotationOptions()
-//                    .withPoints(points)
-//                    .withLineColor("#000000") // Black color
-//                    .withLineWidth(5.0) // Increased width for visibility
 //
-//                val createdAnnotation = polylineAnnotationManager.create(polylineOptions)
-//                Log.d("DirectionsAPI", "✅ Route drawn successfully - annotation ID: ${createdAnnotation.id}, total annotations: ${polylineAnnotationManager.annotations.size}")
+//                // Trim and adjust points, separating prepended segment from main route
+//                val trimmedResult = try {
+//                    trimRoutePointsForDriverWithSegments(points, origin, 50.0)
+//                } catch (e: Exception) {
+//                    Log.w("DirectionsAPI", "Failed to trim route points, falling back to full route: ${e.message}")
+//                    TrimmedRouteResult(emptyList(), points)
+//                }
+//
+//                // Track old annotation IDs to delete after creating new ones
+//                val previousMainId = routeAnnotationId.value
+//
+//                // Draw main route (solid black line)
+//                if (trimmedResult.mainRoute.isNotEmpty()) {
+//                    val mainPolylineOptions = PolylineAnnotationOptions()
+//                        .withPoints(trimmedResult.mainRoute)
+//                        .withLineColor("#000000") // Black color
+//                        .withLineWidth(5.0) // Solid line width
+//
+//                    val mainAnnotation = polylineAnnotationManager.create(mainPolylineOptions)
+//                    routeAnnotationId.value = mainAnnotation.id
+//                    Log.d("DirectionsAPI", "✅ Main route (solid) drawn - annotation ID: ${mainAnnotation.id}")
+//                }
+//
+//                // Draw prepended segment (dashed line) - driver to route start
+//                // Uses proper Mapbox style layer for actual dashed line effect
+//                if (trimmedResult.prependedSegment.size >= 2) {
+//                    drawOrUpdateDashedLine(mapView, trimmedResult.prependedSegment)
+//                    dashedRouteAnnotationId.value = "dashed-layer" // Mark as having a dashed line
+//                    Log.d("DirectionsAPI", "✅ Prepended segment (dashed line) drawn using style layer")
+//                } else {
+//                    // No prepended segment needed, clear the dashed line
+//                    clearDashedLine(mapView)
+//                    dashedRouteAnnotationId.value = null
+//                }
+//
+//                Log.d("DirectionsAPI", "✅ Route drawn successfully - total annotations: ${polylineAnnotationManager.annotations.size}")
+//
+//                // Delete previous main route annotation now that new one exists
+//                if (previousMainId != null && previousMainId != routeAnnotationId.value) {
+//                    polylineAnnotationManager.annotations.find { it.id == previousMainId }?.let { oldAnno ->
+//                        try {
+//                            polylineAnnotationManager.delete(listOf(oldAnno))
+//                            Log.d("DirectionsAPI", "Deleted previous main route annotation: $previousMainId")
+//                        } catch (e: Exception) {
+//                            Log.w("DirectionsAPI", "Failed to delete previous main route annotation: $previousMainId - ${e.message}")
+//                        }
+//                    }
+//                }
+//                // Note: Dashed line cleanup is handled by clearDashedLine() when needed
 //
 //                // Extract distance and duration
 //                val distance = currentRoute.distance()
@@ -698,15 +1085,26 @@
 //                onRouteInfoUpdated(routeState)
 //                Log.d("DirectionsAPI", "Route info updated: ${routeState.formattedDistance}, ${routeState.formattedDuration}")
 //
+//                // Clear stored client reference only if it still points to this client
+//                if (routeCallState.value === client) routeCallState.value = null
+//
 //            } catch (e: Exception) {
 //                Log.e("DirectionsAPI", "Error parsing route geometry: ${e.message}", e)
-//                drawStraightLine(polylineAnnotationManager, origin, destination)
+//                drawStraightLine(polylineAnnotationManager, origin, destination, routeAnnotationId, dashedRouteAnnotationId)
+//                if (routeCallState.value === client) routeCallState.value = null
 //            }
 //        }
 //
 //        override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
+//            // Ignore failures from stale requests
+//            if (thisRequestVersion != routeRequestVersion.value) {
+//                Log.d("DirectionsAPI", "Ignored stale failure (version mismatch)")
+//                if (routeCallState.value === client) routeCallState.value = null
+//                return
+//            }
 //            Log.e("DirectionsAPI", "API call failed", t)
-//            drawStraightLine(polylineAnnotationManager, origin, destination)
+//            drawStraightLine(polylineAnnotationManager, origin, destination, routeAnnotationId, dashedRouteAnnotationId)
+//            if (routeCallState.value === client) routeCallState.value = null
 //        }
 //    })
 //}
@@ -717,14 +1115,121 @@
 //private fun drawStraightLine(
 //    polylineAnnotationManager: com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager,
 //    origin: Point,
-//    destination: Point
+//    destination: Point,
+//    routeAnnotationId: MutableState<String?>? = null,
+//    dashedRouteAnnotationId: MutableState<String?>? = null
 //) {
 //    Log.d("DirectionsAPI", "Drawing fallback straight line")
 //    val polylineOptions = PolylineAnnotationOptions()
 //        .withPoints(listOf(origin, destination))
 //        .withLineColor("#000000")
 //        .withLineWidth(5.0)
-//    polylineAnnotationManager.create(polylineOptions)
+//    val annotation = polylineAnnotationManager.create(polylineOptions)
+//    routeAnnotationId?.value = annotation.id
+//    dashedRouteAnnotationId?.value = null // Clear dashed annotation for fallback
+//}
+//
+///**
+// * Draws or updates a dashed line from driver position to route start using Mapbox style layers.
+// * This creates a proper dashed/dotted line effect similar to Google Maps.
+// *
+// * @param mapView The MapView instance
+// * @param points The points for the dashed line (typically driver position to route start)
+// */
+//private fun drawOrUpdateDashedLine(mapView: MapView, points: List<Point>) {
+//    if (points.size < 2) {
+//        Log.d("DirectionsAPI", "Not enough points for dashed line, clearing")
+//        clearDashedLine(mapView)
+//        return
+//    }
+//
+//    val lineString = LineString.fromLngLats(points)
+//    val feature = Feature.fromGeometry(lineString)
+//
+//    mapView.mapboxMap.getStyle { style ->
+//        try {
+//            // Check if source already exists
+//            val existingSource = style.getSourceAs<GeoJsonSource>(DASHED_LINE_SOURCE_ID)
+//            if (existingSource != null) {
+//                // Update existing source with new geometry
+//                existingSource.feature(feature)
+//                Log.d("DirectionsAPI", "Updated dashed line source with ${points.size} points")
+//            } else {
+//                // Create new source and layer
+//                style.addSource(geoJsonSource(DASHED_LINE_SOURCE_ID) {
+//                    feature(feature)
+//                })
+//
+//                val dashedLineLayer = lineLayer(DASHED_LINE_LAYER_ID, DASHED_LINE_SOURCE_ID) {
+//                    lineColor("#808080") // Gray color
+//                    lineWidth(4.0)
+//                    lineDasharray(listOf(2.0, 2.0)) // Dash pattern: 2 units dash, 2 units gap
+//                    lineCap(com.mapbox.maps.extension.style.layers.properties.generated.LineCap.ROUND)
+//                    lineJoin(com.mapbox.maps.extension.style.layers.properties.generated.LineJoin.ROUND)
+//                }
+//
+//                // Try to add layer below annotation layers so car marker appears on top
+//                // Point annotation managers typically create layers starting with "mapbox-android-pointAnnotation"
+//                val annotationLayerId = style.styleLayers.firstOrNull {
+//                    it.id.contains("pointAnnotation", ignoreCase = true) ||
+//                            it.id.contains("PointAnnotation", ignoreCase = true)
+//                }?.id
+//
+//                if (annotationLayerId != null) {
+//                    style.addLayerBelow(dashedLineLayer, annotationLayerId)
+//                    Log.d("DirectionsAPI", "Created dashed line layer BELOW annotation layer: $annotationLayerId")
+//                } else {
+//                    // Fallback: just add layer normally
+//                    style.addLayer(dashedLineLayer)
+//                    Log.d("DirectionsAPI", "Created new dashed line layer (no annotation layer found)")
+//                }
+//                Log.d("DirectionsAPI", "Created new dashed line layer with ${points.size} points")
+//            }
+//        } catch (e: Exception) {
+//            Log.e("DirectionsAPI", "Error drawing dashed line: ${e.message}", e)
+//        }
+//    }
+//}
+//
+///**
+// * Clears the dashed line from the map (removes source and layer)
+// * This function tries both async and sync approaches to ensure cleanup
+// */
+//private fun clearDashedLine(mapView: MapView) {
+//    // Try synchronous approach first using style property directly
+//    try {
+//        val style = mapView.mapboxMap.style
+//        if (style != null) {
+//            if (style.styleLayerExists(DASHED_LINE_LAYER_ID)) {
+//                style.removeStyleLayer(DASHED_LINE_LAYER_ID)
+//                Log.d("DirectionsAPI", "Removed dashed line layer (sync)")
+//            }
+//            if (style.styleSourceExists(DASHED_LINE_SOURCE_ID)) {
+//                style.removeStyleSource(DASHED_LINE_SOURCE_ID)
+//                Log.d("DirectionsAPI", "Removed dashed line source (sync)")
+//            }
+//            return // Success, no need for async approach
+//        }
+//    } catch (e: Exception) {
+//        Log.w("DirectionsAPI", "Sync dashed line cleanup failed, trying async: ${e.message}")
+//    }
+//
+//    // Fallback to async approach
+//    mapView.mapboxMap.getStyle { style ->
+//        try {
+//            // Remove layer first, then source
+//            if (style.styleLayerExists(DASHED_LINE_LAYER_ID)) {
+//                style.removeStyleLayer(DASHED_LINE_LAYER_ID)
+//                Log.d("DirectionsAPI", "Removed dashed line layer (async)")
+//            }
+//            if (style.styleSourceExists(DASHED_LINE_SOURCE_ID)) {
+//                style.removeStyleSource(DASHED_LINE_SOURCE_ID)
+//                Log.d("DirectionsAPI", "Removed dashed line source")
+//            }
+//        } catch (e: Exception) {
+//            Log.w("DirectionsAPI", "Error clearing dashed line: ${e.message}")
+//        }
+//    }
 //}
 //
 ///**
@@ -791,16 +1296,110 @@
 //}
 //
 ///**
-// * Calculate distance between two Points in meters
+// * Trim route points so the visible polyline starts near the driver's current position.
+// * Uses nearest-segment projection for better accuracy. If the driver is already close to the
+// * first point, ensures the driver is included as the leading point. Otherwise, finds the
+// * nearest projection on the polyline segments, drops preceding points, and prepends the
+// * driver's position so the polyline visually starts at the driver.
+// *
+// * Returns a TrimmedRouteResult that separates the prepended segment (driver to route start)
+// * from the main route, allowing for different line styles (dashed vs solid).
 // */
-//private fun Point.distanceTo(other: Point): Double {
-//    val results = FloatArray(1)
-//    android.location.Location.distanceBetween(
-//        this.latitude(),
-//        this.longitude(),
-//        other.latitude(),
-//        other.longitude(),
-//        results
-//    )
-//    return results[0].toDouble()
+//private fun trimRoutePointsForDriverWithSegments(points: List<Point>, driver: Point, maxDistanceToFirstPointMeters: Double = 50.0): TrimmedRouteResult {
+//    if (points.isEmpty()) return TrimmedRouteResult(emptyList(), emptyList())
+//
+//    // If driver is already close to the first point, just ensure driver is included as leading point
+//    val first = points[0]
+//    val distToFirst = driver.distanceTo(first)
+//    if (distToFirst <= maxDistanceToFirstPointMeters) {
+//        // Driver is close to route start - prepended segment from driver to first point (dashed)
+//        // Main route is the original points (solid)
+//        val prependedSegment = if (driver.distanceTo(first) > 1.0) {
+//            listOf(driver, first)
+//        } else {
+//            emptyList()
+//        }
+//        return TrimmedRouteResult(prependedSegment, points)
+//    }
+//
+//    // Find nearest projection on any segment
+//    var bestIdx = 0
+//    var bestDist = Double.MAX_VALUE
+//
+//    for (i in 0 until points.size - 1) {
+//        val a = points[i]
+//        val b = points[i + 1]
+//        val (proj, _) = projectPointToSegment(driver, a, b)
+//        val d = driver.distanceTo(proj)
+//        if (d < bestDist) {
+//            bestDist = d
+//            bestIdx = i
+//        }
+//    }
+//
+//    // Compute trimmed list starting from the projection point
+//    val mainRoute = mutableListOf<Point>()
+//
+//    // Build projected starting point between points[bestIdx] and points[bestIdx+1]
+//    val a = points[bestIdx]
+//    val b = points.getOrNull(bestIdx + 1) ?: a
+//    val (projPoint, _) = projectPointToSegment(driver, a, b)
+//
+//    // Add projection point as the start of main route
+//    mainRoute.add(projPoint)
+//
+//    // Add remaining points after the projection
+//    for (j in bestIdx + 1 until points.size) {
+//        mainRoute.add(points[j])
+//    }
+//
+//    // Create prepended segment from driver to projection point (for dashed line)
+//    val prependedSegment = if (mainRoute.isNotEmpty() && driver.distanceTo(mainRoute[0]) > 1.0) {
+//        listOf(driver, mainRoute[0])
+//    } else {
+//        emptyList()
+//    }
+//
+//    return TrimmedRouteResult(prependedSegment, mainRoute)
+//}
+//
+///**
+// * Projects point p onto segment ab and returns the projected Point and the t parameter (0..1)
+// * using a simple equirectangular projection approximation (sufficient for short distances).
+// */
+//private fun projectPointToSegment(p: Point, a: Point, b: Point): Pair<Point, Double> {
+//    // Convert to simple Cartesian coordinates in degrees, but scale longitude by cos(meanLat)
+//    val meanLat = Math.toRadians((a.latitude() + b.latitude()) / 2.0)
+//    val scale = Math.cos(meanLat)
+//
+//    val ax = a.longitude() * scale
+//    val ay = a.latitude()
+//    val bx = b.longitude() * scale
+//    val by = b.latitude()
+//    val px = p.longitude() * scale
+//    val py = p.latitude()
+//
+//    val abx = bx - ax
+//    val aby = by - ay
+//    val apx = px - ax
+//    val apy = py - ay
+//
+//    val abLen2 = abx * abx + aby * aby
+//    if (abLen2 == 0.0) {
+//        return Pair(a, 0.0)
+//    }
+//
+//    var t = (apx * abx + apy * aby) / abLen2
+//    if (t < 0.0) t = 0.0
+//    if (t > 1.0) t = 1.0
+//
+//    val projX = ax + t * abx
+//    val projY = ay + t * aby
+//
+//    // Convert back to lon/lat degrees
+//    val projLon = projX / scale
+//    val projLat = projY
+//
+//    val projPoint = Point.fromLngLat(projLon, projLat)
+//    return Pair(projPoint, t)
 //}
