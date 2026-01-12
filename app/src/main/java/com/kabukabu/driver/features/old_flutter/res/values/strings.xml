@@ -1,0 +1,5 @@
+<!-- res/values/strings.xml -->
+<resources>
+    <string name="draggable_circle">Draggable Circle</string>
+    <string name="chat_head_content_description">Chat Head</string>
+</resources>

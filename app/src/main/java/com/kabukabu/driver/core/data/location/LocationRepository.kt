@@ -29,8 +29,8 @@ class LocationRepository private constructor(
     private var isLocationUpdatesActive = false
 
     // Constants for location filtering
-    private val MINIMUM_ACCURACY_METERS = 20f // Only accept locations with accuracy better than 20 meters
-    private val MINIMUM_DISTANCE_METERS = 10f // Only update if moved at least 10 meters
+    private val MINIMUM_ACCURACY_METERS = 10f // Only accept locations with accuracy better than 20 meters
+    private val MINIMUM_DISTANCE_METERS = 1f // Only update if moved at least 10 meters
 
     companion object {
         @Volatile
@@ -75,9 +75,9 @@ class LocationRepository private constructor(
 
         val locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
-            10000L // Update every 10 seconds
+            5000L // Update every 10 seconds
         ).apply {
-            setMinUpdateIntervalMillis(5000L) // Fastest update every 5 seconds
+            setMinUpdateIntervalMillis(3000L) // Fastest update every 5 seconds
             setWaitForAccurateLocation(false)
         }.build()
 

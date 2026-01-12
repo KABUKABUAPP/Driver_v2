@@ -3,7 +3,7 @@ package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import com.kabukabu.driver.core.utils.safeClickable
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -58,6 +60,7 @@ import com.kabukabu.driver.features.auth.data.entity.req_body.UploadCarDocsReqBo
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadCarDocsUiState
 import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
+import com.kabukabu.driver.core.utils.composableSafeClickable
 import org.koin.androidx.compose.koinViewModel
 
 private enum class SelectedDoc { VehicleLicense, DriverLicense, Insurance, ProofOfOwnership, RoadWorthiness, HackneyPermit }
@@ -481,9 +484,10 @@ fun CaptureDocumentItem(
                         .fillMaxWidth()
                         .height(200.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { onClick() }, // allow recapture/reupload
+                        .safeClickable { onClick() }, // allow recapture/reupload
                     contentAlignment = Alignment.Center
-                ) {
+                )
+                {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(imageUri)
@@ -538,7 +542,9 @@ fun CaptureDocumentBox(
 //            .height(100.dp)
             .clip(RoundedCornerShape(6.dp))
             .background(Color(0xFFF1F1F1))
-            .clickable { onClick() },
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { onClick() })
+            },
         contentAlignment = Alignment.Center
     ) {
         Column(

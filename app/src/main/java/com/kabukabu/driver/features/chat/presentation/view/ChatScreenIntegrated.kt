@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -24,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import com.kabukabu.driver.core.utils.noRippleClickable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -317,6 +317,8 @@ fun ChatMessageInput(
     accentColor: Color,
     modifier: Modifier = Modifier
 ) {
+    val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = Color(0xFFFDFDFD)
@@ -344,7 +346,10 @@ fun ChatMessageInput(
             )
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(
-                onClick = onSend,
+                onClick = {
+                    keyboardController?.hide()
+                    onSend()
+                },
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(accentColor)
@@ -379,7 +384,7 @@ fun QuickReplyChips(
     ) {
         items(suggestions) { text ->
             Surface(
-                modifier = Modifier.clickable { onChipClick(text) },
+                modifier = Modifier.noRippleClickable { onChipClick(text) },
                 color = Color(0xffE5EDFF),
 
                 shape = RoundedCornerShape(20.dp)

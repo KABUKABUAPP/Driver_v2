@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Full-Screen Transparent Background -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" /> <!-- Shadow color -->
+
+        </shape>
+    </item>
+
+<!--    &lt;!&ndash; Centered White Container &ndash;&gt;-->
+<!--    <item android:left="4dp" android:right="4dp" android:top="4dp" android:bottom="4dp">-->
+<!--        <shape android:shape="rectangle">-->
+<!--            <solid android:color="@android:color/white" /> &lt;!&ndash; Background color &ndash;&gt;-->
+<!--            <corners android:radius="16dp" /> &lt;!&ndash; Rounded corners &ndash;&gt;-->
+<!--        </shape>-->
+<!--    </item>-->
+
+</layer-list>

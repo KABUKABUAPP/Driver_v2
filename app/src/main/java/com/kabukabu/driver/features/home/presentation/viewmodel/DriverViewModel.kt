@@ -6,6 +6,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kabukabu.driver.KabukabuDriverApp
 import com.kabukabu.driver.core.data.remote.ApiClient
+import com.kabukabu.driver.core.data.remote.FcmTokenPayload
+import com.kabukabu.driver.core.data.remote.NotificationApiClient
 import com.kabukabu.driver.core.data.socket.SocketService
 import com.kabukabu.driver.core.data.socket.TripFoundEvent
 import com.kabukabu.driver.features.home.data.EndTripResponse
@@ -79,7 +81,8 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
     val userProfile = _userProfile.asStateFlow()
 
     private val _userDetails = MutableStateFlow<ProfileData?>(null)
-    val userDetails = _userProfile.asStateFlow()
+    // Expose the correct StateFlow for profile data (ProfileData contains user, carDetails, etc.)
+    val userDetails = _userDetails.asStateFlow()
 
     private val _userPaymentMethod = MutableStateFlow<PreferredPaymentMethods?>(null)
     val userPaymentMethods = _userPaymentMethod.asStateFlow()
@@ -152,22 +155,28 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         // Emit driver location during active trip - runs continuously in ViewModel
-        viewModelScope.launch {
-            combine(activeTrip, driverLocation) { trip, location ->
-                Pair(trip, location)
-            }.collect { (trip, location) ->
-                if (trip != null && location != null) {
-                    // Emit location to backend every 5 seconds
-                    SocketService.emitLocation(
-                        lat = location.latitude,
-                        long = location.longitude,
-                        orderId = trip.id
-                    )
-                    Log.d("DriverViewModel", "Emitted location for trip ${trip.id}")
-                    delay(5000)
-                }
-            }
-        }
+//        viewModelScope.launch {
+//            combine(activeTrip, driverLocation) { trip, location ->
+//                Pair(trip, location)
+//            }.collect { (trip, location) ->
+//                if ( location != null) {
+//                    // Emit location to backend every 5 seconds
+//                    SocketService.emitLocation(
+//                        lat = location.latitude,
+//                        long = location.longitude,
+//                        orderId = trip?.order ?: ""
+//                    )
+//                    Log.d("DriverViewModel", "Emitted location is (${location.latitude}, ${location.longitude}) for trip ${trip?.id}")
+//                    delay(5000)
+//                }
+//            }
+//        }
+
+//        viewModelScope.launch {
+//            SocketService.tripCancelledEvent.collect { tripCancelledEvent ->
+//                awaitableFetchUserProfile()
+//            }
+//        }
     }
 
     /**
@@ -247,10 +256,11 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
         // Fetch early so UI like the drawer can consume cached state immediately
         fetchUserProfile()
         fetchTodayTripAnalytics()
+        updateFcmId()
 
         viewModelScope.launch(Dispatchers.IO) {
             userPreferences.userDetails.collect {
-                Log.i("DataStoreDebug", "userDetails emitted: $it")
+                Log.i("DataStoreDebug", "userDetails active trip is: ${it?.activeTrip}")
             }
         }
 
@@ -259,9 +269,15 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
     fun cancelTrippedByRider(){
         _activeTrip.value = null
         _pendingTripEvent.value = null
+
+        viewModelScope.launch {
+            delay(2000)
+            fetchUserProfile(false)
+        }
+//        fetchUserProfile()
     }
 
-    fun fetchUserProfile() {
+    fun fetchUserProfile( useLocal : Boolean = true) {
         viewModelScope.launch(Dispatchers.IO) {
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
@@ -270,7 +286,8 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
             }
             try {
                 val savedPreference = userPreferences.userDetails.firstOrNull()
-                _activeTrip.value = savedPreference?.activeTrip
+                if(useLocal) _activeTrip.value = savedPreference?.activeTrip
+                _userDetails.value = savedPreference
                 val onlineStatus = savedPreference?.user?.onlineStatus
                 _isOnline.value = onlineStatus == "online"
                 _userPaymentMethod.value = savedPreference?.user?.driver?.preferredPaymentMethods
@@ -309,11 +326,11 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
 
                         // Clear pending trip event once activeTrip is populated
                         if (_activeTrip.value != null) {
+                            SocketService.joinTripRoom(_activeTrip.value!!.order)
                             clearPendingTripEvent()
                         }
 
                         Log.d("DriverViewModel", "Active trip updated: ${_activeTrip.value}")
-
                         // Update user profile
 //                        _userProfile.value = user
 
@@ -444,7 +461,7 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
             try {
                 Log.d("DriverViewModel", "Manually set trip status to ARRIVED_PICKUP")
 
-                SocketService.emitArrivePickup(orderId = activeTrip!!.id)
+                SocketService.emitArrivePickup(orderId = activeTrip!!.order)
                 _manualTripStatus.value = TripStatus.ARRIVED_PICKUP
                 Log.d("DriverViewModel", "Emitted arrive pickup socket event")
 
@@ -688,12 +705,26 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
                         if (body?.status == "success") {
 
                             _isOnline.value = !isOnline
-                            _errorMessage.value = null // Clear any previous errors
-                            awaitableFetchUserProfile()
-                            Log.d(
-                                "DriverViewModel",
-                                "Successfully updated online status to $status"
-                            )
+                            // Start or stop TripRequestService based on the new online state
+                            try {
+                                val appContext = getApplication<com.kabukabu.driver.KabukabuDriverApp>().applicationContext
+                                if (isOnline) {
+                                    // We just set the driver to online
+                                    Log.d("DriverViewModel", "Driver is now online - starting TripRequestService")
+                                    com.kabukabu.driver.services.TripRequestService.startService(appContext)
+                                } else {
+                                    Log.d("DriverViewModel", "Driver is now offline - stopping TripRequestService")
+                                    com.kabukabu.driver.services.TripRequestService.stopService(appContext)
+                                }
+                            } catch (e: Exception) {
+                                Log.e("DriverViewModel", "Failed to start/stop TripRequestService: ${e.message}")
+                            }
+                             _errorMessage.value = null // Clear any previous errors
+                             awaitableFetchUserProfile()
+                             Log.d(
+                                 "DriverViewModel",
+                                 "Successfully updated online status to $status"
+                             )
 
                         } else {
                             val message = body?.message ?: "Failed to update online status"
@@ -717,12 +748,6 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-
-   fun todayTripAnalysis(){
-
-    }
-
-
     //setPaymentMethodPreference
     fun setPaymentMethodPreference(
         cash: Boolean, wallet: Boolean, bankTransfer: Boolean
@@ -731,6 +756,11 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
             val token = userPreferences.authToken.firstOrNull()
             if (token.isNullOrBlank()) {
                 _errorMessage.value = "Authentication token is missing."
+                return@launch
+            }
+
+            if(_isOnline.value){
+                _errorMessage.value = "You can not change payment method while online."
                 return@launch
             }
 
@@ -777,7 +807,58 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
                 && (a.card ?: false) == (b.card ?: false)
     }
 
-    //getPaymentMethodPreference
+    fun updateFcmId() {
+        viewModelScope.launch {
+            try {
+                // Get player ID from userPreferences
+                val playerId = userPreferences.oneSignalPlayerId.firstOrNull()
+                val token = userPreferences.authToken.firstOrNull()
+                val userId = userPreferences.userId.firstOrNull()
+
+                if (playerId.isNullOrEmpty()) {
+                    Log.w("DriverViewModel", "Cannot update FCM ID: Player ID is null or empty")
+                    return@launch
+                }
+
+                if (token.isNullOrEmpty()) {
+                    Log.w("DriverViewModel", "Cannot update FCM ID: Auth token is null or empty")
+                    return@launch
+                }
+
+                if (userId.isNullOrEmpty()) {
+                    Log.w("DriverViewModel", "Cannot update FCM ID: User ID is null or empty")
+                    return@launch
+                }
+
+                Log.d("DriverViewModel", "Updating FCM token for user: $userId with playerId: $playerId")
+
+                // Create payload
+                val payload = FcmTokenPayload(
+                    playerId = playerId,
+                    platform = "android",
+                    userId = userId,
+                    type = "driver"
+                )
+
+                // Send to notification service
+                val response = withContext(Dispatchers.IO) {
+                    NotificationApiClient.service.updateFcmToken(
+                        bearerToken = "Bearer $token",
+                        userId = userId,
+                        payload = payload
+                    )
+                }
+
+                if (response.isSuccessful) {
+                    Log.d("DriverViewModel", "FCM token updated successfully")
+                } else {
+                    Log.e("DriverViewModel", "Failed to update FCM token: ${response.code()} - ${response.message()}")
+                }
+            } catch (e: Exception) {
+                Log.e("DriverViewModel", "Error updating FCM token: ${e.message}", e)
+            }
+        }
+    }
 
 
     fun clearErrorMessage() {
@@ -832,7 +913,7 @@ class DriverViewModel(application: Application) : AndroidViewModel(application) 
                     if (current - 1 == 0) {
                         Log.d("DriverViewModel", "Waiting time countdown finished")
                         _waitingTimeSeconds.value = null
-                    }
+                      }
                 }
             }
         }

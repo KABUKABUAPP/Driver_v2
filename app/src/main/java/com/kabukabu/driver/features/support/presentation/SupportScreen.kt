@@ -32,7 +32,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.kabukabu.driver.features.support.presentation.SupportViewModel
-import androidx.compose.foundation.clickable
+import com.kabukabu.driver.core.utils.composableSafeClickable
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 
@@ -89,7 +89,7 @@ fun SupportScreen(onBack: () -> Unit, onOpenTicket: (String) -> Unit, onCreateNe
                                     lastMessage = item.lastMessage ?: "",
                                     status = item.status ?: "",
                                     createdAt = item.createdAt ?: "",
-                                    modifier = Modifier.clickable(enabled = !item.id.isNullOrBlank()) {
+                                    modifier = Modifier.composableSafeClickable(enabled = !item.id.isNullOrBlank()) {
                                         onOpenTicket(item.id!!)
                                     }
                                 )
@@ -120,7 +120,7 @@ fun SupportScreen(onBack: () -> Unit, onOpenTicket: (String) -> Unit, onCreateNe
                                     lastMessage = item.lastMessage ?: "",
                                     status = item.status ?: "",
                                     createdAt = item.createdAt ?: "",
-                                    modifier = Modifier.clickable(enabled = !item.id.isNullOrBlank()) {
+                                    modifier = Modifier.composableSafeClickable(enabled = !item.id.isNullOrBlank()) {
                                         onOpenTicket(item.id!!)
                                     }
                                 )

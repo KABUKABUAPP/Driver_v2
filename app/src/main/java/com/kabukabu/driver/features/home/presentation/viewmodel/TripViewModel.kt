@@ -98,7 +98,7 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
     private fun startCountdown() {
         countdownJob?.cancel() // Cancel any existing countdown
         countdownJob = viewModelScope.launch {
-            for (i in 15 downTo 0) {
+            for (i in 20 downTo 0) {
                 if (_uiState.value is TripUiState.TripRequest) {
                     _uiState.value = (_uiState.value as TripUiState.TripRequest).copy(remainingTime = i)
                 }
@@ -113,10 +113,10 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
 
     fun acceptTrip(driverViewModel: DriverViewModel) {
         countdownJob?.cancel()
-        SoundPlayer.stopTripAlert()
         viewModelScope.launch {
             _isAccepting.value = true
             try {
+                SoundPlayer.stopTripAlert() // Ensure sound is stopped at the start of accept
                 val token = userPreferences.authToken.firstOrNull() ?: ""
                 val userId = userPreferences.userId.firstOrNull() ?: ""
                 val currentState = _uiState.value as? TripUiState.TripRequest ?: return@launch
@@ -133,7 +133,7 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
                 Log.d("TripViewModel", "Trip accepted response: ${response.status}")
                 
                 if (response.status == "success") {
-                    val orderId = currentState.tripDetails.eventId
+                    val orderId = response.data.newTrip.id
                     userPreferences.saveActiveOrderId(orderId)
 
                     // Pass TripFoundEvent to DriverViewModel for immediate display
@@ -164,6 +164,7 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
                 _uiState.value = TripUiState.Error("Failed to accept trip: ${e.message}")
             } finally {
                 _isAccepting.value = false
+                SoundPlayer.stopTripAlert() // Always stop sound, even if error occurs
             }
         }
     }
@@ -172,8 +173,8 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
 
     fun declineTrip(driverViewModel: DriverViewModel?) {
         countdownJob?.cancel()
-        SoundPlayer.stopTripAlert()
         viewModelScope.launch {
+            SoundPlayer.stopTripAlert()
             _isDeclining.value = true
             val currentState = _uiState.value
             if (currentState is TripUiState.TripRequest) {
@@ -212,6 +213,7 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
                         _uiState.value = TripUiState.Error("Failed to decline trip: ${response.message}")
                     }
                 } catch (e: Exception) {
+                    SoundPlayer.stopTripAlert()
                     _uiState.value = TripUiState.Error("Failed to decline trip: ${e.message}")
                 }
             }
@@ -300,7 +302,7 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
      * Call this from UI when you have access to DriverViewModel
      */
     fun handleTripCancelledWithProfileRefresh(
-        tripCancelledEvent: com.kabukabu.driver.core.data.socket.TripCancelledEvent,
+        tripCancelledEvent: TripCancelledEvent,
         driverViewModel: DriverViewModel
     ) {
         handleTripCancelled(tripCancelledEvent)

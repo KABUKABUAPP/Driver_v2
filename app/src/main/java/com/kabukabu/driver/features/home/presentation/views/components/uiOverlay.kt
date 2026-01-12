@@ -2,6 +2,7 @@
 //
 //import android.location.Geocoder
 //import android.location.Location
+//import android.util.Log
 //import androidx.compose.animation.animateContentSize
 //import androidx.compose.foundation.Image
 //import androidx.compose.foundation.background
@@ -14,7 +15,6 @@
 //import androidx.compose.foundation.layout.fillMaxSize
 //import androidx.compose.foundation.layout.fillMaxWidth
 //import androidx.compose.foundation.layout.height
-//import androidx.compose.foundation.layout.offset
 //import androidx.compose.foundation.layout.padding
 //import androidx.compose.foundation.layout.size
 //import androidx.compose.foundation.layout.width
@@ -50,12 +50,15 @@
 //import androidx.compose.ui.unit.sp
 //import com.kabukabu.driver.R
 //import com.kabukabu.driver.core.components.SwipeButton
+//import com.kabukabu.driver.core.data.location.LocationRepository
 //import com.kabukabu.driver.core.theme.BorderSubtle
 //import com.kabukabu.driver.core.theme.Success
 //import com.kabukabu.driver.core.theme.TextSecondary
 //import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
+//import java.text.NumberFormat
+//import java.util.Locale
 //import kotlinx.coroutines.Dispatchers
-//import kotlinx.coroutines.launch
+//import kotlinx.coroutines.withContext
 //
 //
 //@Composable
@@ -66,25 +69,51 @@
 //    isOnline: Boolean,
 //    onIsOnlineChange: (Boolean) -> Unit,
 //    onMenuClick: () -> Unit,
-//    driverViewModel: DriverViewModel
+//    driverViewModel: DriverViewModel,
+//    onRecenterMap: () -> Unit = {}
 //) {
 //    val context = LocalContext.current
 //    var locationName by remember { mutableStateOf("Loading location...") }
 //
-//    // This effect runs when `currentLocation` changes.
-//    LaunchedEffect(currentLocation) {
-//        if (currentLocation != null) {
-//            // Use a coroutine to avoid blocking the main thread
-//            launch(Dispatchers.IO) {
+//    // Prefer the app-wide LocationRepository as the single source of truth for location
+//    val locationRepository = remember { LocationRepository.getInstance(context) }
+//    val repoLocation by locationRepository.currentLocation.collectAsState()
+//    val isInitializing by locationRepository.isInitializing.collectAsState()
+//
+//    // Determine the effective location to use: repository takes precedence, fallback to the passed-in value
+//    val effectiveLocation = repoLocation ?: currentLocation
+//
+//    // When effective location or initialization state changes, resolve a user-friendly name.
+//    LaunchedEffect(effectiveLocation, isInitializing) {
+//        if (effectiveLocation == null) {
+//            // If the repository is still starting up, show a loading hint; otherwise it's unknown
+//            locationName = if (isInitializing) "Loading location..." else "Unknown location"
+//        } else {
+//            // Offload geocoding to IO dispatcher to avoid blocking the UI
+//            withContext(Dispatchers.IO) {
 //                try {
-//                    val geocoder = Geocoder(context)
+//                    val geocoder = Geocoder(context, Locale.getDefault())
 //                    val addresses = geocoder.getFromLocation(
-//                        currentLocation.latitude, currentLocation.longitude, 1
+//                        effectiveLocation.latitude,
+//                        effectiveLocation.longitude,
+//                        1
 //                    )
-//                    if (addresses?.isNotEmpty() == true) {
-//                        locationName = addresses[0].thoroughfare ?: "Unknown Location"
+//                    if (addresses != null && addresses.isNotEmpty()) {
+//                        // Prefer a readable street/locality name; fall back to address line
+//                        val addr = addresses[0]
+//                        val name = when {
+//                            !addr.thoroughfare.isNullOrBlank() -> addr.thoroughfare
+//                            !addr.locality.isNullOrBlank() -> addr.locality
+//                            !addr.subLocality.isNullOrBlank() -> addr.subLocality
+//                            !addr.featureName.isNullOrBlank() -> addr.featureName
+//                            else -> addr.getAddressLine(0)
+//                        }
+//                        locationName = name ?: "Unknown Location"
+//                    } else {
+//                        locationName = "Unknown Location"
 //                    }
 //                } catch (e: Exception) {
+//                    Log.w("UIOverlay", "Geocoding failed: ${e.message}", e)
 //                    locationName = "Location not found"
 //                }
 //            }
@@ -160,7 +189,8 @@
 //                onLogout = onLogout,
 //                onOnlineStatusChanged = onIsOnlineChange,
 //                isOnline = isOnline,
-//                driverViewModel = driverViewModel
+//                driverViewModel = driverViewModel,
+//                onRecenterMap = onRecenterMap
 //            )
 //        }
 //    }
@@ -172,12 +202,65 @@
 //    onLogout: () -> Unit,
 //    onOnlineStatusChanged: (Boolean) -> Unit,
 //    isOnline: Boolean,
-//
-//    ) {
+//    onRecenterMap: () -> Unit = {}
+//) {
 //    var isExpanded by remember { mutableStateOf(false) }
 //    val isUpdatingOnlineStatus by driverViewModel.isUpdatingOnlineStatus.collectAsState()
+//    val todayTripData by driverViewModel.todayTripData.collectAsState()
 //
 //    Column {
+//        // Anchored map controls (above the card) with animated padding
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(horizontal = 16.dp)
+//                .padding(bottom = 16.dp)
+//                .animateContentSize(), // Smooth animation when card expands/collapses
+//            horizontalArrangement = Arrangement.SpaceBetween,
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            // Promotion Pill
+////            Surface(
+////                shape = RoundedCornerShape(50),
+////                color = Color.White,
+//////                shadowElevation = 4.dp
+////            ) {
+////                Row(
+////                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+////                    verticalAlignment = Alignment.CenterVertically
+////                ) {
+////                    Text(
+////                        text = "🎉",
+////                        fontSize = 18.sp
+////                    )
+////                    Spacer(modifier = Modifier.width(8.dp))
+////                    Text(
+////                        text = "Promotion ongoing",
+////                        fontWeight = FontWeight.W700,
+////                        fontSize = 14.sp
+////                    )
+////                }
+////            }
+//            Spacer(modifier = Modifier.width(40.dp))
+//
+//            // Compass/Location Button
+//            Surface(
+//                shape = CircleShape,
+//                color = Color.White,
+////                shadowElevation = 4.dp,
+//                modifier = Modifier.size(60.dp),
+//                onClick = onRecenterMap
+//            ) {
+//                Box(contentAlignment = Alignment.Center) {
+//                    Image(
+//                        painter = painterResource(id = R.drawable.resetlocation),
+//                        contentDescription = "Recenter Map",
+//                        modifier = Modifier.size(25.dp)
+//                    )
+//                }
+//            }
+//        }
+//
 //        Box {
 //            Card(
 //                modifier = Modifier
@@ -197,19 +280,19 @@
 //                        OfflineStatus(isOnline = isOnline)
 //                        Spacer(modifier = Modifier.height(16.dp))
 //                        DriverStats(
-//                            tripsCount = "0",
+//                            tripsCount = "${todayTripData.totalTrips ?: 0}",
 //                            tripsLabel = "Trip Today",
-//                            earningsAmount = "0",
-//                            earningsLabel = "Km covered today"
+//                            earningsAmount = formatNaira(todayTripData.totalEarnedToday ?: 0.0),
+//                            earningsLabel =  "Earned today",
 //
-//                        )
+//                            )
 //                    }
 //
 //                    if (isExpanded) {
 //                        DriverStats(
-//                            tripsCount = "₦0",
-//                            tripsLabel = "Earned today",
-//                            earningsAmount = "6.5",
+//                            tripsCount =  String.format("%.1f", todayTripData.totalKMToday ?: 0.0),
+//                            tripsLabel = "Km covered today",
+//                            earningsAmount = "0",
 //                            earningsLabel = "Driver Score"
 //
 //                        )
@@ -451,5 +534,9 @@
 //    }
 //}
 //
-//
-//
+//private fun formatNaira(amount: Double): String {
+//    val formatter = NumberFormat.getNumberInstance(Locale("en", "NG"))
+//    formatter.minimumFractionDigits = 2
+//    formatter.maximumFractionDigits = 2
+//    return "₦" + formatter.format(amount)
+//}

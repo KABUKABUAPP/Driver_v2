@@ -7,9 +7,9 @@ import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
+import com.kabukabu.driver.core.utils.noRippleClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -318,7 +318,7 @@ fun KabuOutlinedTextFieldWithTrailingIconButton(
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
-                .clickable { onClick() }
+                .noRippleClickable { onClick() }
         )
     }
 }
@@ -728,7 +728,7 @@ fun KabuSearchBar(
                 contentDescription = null,
                 modifier = Modifier
                     .size(25.dp)
-                    .clickable { },
+                    .noRippleClickable { },
 
                 )
         },

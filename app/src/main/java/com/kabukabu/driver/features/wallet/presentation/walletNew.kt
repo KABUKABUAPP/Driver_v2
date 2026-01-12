@@ -2,7 +2,7 @@ package com.kabukabu.driver.features.wallet.presentation
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import com.kabukabu.driver.core.utils.safeClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -77,6 +77,7 @@ import androidx.compose.ui.unit.sp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.core.theme.KabukabuYellow
 import com.kabukabu.driver.core.utils.CustomToast
+import com.kabukabu.driver.core.utils.composableSafeClickable
 
 // --- 1. Color Palette ---
 val KabuBlack = Color(0xFF1A1A1A)
@@ -869,7 +870,7 @@ fun KeypadButton(symbol: String, onClick: (String) -> Unit) {
     Box(
         modifier = Modifier
             .size(64.dp)
-            .clickable { onClick(symbol) },
+            .safeClickable { onClick(symbol) },
         contentAlignment = Alignment.Center
     ) {
         if (symbol == ">") {
@@ -968,7 +969,7 @@ fun OptionItem(
         colors = CardDefaults.cardColors(containerColor = KabuGreyLight),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .composableSafeClickable(onClick = onClick)
     ) {
         Row(
             modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically

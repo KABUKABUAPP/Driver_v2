@@ -46,13 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kabukabu.driver.core.utils.CustomToast
 
-// Note: KabuYellow, KabuRed, KabuGreyBg, StackedBottomSheet, and KeypadButton
-// are defined in walletNew.kt in the same package and can be used directly
-
-// ============================================================================
-// GLOBAL PIN MODAL CONFIGURATION
-// ============================================================================
-// Change these values to update all PIN modals at once
 
 object PinModalConfig {
     // Modal Settings
@@ -80,7 +73,7 @@ object PinModalConfig {
     val pinRowVerticalPadding: Dp = 16.dp
 
     // Button
-    val buttonHeight: Dp = 50.dp
+    val buttonHeight: Dp = 58.dp
     val buttonCornerRadius: Dp = 12.dp
 
     // Typography

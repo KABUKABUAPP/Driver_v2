@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.activity.compose.BackHandler
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,6 +64,7 @@ import org.koin.androidx.compose.koinViewModel
 import androidx.core.net.toUri
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.core.navigation.ApprovalStatus
+import com.kabukabu.driver.core.utils.composableSafeClickable
 import kotlinx.coroutines.delay
 
 @Composable
@@ -154,6 +157,7 @@ fun KabuRidePendingAccountApprovalScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
+                val titleInteractionSource = remember { MutableInteractionSource() }
                 Column {
                     TitleText(
                         text = "Your account is pending \napproval",
@@ -161,7 +165,7 @@ fun KabuRidePendingAccountApprovalScreen(
                         fontWeight = FontWeight.W500,
                         bottomPadding = 12,
                         topPadding = 24,
-                        modifier = Modifier.clickable {
+                        modifier = Modifier.composableSafeClickable {
                             val declinedDocuments = userDetails?.documents
                             println("documents status.......$declinedDocuments")
                         }
@@ -255,10 +259,11 @@ fun LearnMoreAboutKabukabu(videos: List<VideoClipsResponse>) {
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(videos) { video ->
+                val videoInteractionSource = remember { MutableInteractionSource() }
                 Column(
                     modifier = Modifier
                         .width(minWidth)
-                        .clickable {
+                        .composableSafeClickable {
                             val intent = Intent(Intent.ACTION_VIEW, video.clip.toUri())
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             context.startActivity(intent)

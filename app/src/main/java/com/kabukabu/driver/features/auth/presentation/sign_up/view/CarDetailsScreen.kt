@@ -13,7 +13,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import com.kabukabu.driver.core.utils.safeClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +50,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -584,14 +587,12 @@ fun RowScope.UploadCarImageBoxImagePicker(
                 .weight(1f)
                 .clip(RoundedCornerShape(6.dp))
                 .background(Color(0xFFF1F1F1))
-                .clickable {
-//                    if (showImageSelection) {
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
                         singlePhotoPickerLauncher.launch(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                         )
-//                    } else {
-//                        context.displayToastMessage("Please fill all required fields before uploading.")
-//                    }
+                    })
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -607,10 +608,12 @@ fun RowScope.UploadCarImageBoxImagePicker(
                 .height(75.dp)
                 .weight(1f)
                 .clip(RoundedCornerShape(6.dp))
-                .clickable {
-                    singlePhotoPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        singlePhotoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    })
                 }
         ) {
             AsyncImage(
@@ -641,7 +644,9 @@ fun RowScope.UploadCarImageBoxCamera(
                 .weight(1f)
                 .clip(RoundedCornerShape(6.dp))
                 .background(Color(0xFFF1F1F1))
-                .clickable { onClick() },
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { onClick() })
+                },
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -656,7 +661,9 @@ fun RowScope.UploadCarImageBoxCamera(
                 .height(75.dp)
                 .weight(1f)
                 .clip(RoundedCornerShape(6.dp))
-                .clickable { onClick() }
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { onClick() })
+                }
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -712,7 +719,7 @@ private fun SelectImageSource(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
-                                .clickable {
+                                .safeClickable {
                                     onSelectCategory(state)
                                     onDismiss()
                                 }
@@ -767,7 +774,7 @@ private fun SelectCarBrandSheet(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
-                                .clickable {
+                                .safeClickable {
                                     onSelectCategory(state ?: "")
                                     onDismiss()
                                 }
@@ -826,7 +833,7 @@ private fun SelectCarColourSheet(
                                 .fillMaxWidth()
                                 .background(Color(0xFFF9F9F9), RoundedCornerShape(12.dp))
                                 .padding(horizontal = 16.dp, vertical = 12.dp)
-                                .clickable{
+                                .safeClickable {
                                     onSelectColour(modalItem.colorName)
                                     onDismiss()
                                 },

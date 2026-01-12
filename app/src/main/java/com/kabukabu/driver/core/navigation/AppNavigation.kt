@@ -1,5 +1,6 @@
 package com.kabukabu.driver.core.navigation
 
+import ProfileScreen
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -10,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -42,16 +42,16 @@ import com.kabukabu.driver.features.home.presentation.views.HomeScreenWithIntegr
 import com.kabukabu.driver.features.chat.presentation.view.ChatScreenIntegrated
 import com.kabukabu.driver.features.profile.data.Document
 import com.kabukabu.driver.features.profile.data.ProfileData
-import com.kabukabu.driver.features.profile.presentation.ProfileScreen
+//import com.kabukabu.driver.features.profile.presentation.ProfileScreen
 import com.kabukabu.driver.features.promotions.presentation.PromotionsScreen
 import com.kabukabu.driver.features.repair_loan.presentation.RepairLoanScreen
 import com.kabukabu.driver.features.support.presentation.SupportDetailScreen
 import com.kabukabu.driver.features.support.presentation.SupportNewTicketScreen
 import com.kabukabu.driver.features.support.presentation.SupportScreen
-import com.kabukabu.driver.features.trips.presentation.MyTripsScreen
+import com.kabukabu.driver.features.trips.presentation.TripDetailScreen
+import com.kabukabu.driver.features.trips.presentation.TripsScreen
 import com.kabukabu.driver.features.wallet.presentation.KabukabuWalletApp
 import com.kabukabu.driver.features.wallet.presentation.PaymentHistoryScreen
-import com.kabukabu.driver.features.wallet.presentation.PaymentHistoryScreen2
 import com.kabukabu.driver.features.wallet.presentation.SharpPaymentScreen
 import com.kabukabu.driver.features.wallet.presentation.PaymentWebViewScreen
 import com.kabukabu.driver.features.wallet.presentation.WithdrawalScreen
@@ -74,9 +74,33 @@ fun AppNavigation() {
     val sharedChatViewModel: com.kabukabu.driver.features.chat.presentation.viewmodel.ChatViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel()
 
+    // Create a nav-scoped TripSharedViewModel to pass TripItem objects between list and detail
+    val tripSharedViewModel: com.kabukabu.driver.features.trips.presentation.TripSharedViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel()
+
     // Log changes whenever userDetails updates
     LaunchedEffect(userDetails) {
 //        Log.i("DataStoreDebug in AppNav", "userDetails emitted: $userDetails")
+    }
+
+    // Listen for 401 Unauthorized events and redirect to login
+    LaunchedEffect(Unit) {
+//        AuthEventManager.authEvents.collect { event ->
+//            when (event) {
+//                is AuthEventManager.AuthEvent.Unauthorized,
+//                is AuthEventManager.AuthEvent.SessionExpired -> {
+//                    Log.w("AppNavigation", "Auth event received: $event - clearing session and navigating to login")
+//                    // Clear stored credentials
+//                    coroutineScope.launch {
+//                        userPreferences.clear()
+//                    }
+//                    // Navigate to login screen
+//                    navController.navigate(Screen.Login.route) {
+//                        popUpTo(0) { inclusive = true }
+//                    }
+//                }
+//            }
+//        }
     }
 
     // Auth check logic
@@ -396,11 +420,19 @@ fun AppNavigation() {
             )
         }
 
+
+
         composable(Screen.Analytics.route) {
-            AnalyticsScreen(onBack = { navController.popBackStack() })
+            AnalyticsScreen(onBack = { navController.popBackStack() },  onNavigateToWallet = {
+                navController.navigate(Screen.Wallet.withRefresh(false))
+            })
         }
         composable(Screen.MyTrips.route) {
-            MyTripsScreen(onBack = { navController.popBackStack() })
+            TripsScreen(onBack = { navController.popBackStack() }, onTripClick = { tripItem ->
+                // Use the nav-scoped TripSharedViewModel to store the selected trip
+                tripSharedViewModel.selectTrip(tripItem)
+                navController.navigate(Screen.TripDetail.createRoute(tripItem.id ?: ""))
+            })
         }
         composable(Screen.Promotions.route) {
             PromotionsScreen(onBack = { navController.popBackStack() })
@@ -438,6 +470,18 @@ fun AppNavigation() {
         }
         composable(Screen.Profile.route) {
             ProfileScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            route = "${Screen.TripDetail.route}",
+            arguments = listOf(navArgument("tripId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            // Use the nav-scoped TripSharedViewModel declared earlier in this AppNavigation scope
+            val selectedTrip by tripSharedViewModel.selectedTrip.collectAsState()
+            TripDetailScreen(trip = selectedTrip, onBack = {
+                // Clear the selected trip to avoid stale data when returning
+                tripSharedViewModel.clear()
+                navController.popBackStack()
+            })
         }
     }
 }

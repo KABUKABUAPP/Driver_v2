@@ -72,7 +72,7 @@ data class EditUserPreferredDestination(
 @JsonClass(generateAdapter = true)
 data class EditUserAverageRating(
     @Json(name = "value")
-    val value: Int?,
+    val value: Double?,
     @Json(name = "count")
     val count: Int?
 )

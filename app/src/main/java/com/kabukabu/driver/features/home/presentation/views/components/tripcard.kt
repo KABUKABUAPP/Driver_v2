@@ -39,7 +39,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,7 +48,6 @@ import com.kabukabu.driver.core.data.socket.TripFoundEvent
 import com.kabukabu.driver.core.theme.KabukabuDriverTheme
 import com.kabukabu.driver.features.home.presentation.viewmodel.DistanceInfo
 import com.kabukabu.driver.features.home.presentation.views.components.ModalTextDark
-import com.kabukabu.driver.features.home.presentation.views.components.ModalTextGray
 
 // Define colors
 val CabRed = Color(0xFFCD214B)
@@ -62,10 +60,11 @@ val TextGray = Color(0xFF757575)
 // The new fill color
 val LightOrangeFill = Color(0xFFFFF5D8) // Bisque/Light Orange
 
+@Suppress("UNUSED_PARAMETER")
 @Composable
 fun TripRequestModalAnimated(
     distanceInfo: DistanceInfo?,
-    fillDurationMillis: Int = 15000, // Parameter to control fill time (default 3s)
+    fillDurationMillis: Int = 30000, // Parameter kept for backward compatibility but we compute actual duration from remainingTime
     isVisible: Boolean,
     tripDetails: TripFoundEvent?,
     driverLocation: Location?,
@@ -77,13 +76,45 @@ fun TripRequestModalAnimated(
     onTimeout: () -> Unit
 ) {
 
+    // Total allowed time for the request (seconds)
+    val totalTimeSeconds = 20
+
+    // Animatable progress (0f..1f). We'll snap to the correct initial progress then animate the remainder.
     val fillProgress = remember { Animatable(0f) }
 
-    LaunchedEffect(Unit) {
-        fillProgress.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = fillDurationMillis, easing = LinearEasing)
-        )
+    // Recalculate and animate whenever remainingTime or visibility changes.
+    LaunchedEffect(remainingTime, isVisible) {
+        // Only animate when the card is visible. If it's not visible we still keep the progress value in the Animatable
+        if (!isVisible) return@LaunchedEffect
+
+        // Clamp remainingTime to [0, totalTimeSeconds]
+        val clampedRemaining = remainingTime.coerceIn(0, totalTimeSeconds)
+
+        // Compute elapsed time and initial progress value
+        val elapsed = (totalTimeSeconds - clampedRemaining).coerceAtLeast(0)
+        val initialProgress = (elapsed.toFloat() / totalTimeSeconds).coerceIn(0f, 1f)
+
+        // Immediately reflect the current progress
+        fillProgress.snapTo(initialProgress)
+
+        // If there's no remaining time, make sure it's full and fire timeout
+        val remainingMillis = clampedRemaining * 1000
+        if (remainingMillis <= 0) {
+            if (fillProgress.value < 1f) fillProgress.snapTo(1f)
+            onTimeout()
+        } else {
+            // Animate from the snapped position to full over remainingMillis
+            try {
+                fillProgress.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(durationMillis = remainingMillis, easing = LinearEasing)
+                )
+                // Animation completed -> timeout
+                onTimeout()
+            } catch (_: Exception) {
+                // If the coroutine is cancelled (e.g., visibility changed) just ignore
+            }
+        }
     }
 
     Card(

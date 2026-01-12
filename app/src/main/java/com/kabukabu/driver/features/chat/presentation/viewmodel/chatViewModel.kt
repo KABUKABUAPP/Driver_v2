@@ -293,6 +293,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val userJson = jsonObject.optJSONObject("user")
             val user = if (userJson != null) {
                 ChatUser(
+                    type = userJson.optString("type").takeIf { it.isNotBlank() },
                     _id = userJson.optString("_id").takeIf { it.isNotBlank() },
                     id = userJson.optString("id").takeIf { it.isNotBlank() },
                     name = userJson.optString("name").takeIf { it.isNotBlank() },
@@ -360,7 +361,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
      * Clear chat data for previous trip
      * Called when loading a different trip's chat
      */
-    private fun clearChatData() {
+     fun clearChatData() {
         _messages.value = emptyList()
         _unreadMessageCount.value = 0
         lastSeenMessageCount = 0

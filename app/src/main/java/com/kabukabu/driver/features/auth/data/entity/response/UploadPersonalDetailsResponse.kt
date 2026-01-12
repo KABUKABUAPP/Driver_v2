@@ -59,7 +59,7 @@ data class PreferredDestination(
 
 @JsonClass(generateAdapter = true)
 data class DriverDetailsAverageRating(
-    @Json(name = "value") val value: Int,
+    @Json(name = "value") val value: Double,
     @Json(name = "count") val count: Int
 )
 

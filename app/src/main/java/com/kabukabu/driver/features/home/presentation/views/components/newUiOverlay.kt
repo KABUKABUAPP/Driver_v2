@@ -5,7 +5,8 @@ import android.location.Location
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import com.kabukabu.driver.core.utils.safeClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,6 +54,7 @@ import com.kabukabu.driver.core.components.SwipeButton
 import com.kabukabu.driver.core.theme.BorderSubtle
 import com.kabukabu.driver.core.theme.Success
 import com.kabukabu.driver.core.theme.TextSecondary
+import com.kabukabu.driver.core.utils.composableSafeClickable
 import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import java.text.NumberFormat
 import java.util.Locale
@@ -111,7 +113,7 @@ fun UIOverlay(
                     .background(
                         MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(10.dp)
                     )
-                    .clickable { onMenuClick() }, contentAlignment = Alignment.Center
+                    .safeClickable { onMenuClick() }, contentAlignment = Alignment.Center
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.menu_right_square_alt),
@@ -429,7 +431,7 @@ private fun PaymentOptionCheckbox(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable { onCheckedChange(!checked) }) {
+        modifier = Modifier.composableSafeClickable { onCheckedChange(!checked) }) {
         // Custom checkbox with filled background
         Box(
             modifier = Modifier
@@ -438,7 +440,7 @@ private fun PaymentOptionCheckbox(
                     color = if (checked) Color(0xFFFFBF00) else Color(0xFF9E9E9E), // Orange when checked, grey when unchecked
                     shape = RoundedCornerShape(4.dp)
                 )
-                .clickable { onCheckedChange(!checked) },
+                .composableSafeClickable { onCheckedChange(!checked) },
             contentAlignment = Alignment.Center
         ) {
             // White checkmark icon using Material Icons
@@ -459,8 +461,9 @@ private fun PaymentOptionCheckbox(
 private fun ViewMoreButton(
     modifier: Modifier = Modifier, isExpanded: Boolean, onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     Surface(
-        modifier = modifier.clickable(onClick = onClick),
+        modifier = modifier.composableSafeClickable { onClick() },
         shape = RoundedCornerShape(10.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 0.dp

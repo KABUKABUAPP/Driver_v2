@@ -7,7 +7,7 @@ sealed class TripUiState {
     object NoTrip : TripUiState()
     data class TripRequest(
         val tripDetails: TripFoundEvent,
-        val remainingTime: Int = 20
+        val remainingTime: Int = 30
     ) : TripUiState()
     data class TripAccepted(val message: String) : TripUiState()
     data class Error(val message: String) : TripUiState()

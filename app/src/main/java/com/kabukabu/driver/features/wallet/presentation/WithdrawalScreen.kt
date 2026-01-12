@@ -1,7 +1,6 @@
 package com.kabukabu.driver.features.wallet.presentation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -26,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.core.utils.CustomToast
+import com.kabukabu.driver.core.utils.noRippleClickable
 
 /**
  * Format amount with commas for display
@@ -192,7 +192,7 @@ fun WithdrawalScreen(
                     .fillMaxWidth()
                     .height(56.dp)
                     .background(Color(0xFFF2F2F2), RoundedCornerShape(12.dp))
-                    .clickable { showBankModal = true }
+                    .noRippleClickable { showBankModal = true }
                     .padding(horizontal = 16.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
@@ -499,7 +499,7 @@ fun BankSelectionModal(
                             Surface(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { onBankSelected(bank) },
+                                    .noRippleClickable { onBankSelected(bank) },
                                 shape = RoundedCornerShape(8.dp),
                                 color = Color(0xFFF5F5F5)
                             ) {

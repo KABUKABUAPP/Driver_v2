@@ -17,7 +17,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
@@ -72,6 +73,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -91,12 +93,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.input.pointer.pointerInput
 import com.kabukabu.driver.R
 import com.kabukabu.driver.core.components.SwipeButton
 import com.kabukabu.driver.core.data.socket.SocketService
 import com.kabukabu.driver.core.data.socket.TripFoundEvent
+import com.kabukabu.driver.core.theme.KabukabuYellow
 import com.kabukabu.driver.core.utils.SoundPlayer
 import com.kabukabu.driver.core.utils.TripUiState
+import com.kabukabu.driver.features.chat.presentation.viewmodel.ChatViewModel
 import com.kabukabu.driver.features.debug.SocketDebugScreen
 import com.kabukabu.driver.features.home.data.EndTripData
 import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
@@ -111,10 +116,10 @@ import com.kabukabu.driver.features.home.presentation.views.components.openGoogl
 import com.kabukabu.driver.features.home.presentation.views.components.recenterMapOnDriver
 import com.kabukabu.driver.features.home.presentation.views.components.recenterMapOnRoute
 import com.kabukabu.driver.features.profile.data.ActiveTrip
+import com.kabukabu.driver.features.wallet.presentation.KabuYellow
+import com.kabukabu.driver.core.utils.composableSafeClickable
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -173,29 +178,61 @@ fun HomeScreenWithIntegratedTrip(
         }
     }
 
-    // Track if we should show permission dialog
-    var showFullScreenIntentDialog by remember { mutableStateOf(false) }
+    // Always prompt for overlay permission on Home screen if missing.
+    val scope = rememberCoroutineScope()
+    val userPreferences = com.kabukabu.driver.core.data.local.UserPreferences.getInstance(context)
+    var showOverlayPrompt by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        // If overlay is not granted, prompt user on homescreen
+        if (!android.provider.Settings.canDrawOverlays(context)) {
+            showOverlayPrompt = true
+        }
+    }
+
+    // Launcher to open overlay settings (system has no direct result; onResume will check)
+    val openOverlaySettingsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { /* onResume handles permission detection */ }
+    )
+
+    if (showOverlayPrompt) {
+        AlertDialog(
+            onDismissRequest = { showOverlayPrompt = false },
+            title = { Text(text = "Enable Overlay") },
+            text = { Text(text = "Kabukabu requires overlay permission to display incoming trip overlays. Open settings to allow overlays now?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showOverlayPrompt = false
+                    // Open overlay settings
+                    val intent = Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
+                        data = android.net.Uri.parse("package:${context.packageName}")
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    openOverlaySettingsLauncher.launch(intent)
+                }) { Text(text = "Open settings") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showOverlayPrompt = false }) { Text(text = "Cancel") }
+            }
+        )
+    }
 
     // Start/Stop TripRequestService based on online status
     LaunchedEffect(isOnline) {
-//        if (isOnline) {
-//            Log.d("HomeScreen", "Driver is online - starting TripRequestService")
-//            com.kabukabu.driver.services.TripRequestService.startService(context)
-//
-//            // Check if full-screen intent permission is needed
-//            if (com.kabukabu.driver.core.utils.FullScreenIntentHelper.shouldRequestPermission(context)) {
-//                showFullScreenIntentDialog = true
-//            }
-//        } else {
-//            Log.d("HomeScreen", "Driver is offline - stopping TripRequestService")
-//            com.kabukabu.driver.services.TripRequestService.stopService(context)
-//        }
+        if (isOnline) {
+            Log.d("HomeScreen", "Driver is online - ensuring TripRequestService is running")
+            com.kabukabu.driver.services.TripRequestService.startService(context)
+        } else {
+            Log.d("HomeScreen", "Driver is offline - stopping TripRequestService")
+            com.kabukabu.driver.services.TripRequestService.stopService(context)
+        }
     }
 
 
     // Join trip room when there's an active trip
     LaunchedEffect(activeTrip?.id, pendingTripEvent?.eventId) {
-        val tripId = activeTrip?.id ?: pendingTripEvent?.eventId
+        val tripId = activeTrip?.order ?: pendingTripEvent?.eventId
         if (tripId != null) {
             Log.d("HomeScreen", "Active trip detected - joining room: $tripId")
             com.kabukabu.driver.core.data.socket.SocketService.joinTripRoom(tripId)
@@ -265,7 +302,8 @@ fun HomeScreenWithIntegratedTrip(
             )
             // Fetch profile in background to update active trip (set to null)
             driverViewModel.cancelTrippedByRider()
-            driverViewModel.fetchUserProfile()
+            chatViewModel.clearChatData()
+//            driverViewModel.fetchUserProfile()
         }
     }
 
@@ -325,11 +363,7 @@ fun HomeScreenWithIntegratedTrip(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.5f))
-                        .clickable(
-                            enabled = true,
-                            onClick = {},
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }))
+                        .pointerInput(Unit) { detectTapGestures { /* consume touch */ } })
 
                 Box(
                     modifier = Modifier
@@ -366,7 +400,9 @@ fun HomeScreenWithIntegratedTrip(
     ) {
         FullScreenDrawer(onClose = { isDrawerOpen = false }, onLogout = {
             isDrawerOpen = false
+
             onLogout()
+            SocketService.disconnect()
         }, onNavigateToWallet = {
             isDrawerOpen = false
             onNavigateToWallet()
@@ -395,36 +431,6 @@ fun HomeScreenWithIntegratedTrip(
             isDrawerOpen = false
             showSocketDebug = true
         })
-    }
-
-    // Permission dialog for Android 14+
-    if (showFullScreenIntentDialog) {
-        AlertDialog(
-            onDismissRequest = { showFullScreenIntentDialog = false },
-            title = { Text("Enable Trip Alerts") },
-            text = {
-                Text(
-                    "To receive trip requests when your phone is locked or the app is in background, " + "please enable 'Display over other apps' permission.\n\n" + "This ensures you never miss a trip!"
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showFullScreenIntentDialog = false
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                            com.kabukabu.driver.core.utils.FullScreenIntentHelper.openFullScreenIntentSettings(
-                                context
-                            )
-                        }
-                    }) {
-                    Text("Enable")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showFullScreenIntentDialog = false }) {
-                    Text("Later")
-                }
-            })
     }
 
     // Trip Completion Bottom Sheet - Shown after trip ends
@@ -652,7 +658,9 @@ fun ActiveTripTopBar(
             modifier = Modifier
                 .size(44.dp)
                 .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(10.dp))
-                .clickable { onMenuClick() }, contentAlignment = Alignment.Center
+                .composableSafeClickable {
+                    onMenuClick()
+                }, contentAlignment = Alignment.Center
         ) {
             Image(
                 painter = painterResource(id = R.drawable.menu_right_square_alt),
@@ -692,7 +700,7 @@ fun ActiveTripTopBar(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AnchoredMapControlsIntegrated(
     showArrivedButton: Boolean = false,
@@ -743,7 +751,7 @@ fun AnchoredMapControlsIntegrated(
                     shape = RoundedCornerShape(50),
                     color = Color.White,
                     shadowElevation = 4.dp,
-                    onClick = onOpenGoogleMaps
+                    modifier = Modifier.composableSafeClickable(onClick = onOpenGoogleMaps)
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -763,8 +771,7 @@ fun AnchoredMapControlsIntegrated(
                     shape = CircleShape,
                     color = Color.White,
                     shadowElevation = 4.dp,
-                    modifier = Modifier.size(60.dp),
-                    onClick = onRecenterMap
+                    modifier = Modifier.size(60.dp).composableSafeClickable(onClick = onRecenterMap)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Image(
@@ -845,15 +852,15 @@ fun AnchoredMapControlsIntegrated(
 val ModalTextDark = Color(0xFF1A1A1A)
 val ModalTextGray = Color(0xFF9A9A9A)
 val ModalLightGrayBg = Color(0xF8F8F8)
-val PrimaryYellow = Color(0xFFFBC02D)
+val PrimaryYellow = KabuYellow
 val CancelRed = Color(0xFFEF2C5B)
 
 @Composable
 fun DriverTripModalContent(
     driverViewModel: DriverViewModel,
-    tripViewModel: com.kabukabu.driver.features.home.presentation.viewmodel.TripViewModel,
+    tripViewModel: TripViewModel,
     trip: ActiveTrip?,
-    pendingTripEvent: com.kabukabu.driver.core.data.socket.TripFoundEvent? = null,
+    pendingTripEvent: TripFoundEvent? = null,
     showArrivedButton: Boolean = false,
     isArrivedButtonLoading: Boolean = false,
     isStartTripLoading: Boolean = false,
@@ -863,22 +870,20 @@ fun DriverTripModalContent(
     routeState: RouteState? = null,
     isExpanded: Boolean = false,
     onNavigateToChat: (orderId: String, riderName: String, riderPhone: String?) -> Unit = { _, _, _ -> },
-    chatViewModel: com.kabukabu.driver.features.chat.presentation.viewmodel.ChatViewModel? = null
+    chatViewModel: ChatViewModel? = null
 ) {
     val context = LocalContext.current
     val isCanceling by tripViewModel.isDeclining.collectAsState()
 
     // Helper functions to get data from either source
     val getTripDuration = { trip?.durationInMinutes ?: pendingTripEvent?.duration }
-    val getPickupAddress =
-        { trip?.startAddress?.fullAddress ?: pendingTripEvent?.pickupLocation?.name }
+    val getPickupAddress = { trip?.startAddress?.fullAddress ?: pendingTripEvent?.pickupLocation?.name }
     val getRiderName = { trip?.user?.fullName ?: pendingTripEvent?.user?.fullname }
     val getRiderTrips = { trip?.user?.totalTrips ?: pendingTripEvent?.user?.totalTrips }
     val getRiderPhone = { trip?.user?.phoneNumber ?: pendingTripEvent?.user?.phoneNumber }
-    { trip?.distanceInKm ?: pendingTripEvent?.distance }
+    val getDistance = { trip?.distanceInKm ?: pendingTripEvent?.distance }
     val getPriceRange = { trip?.priceRange ?: pendingTripEvent?.priceRange }
-    { trip?.endAddress?.fullAddress ?: pendingTripEvent?.destinationLocation?.name }
-//    val getRiderRating = { trip?.user?.averageRating?.value ?: pendingTripEvent?.user?.rating?.value }
+    val getDropoffAddress = { trip?.endAddress?.fullAddress ?: pendingTripEvent?.destinationLocation?.name }
 
 
     Column(
@@ -900,12 +905,17 @@ fun DriverTripModalContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top
         ) {
-            Column {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 12.dp)
+            ) {
                 Text(
                     text = headerText,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.W700,
-                    color = ModalTextDark
+                    color = ModalTextDark,
+                    maxLines = 2
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -916,12 +926,12 @@ fun DriverTripModalContent(
                     fontWeight = FontWeight.W500)
             }
 
-            // Real-time "X Mins away" Badge
+            // Real-time "X Mins away" Badge - fixed width, won't be pushed
             Surface(
                 color = ModalLightGrayBg,
                 border = BorderStroke(1.dp, Color(0xFFF1F1F1)),
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.width(72.dp)
+                modifier = Modifier.widthIn(min = 72.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(vertical = 8.dp),
@@ -1006,7 +1016,7 @@ fun DriverTripModalContent(
                             badgeCount = unreadCount,
                             onClick = {
                                 // Navigate to chat screen with shared ViewModel
-                                val orderId = trip?.id ?: pendingTripEvent?.eventId ?: ""
+                                val orderId = trip?.order ?: ""
                                 val riderName = getRiderName() ?: "Rider"
                                 val riderPhone = getRiderPhone()
                                 if (orderId.isNotBlank()) {
@@ -1205,13 +1215,14 @@ fun DriverTripModalContent(
             Button(
                 onClick = {
                     // Get trip ID from either activeTrip or pendingTripEvent
-                    val orderId = trip?.id ?: pendingTripEvent?.eventId
+                    val orderId = trip?.order ?: pendingTripEvent?.eventId
                     if (!orderId.isNullOrBlank()) {
                         tripViewModel.cancelActiveTrip(
                             orderId = orderId,
                             reason = "Driver cancelled",
                             driverViewModel = driverViewModel
                         )
+                        chatViewModel?.clearChatData()
                     }
                 },
                 enabled = !isCanceling,
@@ -1264,8 +1275,7 @@ fun ProfileIconButton(id: Int, onClick: () -> Unit = {}) {
     Surface(
         color = Color(0xFFEBEBEB),
         shape = RoundedCornerShape(8.dp),
-        modifier = Modifier.size(42.dp),
-        onClick = onClick
+        modifier = Modifier.size(42.dp).composableSafeClickable(onClick = onClick)
     ) {
         Box(contentAlignment = Alignment.Center) {
             Image(
@@ -1282,8 +1292,7 @@ fun BadgedIconButton(id: Int, badgeCount: Int = 0, onClick: () -> Unit = {}) {
     Surface(
         color = Color(0xFFEBEBEB),
         shape = RoundedCornerShape(8.dp),
-        modifier = Modifier.size(42.dp),
-        onClick = onClick
+        modifier = Modifier.size(42.dp).composableSafeClickable(onClick = onClick)
     ) {
         Box(contentAlignment = Alignment.Center) {
             Image(
@@ -1373,6 +1382,29 @@ fun TripCompletionBottomSheet(
 
     // Selected feedback chips
     var selectedFeedback by remember { mutableStateOf<Set<String>>(emptySet()) }
+
+    // Define chip groups once so they can be referenced when rating changes
+    val negativeChips = listOf(
+        "Rude rider",
+        "Abusive rider",
+        "Long waiting time",
+        "Bad driving",
+        "Dirty rider",
+        "Bad communication"
+    )
+    val positiveChips = listOf(
+        "Smooth ride",
+        "Good rider",
+        "Easy Navigation",
+        "Excellent service",
+        "Good communication"
+    )
+
+    // Ensure selectedFeedback stays relevant when rating changes
+    LaunchedEffect(rating) {
+        val allowed = if ((rating ?: 0) <= 2) negativeChips else positiveChips
+        selectedFeedback = selectedFeedback.filter { it in allowed }.toSet()
+    }
 
     // Root container
     Box(
@@ -1560,22 +1592,15 @@ fun TripCompletionBottomSheet(
                             // Stars
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 repeat(5) { index ->
+                                    val interactionSource = remember { MutableInteractionSource() }
                                     Icon(
                                         imageVector = if (rating != null && index < rating!!) Icons.Filled.Star else Icons.Outlined.Star,
                                         contentDescription = "Star ${index + 1}",
                                         tint = if (rating != null && index < rating!!) Color(0xFF66BB6A) else Color.LightGray,
                                         modifier = Modifier
-                                            .size(32.dp)
-                                            .clickable {
-                                                val newRating = index + 1
-                                                rating = newRating
-                                                // Call rateRider API
-                                                driverViewModel.rateRider(
-                                                    orderId = orderId,
-                                                    rating = newRating.toDouble(),
-                                                    comment = null
-                                                )
-                                            }
+                                            .size(32.dp).composableSafeClickable(onClick = {val newRating = index + 1
+                                                rating = newRating})
+
                                     )
                                 }
                             }
@@ -1592,22 +1617,15 @@ fun TripCompletionBottomSheet(
 
                                 Spacer(modifier = Modifier.height(12.dp))
 
-                                // Chips
+                                // Chips (dynamic by rating)
                                 FlowRow(
                                     horizontalArrangement = Arrangement.Center,
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
                                     maxItemsInEachRow = 3
                                 ) {
-                                    val chips = listOf(
-                                        "Rude rider",
-                                        "Abusive rider",
-                                        "Long waiting time",
-                                        "Excellent service",
-                                        "Dirty rider",
-                                        "Bad communication"
-                                    )
+                                    val chipsToShow = if ((rating ?: 0) <= 2) negativeChips else positiveChips
 
-                                    chips.forEach { label ->
+                                    chipsToShow.forEach { label ->
                                         TripCompletionFeedbackChip(
                                             text = label,
                                             isSelected = selectedFeedback.contains(label),
@@ -1646,7 +1664,7 @@ fun TripCompletionBottomSheet(
                             .fillMaxWidth()
                             .height(54.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFF4C430)
+                            containerColor = KabukabuYellow
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -1691,7 +1709,7 @@ fun TripCompletionFeedbackChip(
     Surface(
         color = if (isSelected) Color(0xFFF4C430) else Color(0xFFF5F5F5),
         shape = RoundedCornerShape(8.dp),
-        modifier = Modifier.clickable { onClick() }
+        modifier = Modifier.composableSafeClickable(onClick = onClick)
     ) {
         Text(
             text = text,

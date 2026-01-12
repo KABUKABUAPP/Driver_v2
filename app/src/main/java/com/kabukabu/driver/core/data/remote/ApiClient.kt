@@ -1,9 +1,11 @@
 package com.kabukabu.driver.core.data.remote
 
+import android.util.Log
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -33,11 +35,28 @@ object ApiClient {
         chain.proceed(request)
     }
 
+    /**
+     * Interceptor that checks for 401 Unauthorized responses
+     * and triggers a global auth event to redirect to login
+     */
+    private val authInterceptor = Interceptor { chain ->
+        val request = chain.request()
+        val response: Response = chain.proceed(request)
+
+        if (response.code == 401) {
+            Log.w("ApiClient", "401 Unauthorized received - triggering logout")
+            AuthEventManager.onUnauthorized()
+        }
+
+        response
+    }
+
     private val httpClient = OkHttpClient.Builder()
         .connectTimeout(3600, TimeUnit.SECONDS)
         .readTimeout(3600, TimeUnit.SECONDS)
         .writeTimeout(3600, TimeUnit.SECONDS)
         .addInterceptor(headerInterceptor)
+        .addInterceptor(authInterceptor) // Add auth interceptor to catch 401s
         .addInterceptor(loggingInterceptor)
         .build()
 

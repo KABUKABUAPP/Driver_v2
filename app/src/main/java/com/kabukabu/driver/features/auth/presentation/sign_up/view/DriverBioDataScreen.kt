@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,6 +54,7 @@ import com.kabukabu.driver.components.ui.RowScopeFormTextfield
 import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
 import com.kabukabu.driver.core.data.local.LocalDataSource
+import com.kabukabu.driver.core.utils.composableSafeClickable
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
@@ -444,11 +446,10 @@ internal fun SelectStateSheet(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
-                                .clickable {
+                                .composableSafeClickable(onClick = {
                                     onSelectState(state)
                                     onDismiss()
-                                }
-//                                .background(color = Color(0x2DD3D3D3))
+                                })
                                 .padding(vertical = 12.dp, horizontal = 16.dp)
                         )
                     }
@@ -499,11 +500,10 @@ private fun SelectCarCategorySheet(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
-                                .clickable {
+                                .composableSafeClickable(onClick = {
                                     onSelectCategory(state)
                                     onDismiss()
-                                }
-//                                .background(color = Color(0x2DD3D3D3))
+                                })
                                 .padding(vertical = 12.dp, horizontal = 16.dp)
                         )
                     }

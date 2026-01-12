@@ -12,14 +12,14 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.core.theme.KabukabuDriverTheme
 import com.kabukabu.driver.core.utils.TripUiState
@@ -108,12 +108,11 @@ class TripRequestActivity : ComponentActivity() {
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.7f))
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        // Clicking outside closes the overlay
-                        finish()
+                    .pointerInput(Unit) {
+                        detectTapGestures {
+                            // Clicking outside closes the overlay
+                            finish()
+                        }
                     },
                 contentAlignment = Alignment.BottomCenter
             ) {

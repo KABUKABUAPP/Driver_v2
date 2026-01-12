@@ -2,7 +2,6 @@ package com.kabukabu.driver.features.auth.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -46,6 +45,7 @@ import com.kabukabu.driver.core.navigation.Navigator
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import org.koin.androidx.compose.koinViewModel
+import com.kabukabu.driver.core.utils.composableSafeClickable
 
 @Composable
 fun OtpVerificationScreen(
@@ -373,7 +373,7 @@ fun OtpVerificationScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(4.dp))
                         .background(if (isTimerRunning) lightGrayBg else amber)
-                        .clickable(enabled = !isTimerRunning) {
+                        .composableSafeClickable(enabled = !isTimerRunning) {
                             if (!isTimerRunning) {
                                 // Use login API to resend OTP
                                 resendOtp()

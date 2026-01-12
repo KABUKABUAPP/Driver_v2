@@ -3,6 +3,7 @@ package com.kabukabu.driver.components.ui
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.*
 import androidx.compose.material3.CircularProgressIndicator
@@ -15,6 +16,7 @@ import androidx.compose.ui.layout.*
 import androidx.compose.ui.res.*
 import androidx.compose.ui.unit.*
 import com.kabukabu.driver.core.theme.KabukabuYellow
+import com.kabukabu.driver.core.utils.noRippleClickable
 
 
 @Composable
@@ -81,7 +83,7 @@ fun LoadingOverlay() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .clickable(enabled = false) { }, // Prevent clicks
+            .noRippleClickable(enabled = false) { }, // Prevent clicks
         contentAlignment = Alignment.Center
     ) {
         Surface(

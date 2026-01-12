@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.kabukabu.driver.R
+import com.kabukabu.driver.core.data.socket.TripFoundEvent
 import com.kabukabu.driver.features.home.presentation.viewmodel.TripStatus
 import com.kabukabu.driver.features.profile.data.ActiveTrip
 import com.mapbox.api.directions.v5.DirectionsCriteria
@@ -69,7 +70,7 @@ data class RouteState(
  fun MapComponent(
     currentLocation: Location?,
     activeTrip: ActiveTrip? = null,
-    pendingTripEvent: com.kabukabu.driver.core.data.socket.TripFoundEvent? = null,
+    pendingTripEvent: TripFoundEvent? = null,
     tripStatus: TripStatus? = null,
     onRouteInfoUpdated: (RouteState) -> Unit = {},
     mapViewState: MutableState<MapView?>? = null,
@@ -99,7 +100,7 @@ data class RouteState(
     // Track individual annotation instances for smooth updates
     val driverAnnotationId = remember { mutableStateOf<String?>(null) }
     val riderAnnotationId = remember { mutableStateOf<String?>(null) }
-    val routeAnnotationId = remember { mutableStateOf<String?>(null) }
+    val routeAnnotationId = remember { mutableStateOf<String?>(null) } // track current visible route polyline annotation id
 
     // Track last route calculation position for distance-based updates
     val lastRouteCalcPosition = remember { mutableStateOf<Location?>(null) }
@@ -110,6 +111,12 @@ data class RouteState(
 
     // Minimum distance (in meters) before redrawing route to avoid flickering
     val minDistanceForRouteRedraw = 50f
+
+    // Simple integer version counter to ignore stale responses
+    val routeRequestVersion = remember { mutableStateOf(0) }
+
+    // Remember the currently in-flight directions client so we can cancel it when a new request starts
+    val routeCallState = remember { mutableStateOf<MapboxDirections?>(null) }
 
     AndroidView(
         factory = { mapView },
@@ -139,7 +146,7 @@ data class RouteState(
                     Log.d("MapComponent", "Periodic route update triggered")
 
                     // Determine route based on trip status
-                    val isTripStarted = tripStatus == com.kabukabu.driver.features.home.presentation.viewmodel.TripStatus.TRIP_STARTED
+                    val isTripStarted = tripStatus == TripStatus.TRIP_STARTED
                     val routeOrigin: Point
                     val routeDestination: Point
 
@@ -156,12 +163,16 @@ data class RouteState(
                     }
 
                     polylineAnnotationManager.value?.let { polyMgr ->
+                        // Use improved fetch that versions responses
                         fetchAndDrawRoute(
                             mapView,
                             routeOrigin,
                             routeDestination,
                             polyMgr,
-                            onRouteInfoUpdated
+                            onRouteInfoUpdated,
+                            routeRequestVersion,
+                            routeAnnotationId,
+                            routeCallState
                         )
                         lastRouteCalcPosition.value = currentLocation
                         lastRouteCalcTime.value = System.currentTimeMillis()
@@ -254,19 +265,19 @@ data class RouteState(
 
             val routeOrigin: Point
             val routeDestination: Point
-            val riderMarkerPoint: Point // Position for the rider/destination marker
+            val destinationMarkerPoint: Point // Position for the destination marker
 
             if (isTripStarted && endPoint != null && endPoint.size >= 2) {
-                // Trip has started: Show route from pickup (startPoint) to destination (endPoint)
-                routeOrigin = Point.fromLngLat(startPoint[0], startPoint[1])
+                // Trip has started: Show route from driver's current location to destination (endPoint)
+                routeOrigin = driverPoint
                 routeDestination = Point.fromLngLat(endPoint[0], endPoint[1])
-                riderMarkerPoint = routeDestination // Marker shows destination
-                Log.d("MapComponent", "Trip started - showing route from pickup to destination")
+                destinationMarkerPoint = routeDestination // Marker shows destination
+                Log.d("MapComponent", "Trip started - showing route from driver to destination")
             } else {
                 // Trip not started yet: Show route from driver to pickup (startPoint)
                 routeOrigin = driverPoint
                 routeDestination = Point.fromLngLat(startPoint[0], startPoint[1])
-                riderMarkerPoint = routeDestination // Marker shows pickup
+                destinationMarkerPoint = routeDestination // Marker shows pickup
                 Log.d("MapComponent", "Trip not started - showing route from driver to pickup (using ${if (activeTrip != null) "activeTrip" else "pendingTripEvent"})")
             }
 
@@ -275,14 +286,19 @@ data class RouteState(
             if (tripStatusChanged) {
                 Log.d("MapComponent", "Trip status changed from ${lastTripStatus.value} to $tripStatus - forcing route redraw")
                 lastTripStatus.value = tripStatus
+
+                // When trip status changes, clear ALL markers and recreate
+                // This ensures the rider marker is properly removed when trip starts
+                pointAnnotationManager.value?.deleteAll()
+                driverAnnotationId.value = null
+                riderAnnotationId.value = null
+                Log.d("MapComponent", "Cleared all markers due to trip status change")
             }
 
             // Check if marker icon type needs to change (pickup icon -> destination icon)
             val markerIconNeedsUpdate = lastMarkerWasDestination.value != isTripStarted
             if (markerIconNeedsUpdate) {
                 Log.d("MapComponent", "Marker icon type changed (was destination: ${lastMarkerWasDestination.value}, now: $isTripStarted) - forcing marker recreation")
-                // Clear rider marker ID to force recreation with new icon
-                riderAnnotationId.value = null
                 lastMarkerWasDestination.value = isTripStarted
             }
 
@@ -300,7 +316,7 @@ data class RouteState(
                 routeOrigin,
                 routeDestination,
                 driverPoint,
-                riderMarkerPoint,
+                destinationMarkerPoint,
                 context,
                 pointAnnotationManager,
                 polylineAnnotationManager,
@@ -308,7 +324,10 @@ data class RouteState(
                 riderAnnotationId,
                 shouldRedrawRoute,
                 onRouteInfoUpdated,
-                isTripStarted
+                isTripStarted,
+                routeRequestVersion,
+                routeAnnotationId,
+                routeCallState
             )
 
             // Track position for distance-based updates (only if we redrew the route)
@@ -410,15 +429,15 @@ private fun createDriverMarker(
  * @param routeOrigin The starting point for the route line
  * @param routeDestination The ending point for the route line
  * @param driverPoint The current driver location for the driver marker
- * @param riderPoint The destination marker position (pickup before trip starts, destination after)
- * @param isTripStarted Whether the trip has started (affects marker display)
+ * @param destinationPoint The destination marker position (pickup before trip starts, destination after)
+ * @param isTripStarted Whether the trip has started (affects marker display - no rider marker when started)
  */
 private fun updateRouteWithMarkers(
     mapView: MapView,
     routeOrigin: Point,
     routeDestination: Point,
     driverPoint: Point,
-    riderPoint: Point,
+    destinationPoint: Point,
     context: Context,
     pointManagerState: MutableState<com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager?>,
     polylineManagerState: MutableState<com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager?>,
@@ -426,7 +445,10 @@ private fun updateRouteWithMarkers(
     riderAnnotationIdState: MutableState<String?>,
     shouldRedrawRoute: Boolean,
     onRouteInfoUpdated: (RouteState) -> Unit = {},
-    isTripStarted: Boolean = false
+    isTripStarted: Boolean = false,
+    routeRequestVersion: MutableState<Int>,
+    routeAnnotationId: MutableState<String?>,
+    routeCallState: MutableState<com.mapbox.api.directions.v5.MapboxDirections?>
 ) {
     Log.d("MapComponent", "Updating route (redraw route: $shouldRedrawRoute, trip started: $isTripStarted)")
 
@@ -447,69 +469,172 @@ private fun updateRouteWithMarkers(
     // Draw route FIRST (if needed) so it appears under markers
     if (shouldRedrawRoute) {
         Log.d("MapComponent", "Redrawing route - clearing ${polylineManager.annotations.size} existing routes")
-        polylineManager.deleteAll()
+        // polylineManager.deleteAll() // Don't delete immediately, we'll manage this in fetchAndDrawRoute
+
+        // Increment version to ignore stale responses
+        routeRequestVersion.value++
+
         // Fetch and draw the new route (asynchronous operation)
-        fetchAndDrawRoute(mapView, routeOrigin, routeDestination, polylineManager, onRouteInfoUpdated)
+        fetchAndDrawRoute(mapView, routeOrigin, routeDestination, polylineManager, onRouteInfoUpdated, routeRequestVersion, routeAnnotationId, routeCallState)
     } else {
         Log.d("MapComponent", "Keeping existing route (${polylineManager.annotations.size} routes)")
+
+        // Continuous trimming: as the driver moves, drop already-traveled polyline segments
+        // Only attempt trimming if we have a known current route annotation id
+        val currentRouteId = routeAnnotationId.value
+        if (currentRouteId != null) {
+            polylineManager.annotations.find { it.id == currentRouteId }?.let { existingPolyline ->
+                try {
+                    val existingPoints = existingPolyline.points
+                    if (existingPoints != null && existingPoints.isNotEmpty()) {
+                        val trimmed = try {
+                            // Trim based on current driver location using nearest-segment projection
+                            // Use a larger tolerance here so we always align the visible polyline
+                            // to the driver's current location. 50m provides a reasonable balance
+                            // between aggressive trimming and noisy position jumps.
+                            trimRoutePointsForDriver(existingPoints, driverPoint, 50.0)
+                        } catch (e: Exception) {
+                            Log.w("DirectionsAPI", "Trimming existing polyline failed: ${e.message}")
+                            existingPoints
+                        }
+
+                        // If trimming reduced the number of points OR the first point changed, update the polyline in-place
+                        if (trimmed.size != existingPoints.size || (trimmed.isNotEmpty() && trimmed[0] != existingPoints[0])) {
+                            existingPolyline.points = trimmed
+                            try {
+                                polylineManager.update(existingPolyline)
+                                Log.d("DirectionsAPI", "Updated existing polyline in-place after trimming. New points: ${trimmed.size}")
+                            } catch (e: Exception) {
+                                Log.w("DirectionsAPI", "Failed to update existing polyline in-place: ${e.message}")
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.w("DirectionsAPI", "Error while trimming existing polyline: ${e.message}")
+                }
+            }
+        }
     }
 
     // Then update markers (they will appear on top of the route)
+    // Update or create driver marker
     val driverAnnotationId = driverAnnotationIdState.value
     if (driverAnnotationId != null) {
         pointManager.annotations.find { it.id == driverAnnotationId }?.let { annotation ->
             annotation.point = driverPoint
             pointManager.update(annotation)
             Log.d("MapComponent", "Driver marker smoothly updated")
-        } ?: createMarkers(pointManager, driverPoint, riderPoint, context, driverAnnotationIdState, riderAnnotationIdState, isTripStarted)
-    } else {
-        createMarkers(pointManager, driverPoint, riderPoint, context, driverAnnotationIdState, riderAnnotationIdState, isTripStarted)
-    }
-
-    // Smoothly update rider/pickup/destination marker
-    val riderAnnotationId = riderAnnotationIdState.value
-    if (riderAnnotationId != null) {
-        pointManager.annotations.find { it.id == riderAnnotationId }?.let { annotation ->
-            annotation.point = riderPoint
-            pointManager.update(annotation)
-            Log.d("MapComponent", "Rider/destination marker position smoothly updated")
         } ?: run {
-            // Marker was deleted or doesn't exist, recreate it with correct icon
-            Log.d("MapComponent", "Rider marker not found, recreating with correct icon")
-            val riderIconRes = if (isTripStarted) R.drawable.destination else R.drawable.ride
-            bitmapFromDrawable(context, riderIconRes)?.let { bitmap ->
-                val riderAnnotation = PointAnnotationOptions()
-                    .withPoint(riderPoint)
+            // Driver marker not found, create it
+            bitmapFromDrawable(context, R.drawable._d_cars)?.let { bitmap ->
+                val driverAnnotation = PointAnnotationOptions()
+                    .withPoint(driverPoint)
                     .withIconImage(bitmap)
-                val annotation = pointManager.create(riderAnnotation)
-                riderAnnotationIdState.value = annotation.id
-                Log.d("MapComponent", if (isTripStarted) "Destination marker recreated" else "Pickup (rider) marker recreated")
+                val annotation = pointManager.create(driverAnnotation)
+                driverAnnotationIdState.value = annotation.id
+                Log.d("MapComponent", "Driver marker recreated")
             }
         }
     } else {
-        // First time creating rider marker
-        val riderIconRes = if (isTripStarted) R.drawable.destination else R.drawable.ride
-        bitmapFromDrawable(context, riderIconRes)?.let { bitmap ->
-            val riderAnnotation = PointAnnotationOptions()
-                .withPoint(riderPoint)
+        // First time creating driver marker
+        bitmapFromDrawable(context, R.drawable._d_cars)?.let { bitmap ->
+            val driverAnnotation = PointAnnotationOptions()
+                .withPoint(driverPoint)
                 .withIconImage(bitmap)
-            val annotation = pointManager.create(riderAnnotation)
-            riderAnnotationIdState.value = annotation.id
-            Log.d("MapComponent", if (isTripStarted) "Destination marker created" else "Pickup (rider) marker created")
+            val annotation = pointManager.create(driverAnnotation)
+            driverAnnotationIdState.value = annotation.id
+            Log.d("MapComponent", "Driver marker created")
+        }
+    }
+
+    // Handle second marker based on trip status
+    // When trip has started: show ONLY destination marker (no rider/pickup marker)
+    // When trip NOT started: show rider/pickup marker
+    val secondMarkerAnnotationId = riderAnnotationIdState.value
+
+    if (isTripStarted) {
+        // TRIP STARTED: Only show destination marker
+        Log.d("MapComponent", "Trip started - managing destination marker only")
+
+        if (secondMarkerAnnotationId != null) {
+            // Check if existing marker exists and update it, or create new one
+            val existingAnnotation = pointManager.annotations.find { it.id == secondMarkerAnnotationId }
+            if (existingAnnotation != null) {
+                existingAnnotation.point = destinationPoint
+                pointManager.update(existingAnnotation)
+                Log.d("MapComponent", "Destination marker position updated")
+            } else {
+                // Create destination marker
+                bitmapFromDrawable(context, R.drawable.destination)?.let { bitmap ->
+                    val destinationAnnotation = PointAnnotationOptions()
+                        .withPoint(destinationPoint)
+                        .withIconImage(bitmap)
+                    val annotation = pointManager.create(destinationAnnotation)
+                    riderAnnotationIdState.value = annotation.id
+                    Log.d("MapComponent", "Destination marker created (trip started)")
+                }
+            }
+        } else {
+            // Create new destination marker
+            bitmapFromDrawable(context, R.drawable.destination)?.let { bitmap ->
+                val destinationAnnotation = PointAnnotationOptions()
+                    .withPoint(destinationPoint)
+                    .withIconImage(bitmap)
+                val annotation = pointManager.create(destinationAnnotation)
+                riderAnnotationIdState.value = annotation.id
+                Log.d("MapComponent", "Destination marker created (trip started, first time)")
+            }
+        }
+    } else {
+        // TRIP NOT STARTED: Show rider/pickup marker
+        Log.d("MapComponent", "Trip not started - managing rider/pickup marker")
+
+        if (secondMarkerAnnotationId != null) {
+            val existingAnnotation = pointManager.annotations.find { it.id == secondMarkerAnnotationId }
+            if (existingAnnotation != null) {
+                existingAnnotation.point = destinationPoint
+                pointManager.update(existingAnnotation)
+                Log.d("MapComponent", "Rider/pickup marker position updated")
+            } else {
+                // Create rider marker
+                bitmapFromDrawable(context, R.drawable.ride)?.let { bitmap ->
+                    val riderAnnotation = PointAnnotationOptions()
+                        .withPoint(destinationPoint)
+                        .withIconImage(bitmap)
+                    val annotation = pointManager.create(riderAnnotation)
+                    riderAnnotationIdState.value = annotation.id
+                    Log.d("MapComponent", "Rider/pickup marker recreated")
+                }
+            }
+        } else {
+            // Create new rider marker
+            bitmapFromDrawable(context, R.drawable.ride)?.let { bitmap ->
+                val riderAnnotation = PointAnnotationOptions()
+                    .withPoint(destinationPoint)
+                    .withIconImage(bitmap)
+                val annotation = pointManager.create(riderAnnotation)
+                riderAnnotationIdState.value = annotation.id
+                Log.d("MapComponent", "Rider/pickup marker created (first time)")
+            }
         }
     }
 }
 
+/**
+ * Creates markers for driver and destination/pickup
+ * @deprecated Use inline marker creation in updateRouteWithMarkers instead
+ */
+
 private fun createMarkers(
     manager: com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager,
     driverPoint: Point,
-    riderPoint: Point,
+    destinationPoint: Point,
     context: Context,
     driverAnnotationIdState: MutableState<String?>,
     riderAnnotationIdState: MutableState<String?>,
     isTripStarted: Boolean
 ) {
-    // Create driver marker (unchanged)
+    // Create driver marker (always shown)
     bitmapFromDrawable(context, R.drawable._d_cars)?.let { bitmap ->
         val driverAnnotation = PointAnnotationOptions()
             .withPoint(driverPoint)
@@ -519,21 +644,28 @@ private fun createMarkers(
         Log.d("MapComponent", "Driver marker created")
     }
 
-    // Choose icon based on trip phase:
-    // - Before trip starts: rider/pickup marker uses existing pickup icon (ride)
-    // - After trip starts: destination marker uses new destination.png
-    val riderIconRes = if (isTripStarted) R.drawable.destination else R.drawable.ride
-
-    bitmapFromDrawable(context, riderIconRes)?.let { bitmap ->
-        val riderAnnotation = PointAnnotationOptions()
-            .withPoint(riderPoint)
-            .withIconImage(bitmap)
-        val annotation = manager.create(riderAnnotation)
-        riderAnnotationIdState.value = annotation.id
-        Log.d(
-            "MapComponent",
-            if (isTripStarted) "Destination marker created" else "Pickup (rider) marker created"
-        )
+    // When trip has started: only show destination marker (no rider marker)
+    // When trip not started: show rider/pickup marker
+    if (isTripStarted) {
+        // Trip started - create destination marker only
+        bitmapFromDrawable(context, R.drawable.destination)?.let { bitmap ->
+            val destinationAnnotation = PointAnnotationOptions()
+                .withPoint(destinationPoint)
+                .withIconImage(bitmap)
+            val annotation = manager.create(destinationAnnotation)
+            riderAnnotationIdState.value = annotation.id
+            Log.d("MapComponent", "Destination marker created (trip started)")
+        }
+    } else {
+        // Trip not started - create rider/pickup marker
+        bitmapFromDrawable(context, R.drawable.ride)?.let { bitmap ->
+            val riderAnnotation = PointAnnotationOptions()
+                .withPoint(destinationPoint)
+                .withIconImage(bitmap)
+            val annotation = manager.create(riderAnnotation)
+            riderAnnotationIdState.value = annotation.id
+            Log.d("MapComponent", "Pickup (rider) marker created")
+        }
     }
 }
 
@@ -545,7 +677,10 @@ private fun fetchAndDrawRoute(
     origin: Point,
     destination: Point,
     polylineAnnotationManager: com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager,
-    onRouteInfoUpdated: (RouteState) -> Unit = {}
+    onRouteInfoUpdated: (RouteState) -> Unit = {},
+    routeRequestVersion: MutableState<Int>,
+    routeAnnotationId: MutableState<String?>,
+    routeCallState: MutableState<com.mapbox.api.directions.v5.MapboxDirections?>
 ) {
     Log.d("DirectionsAPI", "Fetching route from ${origin.longitude()},${origin.latitude()} to ${destination.longitude()},${destination.latitude()}")
 
@@ -559,6 +694,18 @@ private fun fetchAndDrawRoute(
     val accessToken = mapView.context.getString(R.string.mapbox_access_token)
     Log.d("DirectionsAPI", "Using token: ${accessToken.take(10)}...")
 
+    // Cancel any previous in-flight MapboxDirections request to avoid overlapping responses and wasted bandwidth
+    routeCallState.value?.let { previousClient ->
+        try {
+            // MapboxDirections exposes cancelCall() to cancel the underlying request
+            previousClient.cancelCall()
+            Log.d("DirectionsAPI", "Cancelled previous MapboxDirections request")
+        } catch (e: Exception) {
+            Log.w("DirectionsAPI", "Failed to cancel previous directions client: ${e.message}")
+        }
+    }
+
+    // Build a new MapboxDirections client (this client enqueues an internal retrofit call)
     val client = MapboxDirections.builder()
         .origin(origin)
         .destination(destination)
@@ -567,11 +714,27 @@ private fun fetchAndDrawRoute(
         .accessToken(accessToken)
         .build()
 
+    // Store the new MapboxDirections client so future requests can cancel it
+    routeCallState.value = client
+
+    // Capture the version for this request so we can ignore stale responses
+    val thisRequestVersion = routeRequestVersion.value
+
+    // Start the call and keep a reference so it can be cancelled by subsequent requests
     client.enqueueCall(object : Callback<DirectionsResponse> {
         override fun onResponse(call: Call<DirectionsResponse>, response: Response<DirectionsResponse>) {
+            // Ignore stale responses using the versioning mechanism
+            if (thisRequestVersion != routeRequestVersion.value) {
+                Log.d("DirectionsAPI", "Ignored stale response (version mismatch). thisRequest=$thisRequestVersion current=${routeRequestVersion.value}")
+                // Clear stored client reference only if it still points to this client
+                if (routeCallState.value === client) routeCallState.value = null
+                return
+            }
+
             if (!response.isSuccessful) {
                 Log.e("DirectionsAPI", "Request failed with code: ${response.code()}")
                 drawStraightLine(polylineAnnotationManager, origin, destination)
+                if (routeCallState.value === client) routeCallState.value = null
                 return
             }
 
@@ -579,6 +742,7 @@ private fun fetchAndDrawRoute(
             if (routes.isNullOrEmpty()) {
                 Log.e("DirectionsAPI", "No routes found in response")
                 drawStraightLine(polylineAnnotationManager, origin, destination)
+                if (routeCallState.value === client) routeCallState.value = null
                 return
             }
 
@@ -588,6 +752,7 @@ private fun fetchAndDrawRoute(
             if (routeGeometry == null) {
                 Log.e("DirectionsAPI", "Route geometry is null")
                 drawStraightLine(polylineAnnotationManager, origin, destination)
+                if (routeCallState.value === client) routeCallState.value = null
                 return
             }
 
@@ -597,17 +762,42 @@ private fun fetchAndDrawRoute(
                 if (points.isEmpty()) {
                     Log.e("DirectionsAPI", "Route points list is empty after parsing")
                     drawStraightLine(polylineAnnotationManager, origin, destination)
+                    if (routeCallState.value === client) routeCallState.value = null
                     return
                 }
 
                 Log.d("DirectionsAPI", "Creating polyline with ${points.size} points")
+
+                // Trim and adjust points so the visible polyline leads from the driver's current location.
+                val adjustedPoints = try {
+                    trimRoutePointsForDriver(points, origin, 50.0)
+                } catch (e: Exception) {
+                    Log.w("DirectionsAPI", "Failed to trim route points, falling back to full route: ${e.message}")
+                    points
+                }
+
                 val polylineOptions = PolylineAnnotationOptions()
-                    .withPoints(points)
+                    .withPoints(adjustedPoints)
                     .withLineColor("#000000") // Black color
                     .withLineWidth(5.0) // Increased width for visibility
 
+                // Create the new polyline first (so the old one stays visible until new is available)
                 val createdAnnotation = polylineAnnotationManager.create(polylineOptions)
                 Log.d("DirectionsAPI", "✅ Route drawn successfully - annotation ID: ${createdAnnotation.id}, total annotations: ${polylineAnnotationManager.annotations.size}")
+
+                // Delete previous polyline (if any) now that the new one exists
+                val previousId = routeAnnotationId.value
+                routeAnnotationId.value = createdAnnotation.id
+                if (previousId != null && previousId != createdAnnotation.id) {
+                    polylineAnnotationManager.annotations.find { it.id == previousId }?.let { oldAnno ->
+                        try {
+                            polylineAnnotationManager.delete(listOf(oldAnno))
+                            Log.d("DirectionsAPI", "Deleted previous route annotation: $previousId")
+                        } catch (e: Exception) {
+                            Log.w("DirectionsAPI", "Failed to delete previous route annotation: $previousId - ${e.message}")
+                        }
+                    }
+                }
 
                 // Extract distance and duration
                 val distance = currentRoute.distance()
@@ -623,15 +813,26 @@ private fun fetchAndDrawRoute(
                 onRouteInfoUpdated(routeState)
                 Log.d("DirectionsAPI", "Route info updated: ${routeState.formattedDistance}, ${routeState.formattedDuration}")
 
+                // Clear stored client reference only if it still points to this client
+                if (routeCallState.value === client) routeCallState.value = null
+
             } catch (e: Exception) {
                 Log.e("DirectionsAPI", "Error parsing route geometry: ${e.message}", e)
                 drawStraightLine(polylineAnnotationManager, origin, destination)
+                if (routeCallState.value === client) routeCallState.value = null
             }
         }
 
         override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
+            // Ignore failures from stale requests
+            if (thisRequestVersion != routeRequestVersion.value) {
+                Log.d("DirectionsAPI", "Ignored stale failure (version mismatch)")
+                if (routeCallState.value === client) routeCallState.value = null
+                return
+            }
             Log.e("DirectionsAPI", "API call failed", t)
             drawStraightLine(polylineAnnotationManager, origin, destination)
+            if (routeCallState.value === client) routeCallState.value = null
         }
     })
 }
@@ -716,16 +917,111 @@ private fun bitmapFromDrawable(context: Context, @DrawableRes resId: Int): Bitma
 }
 
 /**
- * Calculate distance between two Points in meters
+ * Trim route points so the visible polyline starts near the driver's current position.
+ * Uses nearest-segment projection for better accuracy. If the driver is already close to the
+ * first point, ensures the driver is included as the leading point. Otherwise, finds the
+ * nearest projection on the polyline segments, drops preceding points, and prepends the
+ * driver's position so the polyline visually starts at the driver.
  */
-private fun Point.distanceTo(other: Point): Double {
-    val results = FloatArray(1)
-    android.location.Location.distanceBetween(
-        this.latitude(),
-        this.longitude(),
-        other.latitude(),
-        other.longitude(),
-        results
-    )
-    return results[0].toDouble()
+private fun trimRoutePointsForDriver(points: List<Point>, driver: Point, maxDistanceToFirstPointMeters: Double = 50.0): List<Point> {
+    if (points.isEmpty()) return points
+
+    // If driver is already close to the first point, just ensure driver is included as leading point
+    val first = points[0]
+    val distToFirst = driver.distanceTo(first)
+    if (distToFirst <= maxDistanceToFirstPointMeters) {
+        return if (driver.distanceTo(first) > 1.0) {
+            listOf(driver) + points
+        } else {
+            points
+        }
+    }
+
+    // Find nearest projection on any segment
+    var bestIdx = 0
+    var bestT = 0.0
+    var bestDist = Double.MAX_VALUE
+
+    for (i in 0 until points.size - 1) {
+        val a = points[i]
+        val b = points[i + 1]
+        val (proj, t) = projectPointToSegment(driver, a, b)
+        val d = driver.distanceTo(proj)
+        if (d < bestDist) {
+            bestDist = d
+            bestIdx = i
+            bestT = t
+        }
+    }
+
+    // Compute trimmed list starting from the projection point
+    val trimmed = mutableListOf<Point>()
+
+    // Build projected starting point between points[bestIdx] and points[bestIdx+1]
+    val a = points[bestIdx]
+    val b = points.getOrNull(bestIdx + 1) ?: a
+    val (projPoint, _) = projectPointToSegment(driver, a, b)
+
+    // If projection is not essentially the same as the next vertex, add it
+    if (projPoint.distanceTo(points[bestIdx]) > 1.0) {
+        trimmed.add(projPoint)
+    }
+
+    // Add remaining points after the projection
+    for (j in bestIdx + 1 until points.size) {
+        trimmed.add(points[j])
+    }
+
+    // Ensure the driver's exact location is the leading coordinate for a smooth visual
+    if (trimmed.isEmpty()) {
+        return listOf(driver)
+    } else {
+        // Prepend driver if it's meaningfully different from the first trimmed point
+        val lead = trimmed[0]
+        if (driver.distanceTo(lead) > 1.0) {
+            return listOf(driver) + trimmed
+        }
+        return trimmed
+    }
+}
+
+/**
+ * Projects point p onto segment ab and returns the projected Point and the t parameter (0..1)
+ * using a simple equirectangular projection approximation (sufficient for short distances).
+ */
+private fun projectPointToSegment(p: Point, a: Point, b: Point): Pair<Point, Double> {
+    // Convert to simple Cartesian coordinates in degrees, but scale longitude by cos(meanLat)
+    val meanLat = Math.toRadians((a.latitude() + b.latitude()) / 2.0)
+    val scale = Math.cos(meanLat)
+
+    val ax = a.longitude() * scale
+    val ay = a.latitude()
+    val bx = b.longitude() * scale
+    val by = b.latitude()
+    val px = p.longitude() * scale
+    val py = p.latitude()
+
+    val abx = bx - ax
+    val aby = by - ay
+    val apx = px - ax
+    val apy = py - ay
+
+    val abLen2 = abx * abx + aby * aby
+    if (abLen2 == 0.0) {
+        return Pair(a, 0.0)
+    }
+
+    var t = (apx * abx + apy * aby) / abLen2
+    if (t < 0.0) t = 0.0
+    if (t > 1.0) t = 1.0
+
+    val projX = ax + t * abx
+    val projY = ay + t * aby
+
+    // Convert back to lon/lat degrees
+    val projLon = projX / scale
+    val projLat = projY
+
+    val projPoint = Point.fromLngLat(projLon, projLat)
+    return Pair(projPoint, t)
 }

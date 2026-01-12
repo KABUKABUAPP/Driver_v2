@@ -9,6 +9,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 
 class PromotionsViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(PromotionsUiState())
@@ -17,6 +21,12 @@ class PromotionsViewModel : ViewModel() {
     private var ongoingPage = 1
     private var completedPage = 1
     private val limit = 10
+
+    // Moshi instance and adapter for promotion DTO
+    private val moshi: Moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
+    private val promoAdapter = moshi.adapter(ApiPromotion::class.java)
 
     init {
         refresh()
@@ -80,16 +90,44 @@ class PromotionsViewModel : ViewModel() {
                     for (i in 0 until list.length()) {
                         val obj = list.optJSONObject(i)
                         if (obj != null) {
-                            // Resilient key mapping similar to Flutter
+                            // The API returns flat promotion objects (no nested promotion/coupon), parse directly
                             val statusStr = obj.optString("status")
-                            val promo = obj.optJSONObject("promotion")
-                            val coupon = obj.optJSONObject("coupon")
-                            val name = promo?.optString("name")
-                                ?: coupon?.optString("name")
-                                ?: obj.optString("name")
-                            val expiry = promo?.optString("expiryDate")
-                                ?: obj.optString("expiryDate")
-                            items.add(PromotionItem(name = name.ifBlank { "Promo" }, status = statusStr, expiryDate = expiry))
+
+                            val jsonToParse = obj.toString()
+
+                            val parsed: ApiPromotion? = try {
+                                promoAdapter.fromJson(jsonToParse)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                null
+                            }
+
+                            // Fallbacks for differing key names
+                            val name = parsed?.name ?: obj.optString("name")
+                            val expiry = parsed?.expiryDate ?: obj.optString("expiry_date") ?: obj.optString("expiryDate")
+
+                            items.add(
+                                PromotionItem(
+
+                                    id = parsed?.id ?: parsed?._id ?: obj.optString("id") ?: obj.optString("_id"),
+                                    name = name ?: "Promo",
+                                    description = parsed?.description ?: obj.optString("description"),
+                                    category = parsed?.category ?: obj.optString("category"),
+                                    amount = parsed?.amount ?: if (obj.has("amount")) obj.optInt("amount") else null,
+                                    rewardType = parsed?.rewardType ?: obj.optString("reward_type") ?: obj.optString("rewardType"),
+                                    activationDate = parsed?.activationDate ?: obj.optString("activation_date") ?: obj.optString("activationDate"),
+                                    expiryDate = expiry,
+                                    targetValue = parsed?.targetValue ?: if (obj.has("target_value")) obj.optInt("target_value") else null,
+                                    resetType = parsed?.resetType ?: obj.optString("reset_type"),
+                                    user = parsed?.user ?: obj.optString("user"),
+                                    v = parsed?.v ?: if (obj.has("__v")) obj.optInt("__v") else null,
+                                    createdAt = parsed?.createdAt ?: obj.optString("createdAt"),
+                                    updatedAt = parsed?.updatedAt ?: obj.optString("updatedAt"),
+                                    comment = parsed?.comment ?: obj.optString("comment"),
+                                    status = if (statusStr.isBlank()) null else statusStr,
+                                    count = parsed?.count ?: if (obj.has("count")) obj.optInt("count") else null
+                                )
+                            )
                         }
                     }
                 }
@@ -120,10 +158,47 @@ class PromotionsViewModel : ViewModel() {
     }
 }
 
+// DTO that mirrors the API promotion object. Use Moshi to parse snake_case keys into camelCase properties.
+@JsonClass(generateAdapter = true)
+data class ApiPromotion(
+    @Json(name = "_id") val _id: String? = null,
+    val id: String? = null,
+    val name: String? = null,
+    val description: String? = null,
+    val category: String? = null,
+    val amount: Int? = null,
+    @Json(name = "reward_type") val rewardType: String? = null,
+    @Json(name = "activation_date") val activationDate: String? = null,
+    @Json(name = "expiry_date") val expiryDate: String? = null,
+    @Json(name = "target_value") val targetValue: Int? = null,
+    @Json(name = "reset_type") val resetType: String? = null,
+    val user: String? = null,
+    @Json(name = "__v") val v: Int? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val comment: String? = null,
+    val count: Int? = null
+)
+
+// UI model used by the viewmodel and UI layer
 data class PromotionItem(
-    val name: String,
+    val id: String?,
+    val name: String?,
+    val description: String?,
+    val category: String?,
+    val amount: Int?,
+    val rewardType: String?,
+    val activationDate: String?,
+    val expiryDate: String?,
+    val targetValue: Int?,
+    val resetType: String?,
+    val user: String?,
+    val v: Int?,
+    val createdAt: String?,
+    val updatedAt: String?,
+    val comment: String?,
     val status: String?,
-    val expiryDate: String?
+    val count: Int? = 0
 )
 
 data class PromotionsUiState(

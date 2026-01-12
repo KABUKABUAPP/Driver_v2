@@ -68,7 +68,7 @@ data class GuarantorDetails(
 
 @JsonClass(generateAdapter = true)
 data class GuarantorResponseAverageRating(
-    @Json(name = "value") val value: Int,
+    @Json(name = "value") val value: Double,
     @Json(name = "count") val count: Int
 )
 

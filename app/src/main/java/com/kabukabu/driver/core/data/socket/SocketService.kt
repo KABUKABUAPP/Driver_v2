@@ -1,29 +1,42 @@
 package com.kabukabu.driver.core.data.socket
 
+import android.content.Intent
 import android.util.Log
 import com.kabukabu.driver.KabukabuDriverApp
+import com.kabukabu.driver.services.CustomFullScreenOverlayService
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import io.socket.client.IO
 import io.socket.client.Socket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 import java.net.URISyntaxException
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import kotlinx.coroutines.delay
+import java.util.concurrent.atomic.AtomicBoolean
+
 
 object SocketService {
     @Volatile
     private var mSocket: Socket? = null
     private const val RIDE_URL = "https://rideservice-dev.up.railway.app"
 
-    private val userPreferences = KabukabuDriverApp.getInstance().userPreferences
+    // Mutex for synchronizing connect()
+    private val connectionMutex = Mutex()
+
+    // Prevent overlapping connection attempts
+    private val isConnecting = AtomicBoolean(false)
+
+    // Avoid storing a static context reference; use a getter to fetch preferences when needed
+    private val userPreferences get() = KabukabuDriverApp.getInstance().userPreferences
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
     // Create a custom CoroutineScope
@@ -76,48 +89,137 @@ object SocketService {
 
     fun connect() {
         coroutineScope.launch(Dispatchers.IO) {
-            try {
-                if (mSocket != null && mSocket!!.connected()) {
-                    Log.d("SocketService", "Socket already connected")
-                    _connectionStatus.emit("Already connected")
-                    _socketEvents.emit("[${getCurrentTime()}] Attempted connection - already connected")
-                    return@launch
-                }
-
-                val userId = userPreferences.userId.first()
-                if (userId.isNullOrEmpty()) {
-                    Log.d("SocketService", "No user ID available, skipping socket connection")
-                    _connectionStatus.emit("No user ID - cannot connect")
-                    _socketErrors.emit("[${getCurrentTime()}] ERROR: No user ID available")
-                    return@launch
-                }
-
-                val options = IO.Options()
-                options.forceNew = true
-                val connectionUrl = "$RIDE_URL?authid=$userId"
-                Log.d("SocketService", "DEBUG: Connecting to URL: $connectionUrl")
-                _connectionStatus.emit("Connecting...")
-                _socketEvents.emit("[${getCurrentTime()}] Attempting connection to: $RIDE_URL")
-                _socketEvents.emit("[${getCurrentTime()}] User ID: $userId")
-
-                val socket = IO.socket(connectionUrl, options)
-                mSocket = socket
-
-                // Setup listeners before connecting
-                setupListeners(socket)
-
-                socket.connect()
-                Log.d("SocketService", "DEBUG: socket.connect() called.")
-
-            } catch (e: URISyntaxException) {
-                Log.e("SocketService", "DEBUG: URISyntaxException: ${e.message}")
-                _connectionStatus.emit("Connection failed: URI error")
-                _socketErrors.emit("[${getCurrentTime()}] ERROR: URI Syntax Error - ${e.message}")
-            } catch (e: Exception) {
-                Log.e("SocketService", "DEBUG: Exception in connect: ${e.message}")
-                _connectionStatus.emit("Connection failed: ${e.message}")
-                _socketErrors.emit("[${getCurrentTime()}] ERROR: ${e.message}")
+            // Avoid re-entrancy: if another connect is in progress, skip
+            if (isConnecting.get()) {
+                Log.d("SocketService", "connect() called but a connection attempt is already in progress")
+                _socketEvents.emit("[${getCurrentTime()}] Skipped connect - already connecting")
+                return@launch
             }
+
+            connectionMutex.withLock {
+                try {
+                    // If we already have a socket and it's connected, do nothing
+                    if (mSocket != null) {
+                        if (mSocket!!.connected()) {
+                            Log.d("SocketService", "Socket already connected")
+                            _connectionStatus.emit("Already connected")
+                            _socketEvents.emit("[${getCurrentTime()}] Attempted connection - already connected")
+                            return@withLock
+                        } else {
+                            // If socket exists but not connected, attempt to reuse it where possible
+                            if (isConnecting.get()) {
+                                Log.d("SocketService", "Socket exists and connection is in progress")
+                                _socketEvents.emit("[${getCurrentTime()}] Socket exists and connection is in progress - skipping")
+                                return@withLock
+                            }
+
+                            Log.d("SocketService", "Reusing existing socket instance to connect")
+                            _connectionStatus.emit("Connecting (reusing socket)")
+                            _socketEvents.emit("[${getCurrentTime()}] Reusing existing socket and calling connect()")
+                            try {
+                                isConnecting.set(true)
+                                mSocket!!.connect()
+                                Log.d("SocketService", "Called connect() on existing socket instance")
+                            } catch (e: Exception) {
+                                Log.e("SocketService", "Error calling connect on existing socket: ${e.message}", e)
+                                _socketErrors.emit("[${getCurrentTime()}] ERROR reconnecting existing socket: ${e.message}")
+                                isConnecting.set(false)
+                            }
+                            return@withLock
+                        }
+                    }
+
+                    val userId = userPreferences.userId.first()
+                    if (userId.isNullOrEmpty()) {
+                        Log.d("SocketService", "No user ID available, skipping socket connection")
+                        _connectionStatus.emit("No user ID - cannot connect")
+                        _socketErrors.emit("[${getCurrentTime()}] ERROR: No user ID available")
+                        return@withLock
+                    }
+
+                    // Prevent another concurrent connect attempt while we prepare/create the socket
+                    if (!isConnecting.compareAndSet(false, true)) {
+                        Log.d("SocketService", "Another connect started concurrently - skipping this attempt")
+                        _socketEvents.emit("[${getCurrentTime()}] Skipped concurrent connect attempt")
+                        return@withLock
+                    }
+
+                    val options = IO.Options().apply {
+                        // Avoid forceNew: reusing manager/socket keeps socket identity stable
+                        forceNew = false
+                        reconnection = true           // Enable auto-reconnection
+                        reconnectionAttempts = 10     // Try 10 times before giving up
+                        reconnectionDelay = 1000      // Wait 1 second before first retry
+                        reconnectionDelayMax = 5000   // Max 5 seconds between retries
+                        timeout = 20000               // Connection timeout 20 seconds
+                    }
+                    val connectionUrl = "$RIDE_URL?authid=$userId"
+                    Log.d("SocketService", "DEBUG: Connecting to URL: $connectionUrl")
+                    _connectionStatus.emit("Connecting...")
+                    _socketEvents.emit("[${getCurrentTime()}] Attempting connection to: $RIDE_URL")
+                    _socketEvents.emit("[${getCurrentTime()}] User ID: $userId")
+
+                    // Ensure any previous socket is cleaned up before creating new one
+                    if (mSocket != null) {
+                        Log.w("SocketService", "Unexpected existing socket instance found - cleaning up before creating new socket")
+                        _socketEvents.emit("[${getCurrentTime()}] Cleaning up unexpected existing socket instance before new socket creation")
+                        closeSocket()
+                    }
+
+                    // Create a new socket only when there is no existing instance
+                    val socket = IO.socket(connectionUrl, options)
+
+                    // Assign and set listeners
+                    mSocket = socket
+
+                    // Setup listeners before connecting
+                    setupListeners(socket)
+
+                    socket.connect()
+                    Log.d("SocketService", "DEBUG: socket.connect() called.")
+
+                } catch (e: URISyntaxException) {
+                    Log.e("SocketService", "DEBUG: URISyntaxException: ${e.message}")
+                    _connectionStatus.emit("Connection failed: URI error")
+                    _socketErrors.emit("[${getCurrentTime()}] ERROR: URI Syntax Error - ${e.message}")
+                    isConnecting.set(false)
+                } catch (e: Exception) {
+                    Log.e("SocketService", "DEBUG: Exception in connect: ${e.message}")
+                    _connectionStatus.emit("Connection failed: ${e.message}")
+                    _socketErrors.emit("[${getCurrentTime()}] ERROR: ${e.message}")
+                    isConnecting.set(false)
+                }
+            }
+        }
+    }
+
+    // Helper to safely cleanup and close existing socket instance
+    private fun closeSocket() {
+        try {
+            mSocket?.let { socket ->
+                try {
+                    // Remove all listeners attached to this socket
+                    socket.off()
+                } catch (e: Exception) {
+                    Log.w("SocketService", "Warning while removing listeners: ${e.message}")
+                }
+                try {
+                    if (socket.connected()) {
+                        socket.disconnect()
+                    }
+                } catch (e: Exception) {
+                    Log.w("SocketService", "Warning while disconnecting socket: ${e.message}")
+                }
+                try {
+                    // Close releases underlying resources
+                    socket.close()
+                } catch (e: Exception) {
+                    Log.w("SocketService", "Warning while closing socket: ${e.message}")
+                }
+            }
+        } finally {
+            mSocket = null
+            isConnecting.set(false)
         }
     }
 
@@ -126,10 +228,18 @@ object SocketService {
         return sdf.format(java.util.Date())
     }
 
+    private fun emitAcknowledge(eventId: String) {
+        val json = JSONObject().put("eventId", eventId)
+        mSocket?.emit("received", json)
+        Log.d("SocketService", "Emitting acknowledge for eventId: $eventId")
+    }
+
     private fun setupListeners(socket: Socket) {
         socket.on(Socket.EVENT_CONNECT) {
             Log.d("SocketService", "DEBUG: >>>>>>>>>> Socket.EVENT_CONNECT: Successfully connected! <<<<<<<<<<")
             coroutineScope.launch {
+                // Clear connecting flag when socket is connected
+                isConnecting.set(false)
                 _connectionStatus.emit("Connected")
                 _socketEvents.emit("[${getCurrentTime()}] ✅ CONNECTED - Socket ID: ${socket.id()}")
 
@@ -145,6 +255,7 @@ object SocketService {
         socket.on(Socket.EVENT_DISCONNECT) { args ->
             Log.e("SocketService", "DEBUG: >>>>>>>>>> Socket.EVENT_DISCONNECT: Disconnected! Reason: ${args.getOrNull(0)} <<<<<<<<<<")
             coroutineScope.launch {
+                isConnecting.set(false)
                 _connectionStatus.emit("Disconnected")
                 _socketEvents.emit("[${getCurrentTime()}] ❌ DISCONNECTED - Reason: ${args.getOrNull(0)}")
             }
@@ -153,8 +264,44 @@ object SocketService {
         socket.on(Socket.EVENT_CONNECT_ERROR) { args ->
             Log.e("SocketService", "DEBUG: >>>>>>>>>> Socket.EVENT_CONNECT_ERROR: Connection Error! Reason: ${args.getOrNull(0)} <<<<<<<<<<")
             coroutineScope.launch {
+                isConnecting.set(false)
                 _connectionStatus.emit("Connection error")
                 _socketErrors.emit("[${getCurrentTime()}] ❌ CONNECTION ERROR: ${args.getOrNull(0)}")
+            }
+        }
+
+        // Reconnection events
+        socket.on("reconnect") { args ->
+            Log.d("SocketService", "DEBUG: >>>>>>>>>> Socket reconnected after ${args.getOrNull(0)} attempts <<<<<<<<<<")
+            coroutineScope.launch {
+                isConnecting.set(false)
+                _connectionStatus.emit("Reconnected")
+                _socketEvents.emit("[${getCurrentTime()}] 🔄 RECONNECTED after ${args.getOrNull(0)} attempts")
+            }
+        }
+
+        socket.on("reconnect_attempt") { args ->
+            Log.d("SocketService", "DEBUG: >>>>>>>>>> Socket reconnection attempt ${args.getOrNull(0)} <<<<<<<<<<")
+            coroutineScope.launch {
+                _connectionStatus.emit("Reconnecting...")
+                _socketEvents.emit("[${getCurrentTime()}] 🔄 Reconnection attempt ${args.getOrNull(0)}")
+            }
+        }
+
+        socket.on("reconnect_error") { args ->
+            Log.e("SocketService", "DEBUG: >>>>>>>>>> Socket reconnection error: ${args.getOrNull(0)} <<<<<<<<<<")
+            coroutineScope.launch {
+                isConnecting.set(false)
+                _socketErrors.emit("[${getCurrentTime()}] ❌ RECONNECTION ERROR: ${args.getOrNull(0)}")
+            }
+        }
+
+        socket.on("reconnect_failed") {
+            Log.e("SocketService", "DEBUG: >>>>>>>>>> Socket reconnection failed after all attempts <<<<<<<<<<")
+            coroutineScope.launch {
+                isConnecting.set(false)
+                _connectionStatus.emit("Reconnection failed")
+                _socketErrors.emit("[${getCurrentTime()}] ❌ RECONNECTION FAILED - all attempts exhausted")
             }
         }
 
@@ -173,6 +320,36 @@ object SocketService {
                     coroutineScope.launch {
                         _socketEvents.emit("[${getCurrentTime()}] 🚗 TRIP REQUEST - Event ID: ${tripFoundData.eventId}, Status: ${tripFoundData.status}")
                         _tripFoundEvent.emit(tripFoundData)
+                        // If app is backgrounded, prefer the overlay-first flow: start CustomFullScreenOverlayService
+                        try {
+                            val app = KabukabuDriverApp.getInstance()
+                            if (!app.isInForeground) {
+                                val canOverlay = android.provider.Settings.canDrawOverlays(app.applicationContext)
+                                if (canOverlay) {
+                                    val overlayIntent = Intent(app.applicationContext, CustomFullScreenOverlayService::class.java).apply {
+                                        putExtra("trip_id", tripFoundData.eventId)
+                                        // Serialize tripFoundData to JSON to forward full details
+                                        try {
+                                            val tripJson = moshi.adapter(TripFoundEvent::class.java).toJson(tripFoundData)
+                                            putExtra("trip_details", tripJson)
+                                        } catch (_: Throwable) {}
+                                    }
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                        app.applicationContext.startForegroundService(overlayIntent)
+                                    } else {
+                                        app.applicationContext.startService(overlayIntent)
+                                    }
+                                    _socketEvents.emit("[${getCurrentTime()}] 🔔 Started CustomFullScreenOverlayService because app is backgrounded and overlay permission exists")
+                                } else {
+                                    com.kabukabu.driver.services.TripRequestService.startService(app.applicationContext)
+                                    _socketEvents.emit("[${getCurrentTime()}] 🔔 Started TripRequestService because overlay permission not available")
+                                }
+                            } else {
+                                _socketEvents.emit("[${getCurrentTime()}] ℹ️ App is foregrounded - UI will handle trip request presentation")
+                            }
+                        } catch (e: Exception) {
+                            _socketErrors.emit("[${getCurrentTime()}] ❌ ERROR starting overlay/trip service: ${e.message}")
+                        }
                     }
                     emitAcknowledge(tripFoundData.eventId)
                 }
@@ -184,31 +361,6 @@ object SocketService {
             }
         }
 
-        socket.on("trip-found") { args ->
-            Log.d("SocketService", "RAW_DATA: 'trip-found' Received: ${args.getOrNull(0)}")
-            coroutineScope.launch {
-                _socketEvents.emit("[${getCurrentTime()}] 📥 Received 'trip-found' event")
-            }
-            try {
-                val json = args.getOrNull(0)?.toString() ?: return@on
-                val adapter = moshi.adapter(TripFoundEvent::class.java)
-                val tripFoundData = adapter.fromJson(json)
-
-                if (tripFoundData != null && tripFoundData.status == "pending") {
-                    Log.d("SocketService", "Successfully parsed 'trip-found' event: ${tripFoundData.eventId}")
-                    coroutineScope.launch {
-                        _socketEvents.emit("[${getCurrentTime()}] 🚗 TRIP REQUEST - Event ID: ${tripFoundData.eventId}, Status: ${tripFoundData.status}")
-                        _tripFoundEvent.emit(tripFoundData)
-                    }
-                    emitAcknowledge(tripFoundData.eventId)
-                }
-            } catch (e: Exception) {
-                Log.e("SocketService", "Error parsing 'trip-found' event", e)
-                coroutineScope.launch {
-                    _socketErrors.emit("[${getCurrentTime()}] ❌ ERROR parsing 'trip-found': ${e.message}")
-                }
-            }
-        }
 
         socket.on("message") { args ->
             Log.d("SocketService", "RAW_DATA: 'onMessage' Received: ${args.getOrNull(0)}")
@@ -222,6 +374,7 @@ object SocketService {
                     coroutineScope.launch {
                         _chatMessageEvent.emit(data)
                     }
+
                 }
             } catch (e: Exception) {
                 Log.e("SocketService", "Error parsing 'onMessage' event", e)
@@ -242,10 +395,11 @@ object SocketService {
                 val tripCancelledData = adapter.fromJson(json)
 
                 if (tripCancelledData != null) {
-                    Log.d("SocketService", "Successfully parsed 'trip-cancelled' event: Trip ID: ${tripCancelledData.order.id}, Status: ${tripCancelledData.status}, EventId: ${tripCancelledData.eventId}")
+//                    Log.d("SocketService", "Successfully parsed 'trip-cancelled' event: Trip ID: ${tripCancelledData.order.id}, Status: ${tripCancelledData.status}, EventId: ${tripCancelledData.eventId}")
                     coroutineScope.launch {
                         _socketEvents.emit("[${getCurrentTime()}] ❌ TRIP CANCELLED - Trip ID: ${tripCancelledData.order.id}")
                         _tripCancelledEvent.emit(tripCancelledData)
+                        emitAcknowledge(tripCancelledData.eventId)
                     }
                 } else {
                     Log.w("SocketService", "Failed to parse trip-cancelled event - tripCancelledData is null")
@@ -324,14 +478,6 @@ object SocketService {
                     // Try both event names to ensure one works
                     mSocket?.emit("join-room", tripId)
                     Log.d("SocketService", "EMITTED join-room event for trip: $tripId")
-
-                    // Also try without the dash
-                    mSocket?.emit("join-room", tripId)
-                    Log.d("SocketService", "EMITTED joinRoom event (no dash) for trip: $tripId")
-
-                    // Force a direct message to verify socket is working
-                    mSocket?.emit("ping", "test")
-                    Log.d("SocketService", "EMITTED ping event as test")
                 } catch (e: Exception) {
                     Log.e("SocketService", "Error emitting join-room event: ${e.message}", e)
                 }
@@ -342,15 +488,11 @@ object SocketService {
     }
 
     fun disconnect() {
-        mSocket?.disconnect()
-        Log.d("SocketService", "Socket Disconnected!")
+        // Use safe cleanup helper to fully release socket resources
+        closeSocket()
+        Log.d("SocketService", "Socket Disconnected and cleaned up!")
     }
 
-    fun emitAcknowledge(eventId: String) {
-        val json = JSONObject().put("eventId", eventId)
-        mSocket?.emit("received", json)
-        Log.d("SocketService", "Emitting acknowledge for eventId: $eventId")
-    }
 
     /**
      * Emit a chat message to a specific room (order/trip)

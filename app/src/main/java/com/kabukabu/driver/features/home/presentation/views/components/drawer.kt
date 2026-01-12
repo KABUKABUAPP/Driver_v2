@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import com.kabukabu.driver.core.utils.safeClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
@@ -32,7 +33,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +49,7 @@ import com.kabukabu.driver.R
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
 import kotlinx.coroutines.flow.firstOrNull
+import com.kabukabu.driver.features.profile.data.ProfileData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,15 +77,17 @@ import kotlinx.coroutines.flow.firstOrNull
             try {
                 val userPreferences = UserPreferences.getInstance(context)
                 val token = userPreferences.authToken.firstOrNull()
+                val savedPreference = userPreferences.userDetails.firstOrNull()
                 Log.d("AuthToken", "FULL TOKEN: $token")
             } catch (e: Exception) {
                 Log.e("AuthToken", "Failed to read token: ${e.message}")
             }
         }
 
-        // Observe user profile for drawer header
-        val driverViewModel: DriverViewModel = viewModel()
-        val userProfile by driverViewModel.userProfile.collectAsState()
+        val userPreferences = UserPreferences.getInstance(context)
+        val user = userPreferences.userDetails.collectAsState(initial = null).value
+        val userProfile = user?.user
+
 
         Column(modifier = Modifier.fillMaxSize()) {
             CenterAlignedTopAppBar(
@@ -107,7 +110,7 @@ import kotlinx.coroutines.flow.firstOrNull
                                 color = Color(0xFFE1E1E1),
                                 shape = CircleShape
                             )
-                            .clickable { onClose() },
+                            .safeClickable { onClose() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -135,7 +138,9 @@ import kotlinx.coroutines.flow.firstOrNull
                         .height(80.dp)
                         .background(Color(0xFFF9F9F9), shape = RoundedCornerShape(12.dp))
                         .padding(horizontal = 12.dp)
-                        .clickable { onNavigateToProfile() },
+                        .safeClickable {
+                            onNavigateToProfile()
+                                   },
                     contentAlignment = Alignment.Center
                 ) {
                     Row(
@@ -145,18 +150,43 @@ import kotlinx.coroutines.flow.firstOrNull
                     ) {
                         // Left: Avatar + Name/Link
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            AsyncImage(
-                                model = userProfile?.profileImage,
-                                contentDescription = "Profile image",
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFFEFEFEF), shape = CircleShape)
-                            )
+                            // Compute display name with first letter capitalized
+                            val displayName = userProfile?.fullName?.trim()?.let { name ->
+                                if (name.isEmpty()) "" else name.replaceFirstChar { ch -> ch.uppercaseChar() }
+                            } ?: ""
+
+                            // Avatar: if profileImage is blank, show initial in circle; else show image
+                            if (userProfile?.profileImage.isNullOrBlank()) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF3D3D3D)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    val initial = displayName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+                                    Text(
+                                        text = initial,
+                                        color = Color.White,
+                                        fontWeight = FontWeight.W700,
+                                        fontSize = 20.sp
+                                    )
+                                }
+                            } else {
+                                AsyncImage(
+                                    model = userProfile.profileImage,
+                                    contentDescription = "Profile image",
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFEFEFEF), shape = CircleShape)
+                                )
+                            }
+
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(horizontalAlignment = Alignment.Start) {
                                 Text(
-                                    text = userProfile?.fullName ?: "",
+                                    text = displayName,
                                     color = Color(0xFF161616),
                                     fontWeight = FontWeight.W600,
                                     fontSize = 18.sp
@@ -180,7 +210,7 @@ import kotlinx.coroutines.flow.firstOrNull
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = (userProfile?.averageRating?.value ?: 0.0).let { String.format("%.1f", it) },
+                                text = (userProfile?.averageRating?.value ?: 0.0).let { java.util.Locale.getDefault().let { loc -> String.format(loc, "%.1f", it) } },
                                 color = Color(0xFF161616),
                                 fontWeight = FontWeight.W700,
                                 fontSize = 12.sp,
@@ -208,20 +238,20 @@ import kotlinx.coroutines.flow.firstOrNull
                     ) {
                         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
                             DrawerMenuItem(
-                                iconRes = R.drawable.wallet_drawer,
+                                iconRes = R.drawable.wallet,
                                 title = "Wallet",
                                 onClick = {
                                     onNavigateToWallet()
                                 }
                             )
                             DrawerMenuItem(
-                                iconRes = R.drawable.solar_stopwatch_linear,
+                                iconRes = R.drawable.chart_bar,
                                 title = "Analytics",
                                 onClick = { onNavigateToAnalytics() }
                             )
                             DrawerMenuItem(
-                                iconRes = R.drawable.taxi_drawer,
-                                title = "My Trip",
+                                iconRes = R.drawable.taxi_d,
+                                title = "Trip Activities",
                                 onClick = { onNavigateToMyTrips() }
                             )
                             DrawerMenuItem(
@@ -253,21 +283,21 @@ import kotlinx.coroutines.flow.firstOrNull
                                 title = "About",
                                 onClick = { onNavigateToAbout() }
                             )
+//                            DrawerMenuItem(
+//                                iconRes = R.drawable.mynaui_shield_solid,
+//                                title = "Repair Loan",
+//                                onClick = { onNavigateToRepairLoan() }
+//                            )
                             DrawerMenuItem(
-                                iconRes = R.drawable.mynaui_shield_solid,
-                                title = "Repair Loan",
-                                onClick = { onNavigateToRepairLoan() }
-                            )
-                            DrawerMenuItem(
-                                iconRes = R.drawable.message_text,
+                                iconRes = R.drawable.messages_text,
                                 title = "Support",
                                 onClick = { onNavigateToSupport() }
                             )
-                            DrawerMenuItem(
-                                iconRes = R.drawable.ic_launcher_foreground, // Using default icon
-                                title = "🔧 Socket Debug",
-                                onClick = { onNavigateToSocketDebug() }
-                            )
+//                            DrawerMenuItem(
+//                                iconRes = R.drawable.ic_launcher_foreground, // Using default icon
+//                                title = "🔧 Socket Debug",
+//                                onClick = { onNavigateToSocketDebug() }
+//                            )
                         }
                     }
 
@@ -304,7 +334,7 @@ private fun DrawerMenuItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .safeClickable { onClick() }
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

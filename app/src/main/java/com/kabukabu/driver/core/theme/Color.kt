@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 // Brand colors inferred from provided exports. Adjust if token JSON specifies different values.
 val KabukabuYellow = Color(0xFFFFBF00) // Primary accent
+val KabuGray = Color(0XFF9A9A9A)
 val KabukabuYellowLight = Color(0xFFFFF5D8) // Light yellow surface
 
 val TextPrimary = Color(0xFF161616)

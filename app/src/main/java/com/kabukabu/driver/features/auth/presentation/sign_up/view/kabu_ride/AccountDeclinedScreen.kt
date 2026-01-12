@@ -2,7 +2,7 @@ package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import com.kabukabu.driver.core.utils.composableSafeClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -153,7 +154,7 @@ fun KabuRideAccountDeclinedScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(color = Color(0xFFF8F8F8), RoundedCornerShape(12.dp))
+                    .background(color = Color.White, RoundedCornerShape(12.dp))
             ) {
                 DeclinedDocs(declinedDocuments, navigator)
             }
@@ -172,7 +173,8 @@ private fun DeclinedDocs(
     ) {
 
     LazyColumn(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         itemsIndexed(declinedTitles) { index, data ->
             ReasonForApprovalDeclineCard(
@@ -207,53 +209,48 @@ private fun ReasonForApprovalDeclineCard(
     document: Document,
     onClick: () -> Unit
 ) {
-
-    Column(
-        modifier = Modifier.padding(bottom = 12.dp) // Add spacing between cards
+    Row(
+        modifier = Modifier
+            .background(color = Color(0xFFF8F8F8), RoundedCornerShape(12.dp))
+            .fillMaxWidth()
+            .composableSafeClickable(onClick = onClick),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .background(color = Color(0xFFF8F8F8), RoundedCornerShape(12.dp))
-                .fillMaxWidth()
-                .clickable { onClick() },
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
 
-            Icon(
-                painter = painterResource(id = R.drawable.document),
-                contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier
-                    .padding(start = 16.dp)
-                    .size(30.dp)
+        Icon(
+            painter = painterResource(id = R.drawable.document),
+            contentDescription = null,
+            tint = Color.Gray,
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .size(30.dp)
+        )
+
+
+        Column(
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.padding(all = 16.dp)
+        ) {
+            TitleText(
+                text = formatDeclinedDocumentName(document.title ?: ""),
+                fontWeight = FontWeight.W500,
+                fontSize = 16, topPadding = 0,
+                bottomPadding = 0
             )
 
-
-            Column(
-                horizontalAlignment = Alignment.Start,
-                modifier = Modifier.padding(all = 16.dp)
-            ) {
-                TitleText(
-                    text = formatDeclinedDocumentName(document.title ?: ""),
-                    fontWeight = FontWeight.W500,
-                    fontSize = 16, topPadding = 0,
-                    bottomPadding = 0
-                )
-
-                TitleText(
-                    text = "Tap to re-upload",
-                    //                text = document.status ?: "",
-                    color = Color(0xFF686868),
-                    bottomPadding = 0,
-                    fontSize = 13
-                )
-            }
-
-            Box(modifier = Modifier.height(15.dp))
-
-
+            TitleText(
+                text = "Tap to re-upload",
+                //                text = document.status ?: "",
+                color = Color(0xFF686868),
+                bottomPadding = 0,
+                fontSize = 13
+            )
         }
+
+        Box(modifier = Modifier.height(15.dp))
+
+
     }
 
 }

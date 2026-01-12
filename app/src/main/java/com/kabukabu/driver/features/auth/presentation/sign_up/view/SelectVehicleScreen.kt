@@ -10,6 +10,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,6 +56,7 @@ import com.kabukabu.driver.components.ui.TitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.ui.getThirtyPercentOfScreenWidth
 import com.kabukabu.driver.core.data.local.DataPersistenceViewModel
+import com.kabukabu.driver.core.utils.composableSafeClickable
 import com.kabukabu.driver.features.auth.data.entity.req_body.DriverDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.OnboardDriverPersonalDetailsUiState
@@ -273,6 +275,7 @@ fun RowScope.VehicleTypeSelectionCard(
     val borderColor =
         if (isSelected) Color.Black else Color.Transparent
 
+    val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .weight(1f)
@@ -280,7 +283,7 @@ fun RowScope.VehicleTypeSelectionCard(
             .clip(RoundedCornerShape(32.dp))
             .background(backgroundColor, RoundedCornerShape(32.dp))
             .border(1.dp, borderColor, RoundedCornerShape(32.dp))
-            .clickable { onClick() },
+            .composableSafeClickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -356,6 +359,7 @@ fun RowScope.HasCarSelectionCard(
 
     val shape = RoundedCornerShape(32.dp)
 
+    val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .weight(1f)
@@ -363,7 +367,7 @@ fun RowScope.HasCarSelectionCard(
             .border(1.dp, borderColor, shape)
             .clip(shape)
             .background(backgroundColor)
-            .clickable { onClick() },
+            .composableSafeClickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -387,6 +391,8 @@ fun RowScope.HasCarSelectionCard(
         }
     }
 }
+
+
 
 
 

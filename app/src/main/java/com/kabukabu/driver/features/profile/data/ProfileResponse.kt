@@ -129,7 +129,7 @@ data class PreferredDestination(
 @JsonClass(generateAdapter = true)
 data class AverageRating(
     @Json(name = "value")
-    val value: Int?,
+    val value: Double?,
     @Json(name = "count")
     val count: Int?
 )

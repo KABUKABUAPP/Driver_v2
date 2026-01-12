@@ -15,6 +15,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -84,6 +85,7 @@ import com.kabukabu.driver.features.auth.presentation.sign_up.view.validateFullN
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.AuthViewModel
 import com.kabukabu.driver.features.auth.presentation.sign_up.viewmodel.UploadGuarantorDetailsUiState
 import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
+import com.kabukabu.driver.core.utils.composableSafeClickable
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -234,15 +236,16 @@ fun KabuRideGuarantorDetail(
             ) {
 
 
+                val titleInteractionSource = remember { MutableInteractionSource() }
+
                 ScreenTitleText(
                     title = "Guarantor Details",
                     titleFontSize = 25,
                     subtitleFontSize = 14,
                     subtitle = "Tell us about your guarantors",
                     bottomPadding = 16,
-                    modifier = Modifier.clickable {
-
-                    })
+                    modifier = Modifier.composableSafeClickable { }
+                )
 
                 GrayBackgroundContainer {
 
@@ -516,6 +519,7 @@ internal fun SelectGuarantorRelationshipModal(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 items(relationship) { state ->
+                    val itemInteractionSource = remember { MutableInteractionSource() }
                     AnimatedVisibility(
                         visible = true,
                         enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
@@ -526,11 +530,10 @@ internal fun SelectGuarantorRelationshipModal(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
-                                .clickable {
+                                .composableSafeClickable {
                                     onSelectRelationship(state)
                                     onDismiss()
                                 }
-//                                .background(color = Color(0x2DD3D3D3))
                                 .padding(vertical = 12.dp, horizontal = 16.dp))
                     }
                 }
@@ -547,6 +550,7 @@ fun ProfileCard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val profileInteractionSource = remember { MutableInteractionSource() }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -557,14 +561,10 @@ fun ProfileCard(
             .size(72.dp)
             .clip(CircleShape)
             .background(color = Color(0xFFF8C34A))
-            .clickable {
-//                if (showImageSelection) {
+            .composableSafeClickable {
                 photoPickerLauncher.launch(
                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                 )
-//                } else {
-//                context.displayToastMessage("Please complete required fields before uploading.")
-//                }
             }, contentAlignment = Alignment.Center
     ) {
         if (selectedImageUri == null || selectedImageUri == Uri.EMPTY) {

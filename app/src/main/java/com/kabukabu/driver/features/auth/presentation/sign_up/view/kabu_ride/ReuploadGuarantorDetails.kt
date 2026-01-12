@@ -2,6 +2,7 @@ package com.kabukabu.driver.features.auth.presentation.sign_up.view.kabu_ride
 
 import android.net.Uri
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,6 +35,7 @@ import com.kabukabu.driver.components.ui.ScreenTitleText
 import com.kabukabu.driver.components.ui.displayToastMessage
 import com.kabukabu.driver.components.utils_functions.convertUriToFile
 import com.kabukabu.driver.core.navigation.Navigator
+import com.kabukabu.driver.core.utils.composableSafeClickable
 import com.kabukabu.driver.features.auth.data.entity.req_body.ReUploadGuarantorDetailsReqBody
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.SelectStateSheet
 import com.kabukabu.driver.features.auth.presentation.sign_up.view.validateFullName
@@ -135,13 +137,12 @@ fun ReuploadGuarantorDetail(
                 modifier = Modifier.padding(bottom = 50.dp)
             )
 
+            val titleInteractionSource = remember { MutableInteractionSource() }
             ScreenTitleText(
                 title = "Guarantor Details",
                 subtitle = "Reupload your guarantors details",
                 bottomPadding = 16,
-                modifier = Modifier.clickable{
-
-                }
+                modifier = Modifier.composableSafeClickable { }
             )
 
             GrayBackgroundContainer {

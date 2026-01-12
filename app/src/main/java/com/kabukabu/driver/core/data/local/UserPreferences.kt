@@ -1,11 +1,11 @@
 package com.kabukabu.driver.core.data.local
 
-import android.R.attr.tag
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -29,6 +29,14 @@ class UserPreferences private constructor(private val context: Context) {
         private val ONBOARDING_STAGE = intPreferencesKey("onboarding_stage")
         private val USER_DETAILS = stringPreferencesKey("user_details")
         private val FULL_NAME = stringPreferencesKey("full_name")
+        // Chat head overlay toggle
+        private val CHAT_HEAD_ENABLED = booleanPreferencesKey("chat_head_enabled")
+        // Overlay permission requested flag (when we direct the user to settings)
+        private val OVERLAY_PERMISSION_REQUESTED = booleanPreferencesKey("overlay_permission_requested")
+        // Boot start opt-in
+        private val BOOT_START_ENABLED = booleanPreferencesKey("boot_start_enabled")
+        // OneSignal Player ID
+        private val ONESIGNAL_PLAYER_ID = stringPreferencesKey("onesignal_player_id")
 
         @SuppressLint("StaticFieldLeak")
         @Volatile
@@ -70,6 +78,26 @@ class UserPreferences private constructor(private val context: Context) {
         preferences[USER_DETAILS]?.let { json ->
             Gson().fromJson(json, ProfileData::class.java)
         }
+    }
+
+    // Flow for chat head overlay enabled flag
+    val chatHeadEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[CHAT_HEAD_ENABLED] ?: true
+    }
+
+    // New flow to track if we directed the user to overlay settings
+    val overlayPermissionRequested: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[OVERLAY_PERMISSION_REQUESTED] ?: false
+    }
+
+    // Boot-start opt-in flow
+    val bootStartEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[BOOT_START_ENABLED] ?: false
+    }
+
+    // OneSignal Player ID flow
+    val oneSignalPlayerId: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[ONESIGNAL_PLAYER_ID]
     }
 
 
@@ -120,6 +148,35 @@ class UserPreferences private constructor(private val context: Context) {
     suspend fun clearUserDetails() {
         context.dataStore.edit { preferences ->
             preferences.remove(USER_DETAILS)
+            preferences.remove(USER_ID_KEY)
+        }
+    }
+
+    // Save chat head enabled flag
+    suspend fun saveChatHeadEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[CHAT_HEAD_ENABLED] = enabled
+        }
+    }
+
+    // Save overlay permission requested flag
+    suspend fun saveOverlayPermissionRequested(requested: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[OVERLAY_PERMISSION_REQUESTED] = requested
+        }
+    }
+
+    // Save boot start enabled flag
+    suspend fun saveBootStartEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[BOOT_START_ENABLED] = enabled
+        }
+    }
+
+    // Save OneSignal Player ID
+    suspend fun saveOneSignalPlayerId(playerId: String) {
+        context.dataStore.edit { preferences ->
+            preferences[ONESIGNAL_PLAYER_ID] = playerId
         }
     }
 
