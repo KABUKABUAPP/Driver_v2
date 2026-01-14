@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose.compiler)
+    id("kotlin-parcelize")
     // Add the Google services Gradle plugin
     id("com.google.gms.google-services")
     // OneSignal Gradle Plugin

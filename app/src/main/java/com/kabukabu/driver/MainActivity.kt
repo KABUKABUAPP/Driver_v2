@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import android.util.Log
+import androidx.compose.foundation.layout.imePadding
 import com.kabukabu.driver.core.data.local.UserPreferences
 import com.kabukabu.driver.services.TripRequestService
 
@@ -48,7 +49,7 @@ class MainActivity : ComponentActivity() {
                     Surface(
                         modifier = Modifier
                             .fillMaxSize()
-                            .navigationBarsPadding(), // Respect bottom safe area only
+                            .navigationBarsPadding().imePadding(), // Respect bottom safe area only
                         color = MaterialTheme.colorScheme.background
                     ) {
                         AppNavigation()

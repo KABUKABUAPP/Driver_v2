@@ -2,7 +2,6 @@ package com.kabukabu.driver.core.navigation
 
 import ProfileScreen
 import SupportScreenNew
-import TicketListScreen
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -47,8 +46,10 @@ import com.kabukabu.driver.features.profile.data.ProfileData
 //import com.kabukabu.driver.features.profile.presentation.ProfileScreen
 import com.kabukabu.driver.features.promotions.presentation.PromotionsScreen
 import com.kabukabu.driver.features.repair_loan.presentation.RepairLoanScreen
+import com.kabukabu.driver.features.support.presentation.SelectSupportTripScreen
 import com.kabukabu.driver.features.support.presentation.SupportDetailScreen
 import com.kabukabu.driver.features.support.presentation.SupportNewTicketScreen
+import com.kabukabu.driver.features.support.presentation.TicketListScreen
 import com.kabukabu.driver.features.trips.presentation.TripDetailScreen
 import com.kabukabu.driver.features.trips.presentation.TripsScreen
 import com.kabukabu.driver.features.wallet.presentation.KabukabuWalletApp
@@ -498,7 +499,24 @@ fun AppNavigation() {
             )
         }
         composable(Screen.SupportTickets.route) {
-            TicketListScreen(onBack = { navController.popBackStack() },  )
+            val result = navController.currentBackStackEntry?.savedStateHandle?.get<com.kabukabu.driver.features.support.presentation.SupportTrip>("selected_trip")
+            TicketListScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToTripSupport = { navController.navigate(Screen.SelectSupportTripScreen.route) },
+                selectedTrip = result,
+                onTicketClick = { ticketId ->
+                    navController.navigate("${Screen.SupportDetail.route}/$ticketId")
+                }
+            )
+        }
+        composable(Screen.SelectSupportTripScreen.route) {
+            SelectSupportTripScreen(
+                onBack = { navController.popBackStack() },
+                onTripSelected = {
+                    navController.previousBackStackEntry?.savedStateHandle?.set("selected_trip", it)
+                    navController.popBackStack()
+                }
+            )
         }
         composable(
             route = "${Screen.SupportDetail.route}/{${NavArg.SupportId.key}}",
@@ -507,7 +525,8 @@ fun AppNavigation() {
             val sid = backStackEntry.arguments?.getString(NavArg.SupportId.key) ?: ""
             SupportDetailScreen(
                 supportId = sid,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onViewTrip = {}
             )
         }
         composable(Screen.SupportNew.route) {
@@ -811,7 +830,7 @@ private fun navigateBasedOnOnboardingStatus(
 //                        ApprovalStatus.declined.name -> {
 //                            navigator.navToKabuRideAccountDeclinedScreen()
 //                        }
-//                        ApprovalStatus.pending.name -> {
+//                        Approval.pending.name -> {
 //                            navigator.navToKabuRidePendingAccountApprovalScreen()
 //                        }
 //                        ApprovalStatus.approved.name -> {

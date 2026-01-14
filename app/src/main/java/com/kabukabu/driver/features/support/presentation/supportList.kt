@@ -1,4 +1,7 @@
+package com.kabukabu.driver.features.support.presentation
+
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -25,8 +28,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -40,6 +41,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,13 +50,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kabukabu.driver.R
 import com.kabukabu.driver.core.theme.KabuGray
 import com.kabukabu.driver.core.theme.KabukabuDriverTheme
 import com.kabukabu.driver.core.theme.KabukabuYellow
@@ -81,14 +84,24 @@ fun Modifier.previewSafeClickable(onClick: () -> Unit): Modifier = this.pointerI
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TicketListScreen(onBack: () -> Unit) {
-    var selectedTab by remember { mutableStateOf(TicketStatus.CLOSED) }
+fun TicketListScreen(
+    onBack: () -> Unit,
+    onNavigateToTripSupport: () -> Unit,
+    selectedTrip: SupportTrip?,
+    onTicketClick: (String) -> Unit
+) {
+    var selectedTab by remember { mutableStateOf(TicketStatus.OPEN) }
     var searchQuery by remember { mutableStateOf("") }
     var showSupportTypeModal by remember { mutableStateOf(false) }
     var showSubjectEntryModal by remember { mutableStateOf(false) }
     var showSelectSubjectModal by remember { mutableStateOf(false) }
     var subjectText by remember { mutableStateOf("") }
 
+    LaunchedEffect(selectedTrip) {
+        if (selectedTrip != null) {
+            showSelectSubjectModal = true
+        }
+    }
 
     // Dummy Data
     val tickets = remember {
@@ -195,9 +208,7 @@ fun TicketListScreen(onBack: () -> Unit) {
             Spacer(modifier = Modifier.height(24.dp))
             LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 items(filteredTickets) { ticket ->
-                    TicketCard(
-                        ticket
-                    )
+                    TicketCard(ticket, onTicketClick)
                 }
             }
         }
@@ -206,7 +217,7 @@ fun TicketListScreen(onBack: () -> Unit) {
     if (showSupportTypeModal) {
         SupportTypeModal(onDismiss = { showSupportTypeModal = false }, onTripSupportSelect = {
             showSupportTypeModal = false
-            showSelectSubjectModal = true
+            onNavigateToTripSupport()
         }, onGeneralSupportSelect = {
             showSupportTypeModal = false
             showSubjectEntryModal = true
@@ -264,9 +275,11 @@ fun CustomSegmentedControl(selectedTab: TicketStatus, onTabSelected: (TicketStat
 }
 
 @Composable
-fun TicketCard(ticket: Ticket) {
+fun TicketCard(ticket: Ticket, onTicketClick: (String) -> Unit) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .previewSafeClickable { onTicketClick(ticket.id) },
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, Color(0xFFE6E6E6)),
         color = Color.White
@@ -288,12 +301,7 @@ fun TicketCard(ticket: Ticket) {
                                 .background(ticket.indicatorColor)
                         )
                     } else {
-                        Icon(
-                            Icons.Default.Search,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = Color.Gray
-                        )
+                        Icon(painter = painterResource(id = R.drawable.chats_dots), contentDescription = "chat icon", tint = Color.Unspecified)
                     }
                 }
 
@@ -350,14 +358,14 @@ fun SupportTypeModal(
             Spacer(modifier = Modifier.height(24.dp))
 
             ModalOptionItem(
-                Icons.Default.Star,
+                R.drawable.route_1,
                 "Trip support",
                 "Get help about a trip (e.g report stolen property, etc.)",
                 onTripSupportSelect
             )
             Spacer(modifier = Modifier.height(12.dp))
             ModalOptionItem(
-                Icons.Default.ShoppingCart,
+                R.drawable.star_magic,
                 "General support",
                 "Get help about a wallet, account, etc",
                 onGeneralSupportSelect
@@ -557,7 +565,7 @@ fun ModalHeader(title: String, subtitle: String, onClose: () -> Unit) {
 }
 
 @Composable
-fun ModalOptionItem(icon: ImageVector, title: String, desc: String, onClick: () -> Unit) {
+fun ModalOptionItem(iconRes: Int, title: String, desc: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -566,7 +574,12 @@ fun ModalOptionItem(icon: ImageVector, title: String, desc: String, onClick: () 
             .previewSafeClickable { onClick() }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, modifier = Modifier.size(24.dp))
+        Image(
+            painter = painterResource(id = iconRes),
+            contentDescription = title,
+            modifier = Modifier
+                .size(24.dp)
+        )
         Spacer(modifier = Modifier.width(16.dp))
         Column {
             Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -608,6 +621,6 @@ fun SubjectEntryModalPreview() {
 @Composable
 fun TicketListPreview() {
     KabukabuDriverTheme {
-        TicketListScreen(onBack = {})
+        TicketListScreen(onBack = {}, onNavigateToTripSupport = {}, selectedTrip = null, onTicketClick = {})
     }
 }
