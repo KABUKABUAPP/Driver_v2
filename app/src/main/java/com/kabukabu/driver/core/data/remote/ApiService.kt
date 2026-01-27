@@ -311,19 +311,19 @@ interface ApiService {
         @Query("limit") limit: Int
     ): Response<ResponseBody>
 
-    @GET("support/view")
+    @GET("support/view/{support_id}")
     suspend fun viewSupportTicket(
         @Header("Authorization") bearerToken: String,
         @Header("authid") userId: String,
-        @Query("support_id") supportId: String
+        @Path("support_id") supportId: String
     ): Response<ResponseBody>
 
     @FormUrlEncoded
-    @POST("support/send_reply")
+    @POST("support/send_reply/{support_id}")
     suspend fun replySupportTicket(
         @Header("Authorization") bearerToken: String,
         @Header("authid") userId: String,
-        @Field("support_id") supportId: String,
+        @Path("support_id") supportId: String,
         @Field("message") message: String
     ): Response<ResponseBody>
 
@@ -332,17 +332,17 @@ interface ApiService {
     suspend fun openNewSupportTicket(
         @Header("Authorization") bearerToken: String,
         @Header("authid") userId: String,
-        @Field("subject") subject: String,
+        @Field("title") subject: String,
         @Field("message") message: String
     ): Response<ResponseBody>
 
     @FormUrlEncoded
-    @POST("support/open_ticket_by_trip")
+    @POST("support/open_ticket_by_trip/{tripId}")
     suspend fun openSupportTicketByTrip(
         @Header("Authorization") bearerToken: String,
         @Header("authid") userId: String,
-        @Field("trip_id") tripId: String,
-        @Field("subject") subject: String,
+        @Path ("tripId")tripId: String,
+        @Field("title") subject: String,
         @Field("message") message: String
     ): Response<ResponseBody>
 
@@ -363,6 +363,16 @@ interface ApiService {
         @Header("authid") userId: String,
         @Field("pin") subject: String,
 
+    ): Response<ResponseBody>
+
+    @Multipart
+    @POST("support/send_reply/{support_id}")
+    suspend fun sendSupportMessageWithAttachment(
+        @Header("Authorization") bearerToken: String,
+        @Header("authid") userId: String,
+        @Path("support_id") supportId: String,
+        @Part("message") message: RequestBody,
+        @Part attachments: MultipartBody.Part
     ): Response<ResponseBody>
 
 

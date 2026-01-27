@@ -49,7 +49,8 @@ class MainActivity : ComponentActivity() {
                     Surface(
                         modifier = Modifier
                             .fillMaxSize()
-                            .navigationBarsPadding().imePadding(), // Respect bottom safe area only
+                            .imePadding()
+                            .navigationBarsPadding(), // Respect bottom safe area only
                         color = MaterialTheme.colorScheme.background
                     ) {
                         AppNavigation()

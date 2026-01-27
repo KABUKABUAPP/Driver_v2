@@ -711,17 +711,13 @@ fun TripDetailScreen(trip: TripItem?, onBack: () -> Unit = {}) {
                         border = BorderStroke(1.dp, Color(0xFFE6E6E6)),
                     ) {
                         Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
-//                            Spacer(modifier = Modifier.height(8.dp))
-
-                            // Pickup / Dropoff block
                             Column(modifier = Modifier.padding(bottom = 16.dp)) {
                                 val circleSize = 10.dp
                                 val half = circleSize / 2
                                 val gap = 70.dp
-                                // connector should span from just below pickup center to just above dropoff center
+
                                 val connectorHeight = gap + half
 
-                                // Pickup marker with connector
                                 TripLocationItem(text = pickup, isPickup = true, connectorHeight = connectorHeight, topOffset = 0.dp)
 
                                 TripLocationItem(text = dropoff, isPickup = false, connectorHeight = 0.dp, topOffset = 0.dp)

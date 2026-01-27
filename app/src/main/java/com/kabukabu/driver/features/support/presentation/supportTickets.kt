@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,11 +42,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -61,21 +63,32 @@ import com.kabukabu.driver.R
 import com.kabukabu.driver.core.theme.KabuGray
 import com.kabukabu.driver.core.theme.KabukabuDriverTheme
 import com.kabukabu.driver.core.theme.KabukabuYellow
+import com.kabukabu.driver.features.support.viewmodel.SupportSharedViewModel
+import com.kabukabu.driver.features.support.viewmodel.SupportTicketItem
+import com.kabukabu.driver.features.support.viewmodel.SupportViewModel
+import com.kabukabu.driver.features.trips.data.TripItem
 import com.kabukabu.driver.features.wallet.presentation.KabuRed
 import com.kabukabu.driver.features.wallet.presentation.PinModalConfig
 import com.kabukabu.driver.features.wallet.presentation.StackedBottomSheet
+import java.text.SimpleDateFormat
+import java.util.Locale
 
-// --- Data Models ---
+// Ticket status constants
 enum class TicketStatus { OPEN, CLOSED }
 
-data class Ticket(
-    val id: String,
-    val category: String,
-    val date: String,
-    val closedDate: String? = null,
-    val status: TicketStatus,
-    val indicatorColor: Color = KabukabuYellow // Default Yellow
-)
+// Format date to "Jan 1, 2023 at 3:40pm"
+fun formatTicketDate(isoDate: String?): String {
+    if (isoDate.isNullOrBlank()) return ""
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+        val outputFormat = SimpleDateFormat("MMM d, yyyy 'at' h:mma", Locale.US)
+        val date = inputFormat.parse(isoDate)
+        date?.let { outputFormat.format(it).lowercase(Locale.US) } ?: ""
+    } catch (e: Exception) {
+        ""
+    }
+}
+
 
 // Helper: use pointerInput tap gestures for preview-safe clickable behaviour
 fun Modifier.previewSafeClickable(onClick: () -> Unit): Modifier = this.pointerInput(Unit) {
@@ -87,9 +100,12 @@ fun Modifier.previewSafeClickable(onClick: () -> Unit): Modifier = this.pointerI
 fun TicketListScreen(
     onBack: () -> Unit,
     onNavigateToTripSupport: () -> Unit,
-    selectedTrip: SupportTrip?,
-    onTicketClick: (String) -> Unit
+    selectedTrip: TripItem?,
+    onTicketClick: (String) -> Unit,
+    vm: SupportViewModel = viewModel(),
+    supportSharedViewModel: SupportSharedViewModel = viewModel()
 ) {
+    val ui by vm.uiState.collectAsState()
     var selectedTab by remember { mutableStateOf(TicketStatus.OPEN) }
     var searchQuery by remember { mutableStateOf("") }
     var showSupportTypeModal by remember { mutableStateOf(false) }
@@ -103,33 +119,20 @@ fun TicketListScreen(
         }
     }
 
-    // Dummy Data
-    val tickets = remember {
-        listOf(
-            Ticket(
-                "#Case-764322",
-                "Stolen Property",
-                "Jan 1, 2023 at 3:40pm",
-                status = TicketStatus.OPEN
-            ),
-            Ticket(
-                "#Case-764322",
-                "Stolen Property",
-                "Jan 1, 2023 at 3:40pm",
-                status = TicketStatus.OPEN,
-                indicatorColor = Color(0xFF4CAF50)
-            ),
-            Ticket(
-                "#Case-764322",
-                "Stolen Property",
-                "Jan 1, 2023 at 3:40pm",
-                "Jan 1, 2023 at 3:40pm",
-                TicketStatus.CLOSED
-            ),
-        )
-    }
+    // Get filtered tickets from ViewModel
+    val tickets = if (selectedTab == TicketStatus.OPEN) ui.open else ui.closed
+    val isLoading = if (selectedTab == TicketStatus.OPEN) ui.isLoadingOpen else ui.isLoadingClosed
+    val error = if (selectedTab == TicketStatus.OPEN) ui.errorOpen else ui.errorClosed
+    val isLoadingMore = if (selectedTab == TicketStatus.OPEN) ui.isLoadingMoreOpen else ui.isLoadingMoreClosed
+    val noMore = if (selectedTab == TicketStatus.OPEN) ui.noMoreOpen else ui.noMoreClosed
 
-    val filteredTickets = tickets.filter { it.status == selectedTab }
+    // Filter by search query
+    val filteredTickets = tickets.filter {
+        searchQuery.isBlank() ||
+        it.title.contains(searchQuery, ignoreCase = true) ||
+        it.ticketId?.contains(searchQuery, ignoreCase = true) == true ||
+        it.id?.contains(searchQuery, ignoreCase = true) == true
+    }
 
     Scaffold(
         topBar = {
@@ -206,9 +209,115 @@ fun TicketListScreen(
 
             // --- Tickets List ---
             Spacer(modifier = Modifier.height(24.dp))
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                items(filteredTickets) { ticket ->
-                    TicketCard(ticket, onTicketClick)
+
+            when {
+                isLoading && tickets.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        androidx.compose.material3.CircularProgressIndicator(color = KabukabuYellow)
+                    }
+                }
+                error != null && tickets.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = error,
+                                color = KabuRed,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = { vm.refresh() },
+                                colors = ButtonDefaults.buttonColors(containerColor = KabukabuYellow)
+                            ) {
+                                Text("Retry", color = Color.Black)
+                            }
+                        }
+                    }
+                }
+                filteredTickets.isEmpty() -> {
+                    // Empty state
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.chats_dots),
+                                contentDescription = "No tickets",
+                                modifier = Modifier.size(80.dp),
+                                tint = Color(0xFFD8D8D8)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = if (searchQuery.isNotBlank()) {
+                                    "No tickets found"
+                                } else {
+                                    "No ${selectedTab.name.lowercase()} tickets"
+                                },
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.W600,
+                                color = Color.Black
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = if (searchQuery.isNotBlank()) {
+                                    "Try adjusting your search"
+                                } else {
+                                    "You don't have any ${selectedTab.name.lowercase()} support tickets yet"
+                                },
+                                fontSize = 14.sp,
+                                color = Color(0xFF9A9A9A),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 32.dp)
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        itemsIndexed(filteredTickets) { index, ticket ->
+                            TicketCard(
+                                ticket = ticket,
+                                onTicketClick = { ticketId ->
+                                    supportSharedViewModel.selectTicket(ticket)
+                                    onTicketClick(ticketId)
+                                }
+                            )
+
+                            // Load more when reaching the last item
+                            if (index == filteredTickets.lastIndex && !noMore && !isLoadingMore) {
+                                LaunchedEffect(Unit) {
+                                    vm.loadMore(if (selectedTab == TicketStatus.OPEN) "open" else "closed")
+                                }
+                            }
+                        }
+
+                        // Show loading more indicator
+                        if (isLoadingMore) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    androidx.compose.material3.CircularProgressIndicator(
+                                        color = KabukabuYellow,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -224,12 +333,12 @@ fun TicketListScreen(
         })
     }
 
-    if (showSelectSubjectModal) {
-        SelectSubjectModal(onDismiss = { showSelectSubjectModal = false }, onSubmit = {
-            showSelectSubjectModal = false
-            // Handle submission
-        })
-    }
+//    if (showSelectSubjectModal) {
+//        SelectSubjectModal(onDismiss = { showSelectSubjectModal = false }, onSubmit = {
+//            showSelectSubjectModal = false
+//            // Handle submission
+//        })
+//    }
 
     if (showSubjectEntryModal) {
         SubjectEntryModal(
@@ -275,11 +384,16 @@ fun CustomSegmentedControl(selectedTab: TicketStatus, onTabSelected: (TicketStat
 }
 
 @Composable
-fun TicketCard(ticket: Ticket, onTicketClick: (String) -> Unit) {
+fun TicketCard(ticket: SupportTicketItem, onTicketClick: (String) -> Unit) {
+    val status = if (ticket.status?.lowercase() == "open") TicketStatus.OPEN else TicketStatus.CLOSED
+    val hasAnswer = ticket.isAnswered
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .previewSafeClickable { onTicketClick(ticket.id) },
+            .previewSafeClickable {
+                ticket.id?.let { onTicketClick(it) }
+            },
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, Color(0xFFE6E6E6)),
         color = Color.White
@@ -291,54 +405,67 @@ fun TicketCard(ticket: Ticket, onTicketClick: (String) -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(ticket.id, fontWeight = FontWeight.W500, fontSize = 18.sp)
+                    Text(
+                        "#${ticket.ticketId}",
+                        fontWeight = FontWeight.W500,
+                        fontSize = 18.sp
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
-                    if (ticket.status == TicketStatus.OPEN) {
+                    if (status == TicketStatus.OPEN) {
                         Box(
                             modifier = Modifier
                                 .size(10.dp)
                                 .clip(CircleShape)
-                                .background(ticket.indicatorColor)
+                                .background(if (hasAnswer) Color(0xFF4CAF50) else KabukabuYellow)
                         )
                     } else {
-                        Icon(painter = painterResource(id = R.drawable.chats_dots), contentDescription = "chat icon", tint = Color.Unspecified)
+                        Icon(
+                            painter = painterResource(id = R.drawable.chats_dots),
+                            contentDescription = "chat icon",
+                            tint = Color.Unspecified
+                        )
                     }
                 }
 
                 Surface(
-                    color = if (ticket.status == TicketStatus.OPEN) Color(0xFFFFF5D8) else Color(
-                        0xFFE6F9E6
-                    ), shape = RoundedCornerShape(6.dp)
+                    color = if (status == TicketStatus.OPEN) Color(0xFFFFF5D8) else Color(0xFFE6F9E6),
+                    shape = RoundedCornerShape(6.dp)
                 ) {
                     Text(
-                        text = if (ticket.status == TicketStatus.OPEN) "Open" else "Closed",
+                        text = if (status == TicketStatus.OPEN) "Open" else "Closed",
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                        color = if (ticket.status == TicketStatus.OPEN) KabukabuYellow else Color(
-                            0xFF4CAF50
-                        ),
+                        color = if (status == TicketStatus.OPEN) KabukabuYellow else Color(0xFF4CAF50),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
 
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                ticket.category,
-                fontWeight = FontWeight.W600,
-                fontSize = 12.sp,
-                color = Color.Black
-            )
-            Text(ticket.date, fontWeight = FontWeight.W600, fontSize = 12.sp, color = Color.Black)
-
-            if (ticket.status == TicketStatus.CLOSED && ticket.closedDate != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    "Closed on ${ticket.closedDate}",
-                    color = Color.Black,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium
+                    text = "${ticket.title}",
+                    fontWeight = FontWeight.W600,
+                    fontSize = 14.sp,
+                    color = Color.Black
                 )
-            }
+                Spacer(modifier = Modifier.height(4.dp))
+//
+//            if (ticket.tripStartAddress != null && ticket.tripEndAddress != null) {
+//                Text(
+//                    text = "${ticket.tripStartAddress} → ${ticket.tripEndAddress}",
+//                    fontSize = 12.sp,
+//                    color = Color(0xFF6A6A6A),
+//                    maxLines = 2
+//                )
+//                Spacer(modifier = Modifier.height(4.dp))
+//            }
+
+            Text(
+                text = formatTicketDate(ticket.createdAt),
+                fontWeight = FontWeight.W500,
+                fontSize = 12.sp,
+                color = Color(0xFF9A9A9A)
+            )
         }
     }
 }
@@ -478,10 +605,20 @@ fun SubjectEntryModal(
     text: String,
     onTextChange: (String) -> Unit,
     onDismiss: () -> Unit,
-    onSubmit: () -> Unit
+    onSubmit: () -> Unit,
+    vm: SupportViewModel = viewModel()
 ) {
+    val ui by vm.uiState.collectAsState()
+    var messageText by remember { mutableStateOf("") }
+
+    LaunchedEffect(ui.createSuccess) {
+        if (ui.createSuccess == true) {
+            onSubmit()
+        }
+    }
+
     StackedBottomSheet(
-        heightFraction = 0.5f, onDismiss = onDismiss
+        heightFraction = 0.6f, onDismiss = onDismiss
     ) {
         Surface(shape = RoundedCornerShape(24.dp), color = Color.White) {
             Column(modifier = Modifier.padding(24.dp)) {
@@ -502,6 +639,26 @@ fun SubjectEntryModal(
                     onValueChange = onTextChange,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(60.dp),
+                    placeholder = { Text("Enter subject", color = Color.Gray) },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = KabukabuYellow, unfocusedBorderColor = KabukabuYellow
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    "Message",
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                OutlinedTextField(
+                    value = messageText,
+                    onValueChange = { messageText = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .height(120.dp),
                     placeholder = { Text("Tell us what happened", color = Color.Gray) },
                     shape = RoundedCornerShape(12.dp),
@@ -509,21 +666,43 @@ fun SubjectEntryModal(
                         focusedBorderColor = KabukabuYellow, unfocusedBorderColor = KabukabuYellow
                     )
                 )
+
+                if (ui.createError != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = ui.createError ?: "",
+                        color = KabuRed,
+                        fontSize = 12.sp
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
-                    onClick = onSubmit,
+                    onClick = {
+                        if (text.isNotBlank() && messageText.isNotBlank()) {
+                            vm.openNewTicket(text, messageText)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = KabukabuYellow),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = !ui.isCreating && text.isNotBlank() && messageText.isNotBlank()
                 ) {
-                    Text(
-                        "Submit",
-                        color = Color.Black,
-                        fontWeight = FontWeight.W500,
-                        fontSize = 14.sp
-                    )
+                    if (ui.isCreating) {
+                        androidx.compose.material3.CircularProgressIndicator(
+                            color = Color.Black,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        Text(
+                            "Submit",
+                            color = Color.Black,
+                            fontWeight = FontWeight.W500,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
         }
@@ -601,7 +780,7 @@ fun SupportTypeModalPreview() {
 @Composable
 fun SelectSubjectModalPreview() {
     KabukabuDriverTheme {
-        SelectSubjectModal(onDismiss = {}, onSubmit = {})
+//        SelectSubjectModal(onDismiss = {}, onSubmit = {})
     }
 }
 
@@ -609,11 +788,14 @@ fun SelectSubjectModalPreview() {
 @Composable
 fun SubjectEntryModalPreview() {
     KabukabuDriverTheme {
+        // Preview uses placeholder values
+        var text by remember { mutableStateOf("This is a sample subject message") }
         SubjectEntryModal(
-            text = "This is a sample subject message",
-            onTextChange = {},
+            text = text,
+            onTextChange = { text = it },
             onDismiss = {},
-            onSubmit = {})
+            onSubmit = {}
+        )
     }
 }
 

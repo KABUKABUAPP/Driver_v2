@@ -13,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -45,11 +46,13 @@ import com.kabukabu.driver.features.profile.data.Document
 import com.kabukabu.driver.features.profile.data.ProfileData
 //import com.kabukabu.driver.features.profile.presentation.ProfileScreen
 import com.kabukabu.driver.features.promotions.presentation.PromotionsScreen
+import com.kabukabu.driver.features.promotions.presentation.PromotionsViewModel
 import com.kabukabu.driver.features.repair_loan.presentation.RepairLoanScreen
 import com.kabukabu.driver.features.support.presentation.SelectSupportTripScreen
 import com.kabukabu.driver.features.support.presentation.SupportDetailScreen
 import com.kabukabu.driver.features.support.presentation.SupportNewTicketScreen
 import com.kabukabu.driver.features.support.presentation.TicketListScreen
+import com.kabukabu.driver.features.support.viewmodel.SupportSharedViewModel
 import com.kabukabu.driver.features.trips.presentation.TripDetailScreen
 import com.kabukabu.driver.features.trips.presentation.TripsScreen
 import com.kabukabu.driver.features.wallet.presentation.KabukabuWalletApp
@@ -80,6 +83,10 @@ fun AppNavigation() {
     val tripSharedViewModel: com.kabukabu.driver.features.trips.presentation.TripSharedViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel()
 
+    // Create a nav-scoped SupportSharedViewModel to pass TripItem/Ticket objects between support screens
+    val supportSharedViewModel: SupportSharedViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel()
+
     // Create nav-graph scoped ViewModels for HomeScreen to preserve state across navigations
     // This ensures the map doesn't reload when navigating away and back
     val sharedDriverViewModel: com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel =
@@ -90,6 +97,10 @@ fun AppNavigation() {
 
     val sharedHomeMapViewModel: com.kabukabu.driver.features.home.presentation.viewmodel.HomeMapViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel()
+
+    // Create a shared PromotionsViewModel at NavHost level so it persists across navigation
+    val sharedPromotionsViewModel: PromotionsViewModel =
+        viewModel()
 
     // Log changes whenever userDetails updates
     LaunchedEffect(userDetails) {
@@ -360,6 +371,7 @@ fun AppNavigation() {
                     }
                 },
                 chatViewModel = sharedChatViewModel,
+                promotionsViewModel = sharedPromotionsViewModel,
 //                driverViewModel = sharedDriverViewModel,
 //                tripViewModel = sharedTripViewModel,
 //                homeMapViewModel = sharedHomeMapViewModel
@@ -499,23 +511,25 @@ fun AppNavigation() {
             )
         }
         composable(Screen.SupportTickets.route) {
-            val result = navController.currentBackStackEntry?.savedStateHandle?.get<com.kabukabu.driver.features.support.presentation.SupportTrip>("selected_trip")
+            val result = navController.currentBackStackEntry?.savedStateHandle?.get<com.kabukabu.driver.features.trips.data.TripItem>("selected_trip")
             TicketListScreen(
                 onBack = { navController.popBackStack() },
                 onNavigateToTripSupport = { navController.navigate(Screen.SelectSupportTripScreen.route) },
                 selectedTrip = result,
                 onTicketClick = { ticketId ->
                     navController.navigate("${Screen.SupportDetail.route}/$ticketId")
-                }
+                },
+                supportSharedViewModel = supportSharedViewModel
             )
         }
         composable(Screen.SelectSupportTripScreen.route) {
             SelectSupportTripScreen(
                 onBack = { navController.popBackStack() },
-                onTripSelected = {
-                    navController.previousBackStackEntry?.savedStateHandle?.set("selected_trip", it)
-                    navController.popBackStack()
-                }
+                onNavigateToDetail = { ticketId ->
+                    // Navigate to detail screen for the created ticket
+                    navController.navigate("${Screen.SupportDetail.route}/$ticketId")
+                },
+                supportSharedViewModel = supportSharedViewModel
             )
         }
         composable(
@@ -526,7 +540,8 @@ fun AppNavigation() {
             SupportDetailScreen(
                 supportId = sid,
                 onBack = { navController.popBackStack() },
-                onViewTrip = {}
+                onViewTrip = {},
+                supportSharedViewModel = supportSharedViewModel
             )
         }
         composable(Screen.SupportNew.route) {

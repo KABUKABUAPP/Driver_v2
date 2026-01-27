@@ -60,6 +60,10 @@ object SocketService {
     private val _typingEvent = MutableSharedFlow<JSONObject>()
     val typingEvent = _typingEvent.asSharedFlow()
 
+    // Support message events
+    private val _supportMessageEvent = MutableSharedFlow<JSONObject>()
+    val supportMessageEvent = _supportMessageEvent.asSharedFlow()
+
     // Debug monitoring flows
     private val _socketEvents = MutableSharedFlow<String>(replay = 50) // Keep last 50 events
     val socketEvents: SharedFlow<String> = _socketEvents.asSharedFlow()
@@ -436,12 +440,25 @@ object SocketService {
             }
         }
 
-        socket.on("supportMessage") { args ->
+        socket.on("support-message") { args ->
             Log.d("SocketService", "RAW_DATA: 'supportMessage' Received: ${args.getOrNull(0)}")
             coroutineScope.launch {
                 _socketEvents.emit("[${getCurrentTime()}] 📥 Received 'supportMessage' event")
             }
-            // TODO: Parse and handle support message
+            try {
+                val data = args.getOrNull(0)
+                if (data is JSONObject) {
+                    Log.d("SocketService", "Support message received: ${data.toString()}")
+                    coroutineScope.launch {
+                        _supportMessageEvent.emit(data)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("SocketService", "Error parsing 'supportMessage' event", e)
+                coroutineScope.launch {
+                    _socketErrors.emit("[${getCurrentTime()}] ❌ ERROR parsing 'supportMessage': ${e.message}")
+                }
+            }
         }
 
         // Add listener for ping event
@@ -487,6 +504,42 @@ object SocketService {
         }
     }
 
+    suspend fun joinSupportRoom(supportId: String) {
+        try {
+            if (mSocket == null || !mSocket!!.connected()) {
+                Log.e("SocketService", "Cannot join support room: Socket is null or not connected. Attempting to reconnect...")
+                connect()
+                delay(500) // Give it a moment to connect
+            }
+
+            if (mSocket == null) {
+                Log.e("SocketService", "Failed to join support room: Socket is still null after reconnection attempt")
+                return
+            }
+
+            if (!mSocket!!.connected()) {
+                Log.e("SocketService", "Failed to join support room: Socket is still disconnected after reconnection attempt")
+                return
+            }
+
+            Log.d("SocketService", "Socket connected status before join-support: ${mSocket?.connected()}")
+
+            coroutineScope.launch {
+                try {
+                    val payload = JSONObject().apply {
+                        put("supportId", supportId)
+                    }
+                    mSocket?.emit("join-support", supportId)
+                    Log.d("SocketService", "EMITTED join-support event for ticket: $supportId")
+                } catch (e: Exception) {
+                    Log.e("SocketService", "Error emitting join-support event: ${e.message}", e)
+                }
+            }.join()
+        } catch (e: Exception) {
+            Log.e("SocketService", "Error in joinSupportRoom: ${e.message}", e)
+        }
+    }
+
     fun disconnect() {
         // Use safe cleanup helper to fully release socket resources
         closeSocket()
@@ -508,6 +561,37 @@ object SocketService {
         }
         mSocket?.emit("message", payload)
         Log.d("SocketService", "Emitting chat message to room: $room, content: $content")
+    }
+
+
+    /**
+     * Emit a support message to a specific support ticket
+     * @param ticketId The support ticket ID (room)
+     * @param userId The driver's user ID
+     * @param content The message content
+     * @param files Optional list of file URLs/paths
+     * @param replyTo Optional message ID for replying
+     */
+    fun emitSupportMessage(
+        ticketId: String,
+        userId: String,
+        content: String,
+        files: List<String> = emptyList(),
+        replyTo: String? = null
+    ) {
+        val payload = JSONObject().apply {
+            put("room", ticketId)
+            put("userId", userId)
+            put("content", content)
+            if (files.isNotEmpty()) {
+                put("files", org.json.JSONArray(files))
+            }
+            if (replyTo != null) {
+                put("replyTo", replyTo)
+            }
+        }
+        mSocket?.emit("support-message", payload)
+        Log.d("SocketService", "Emitting support message to ticket: $ticketId, content: $content, files: $files, replyTo: $replyTo")
     }
 
     /**
@@ -618,6 +702,62 @@ object SocketService {
             Log.d("SocketService", "Emitting driver arrived destination: orderId: $orderId")
         } catch (e: Exception) {
             Log.e("SocketService", "Error emitting arrive destination: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Join a support room
+     * @param ticketId The support ticket ID
+     */
+//    fun joinSupportRoom(ticketId: String) {
+//        try {
+//            val json = JSONObject().apply {
+//                put("room", ticketId)
+//            }
+//            mSocket?.emit("join-support-room", json)
+//            Log.d("SocketService", "Joining support room: $ticketId")
+//        } catch (e: Exception) {
+//            Log.e("SocketService", "Error joining support room: ${e.message}", e)
+//        }
+//    }
+
+    /**
+     * Send support message via socket (text only)
+     * @param ticketId Support ticket ID (room)
+     * @param userId User ID
+     * @param content Message content
+     * @param files List of file URLs/paths (optional)
+     * @param replyTo Message ID being replied to (optional)
+     */
+   fun sendSupportMessage(
+        ticketId: String,
+        userId: String,
+        content: String,
+        files: List<String> = emptyList(),
+        replyTo: String? = null
+    ) {
+        try {
+            if (mSocket == null || !mSocket!!.connected()) {
+                Log.w("SocketService", "Cannot send support message: Socket is null or not connected")
+                return
+            }
+
+            val json = JSONObject().apply {
+                put("room", ticketId)
+                put("userId", userId)
+                put("content", content)
+                if (files.isNotEmpty()) {
+                    put("files", org.json.JSONArray(files))
+                }
+                if (replyTo != null) {
+                    put("replyTo", replyTo)
+                }
+            }
+
+            mSocket?.emit("support-message", json)
+            Log.d("SocketService", "Sending support message to room: $ticketId, content: $content, files: $files")
+        } catch (e: Exception) {
+            Log.e("SocketService", "Error sending support message: ${e.message}", e)
         }
     }
 

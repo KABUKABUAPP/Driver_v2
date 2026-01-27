@@ -37,6 +37,8 @@ class UserPreferences private constructor(private val context: Context) {
         private val BOOT_START_ENABLED = booleanPreferencesKey("boot_start_enabled")
         // OneSignal Player ID
         private val ONESIGNAL_PLAYER_ID = stringPreferencesKey("onesignal_player_id")
+        // Active Support ID for notification handling
+        private val ACTIVE_SUPPORT_ID = stringPreferencesKey("active_support_id")
 
         @SuppressLint("StaticFieldLeak")
         @Volatile
@@ -98,6 +100,11 @@ class UserPreferences private constructor(private val context: Context) {
     // OneSignal Player ID flow
     val oneSignalPlayerId: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[ONESIGNAL_PLAYER_ID]
+    }
+
+    // Active Support ID flow
+    val activeSupportId: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[ACTIVE_SUPPORT_ID]
     }
 
 
@@ -177,6 +184,17 @@ class UserPreferences private constructor(private val context: Context) {
     suspend fun saveOneSignalPlayerId(playerId: String) {
         context.dataStore.edit { preferences ->
             preferences[ONESIGNAL_PLAYER_ID] = playerId
+        }
+    }
+
+    // Update active support ID
+    suspend fun updateActiveSupportId(supportId: String?) {
+        context.dataStore.edit { preferences ->
+            if (supportId != null) {
+                preferences[ACTIVE_SUPPORT_ID] = supportId
+            } else {
+                preferences.remove(ACTIVE_SUPPORT_ID)
+            }
         }
     }
 

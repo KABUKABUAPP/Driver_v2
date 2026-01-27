@@ -98,6 +98,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.navigation)
     implementation(libs.androidx.compose.ui.text)
+    implementation(libs.androidx.compose.material.icons.extended)
     debugImplementation(libs.compose.ui.tooling)
     
     // Splash Screen

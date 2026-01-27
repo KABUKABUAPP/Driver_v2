@@ -79,7 +79,7 @@ fun PromotionsScreen(onBack: () -> Unit, vm: PromotionsViewModel = viewModel()) 
                     .fillMaxWidth()
                     .height(50.dp)
                     .background(Color(0xFFF2F2F2), RoundedCornerShape(12.dp))
-                    .padding(4.dp)
+                    .padding(0.dp)
             ) {
                 PillTabButton(text = "Ongoing", isSelected = selectedTab.intValue == 0, modifier = Modifier.weight(1f)) { selectedTab.intValue = 0 }
                 PillTabButton(text = "Completed", isSelected = selectedTab.intValue == 1, modifier = Modifier.weight(1f)) { selectedTab.intValue = 1 }

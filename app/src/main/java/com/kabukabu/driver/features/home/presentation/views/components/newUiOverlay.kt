@@ -5,7 +5,6 @@ import android.location.Location
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import com.kabukabu.driver.core.utils.safeClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -41,25 +39,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kabukabu.driver.R
 import com.kabukabu.driver.core.components.SwipeButton
 import com.kabukabu.driver.core.theme.BorderSubtle
+import com.kabukabu.driver.core.theme.KabukabuDriverTheme
 import com.kabukabu.driver.core.theme.Success
 import com.kabukabu.driver.core.theme.TextSecondary
 import com.kabukabu.driver.core.utils.composableSafeClickable
+import com.kabukabu.driver.core.utils.safeClickable
 import com.kabukabu.driver.features.home.presentation.viewmodel.DriverViewModel
-import java.text.NumberFormat
-import java.util.Locale
+import com.kabukabu.driver.features.promotions.presentation.PromotionsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 
 @Composable
@@ -71,7 +74,10 @@ fun UIOverlay(
     onIsOnlineChange: (Boolean) -> Unit,
     onMenuClick: () -> Unit,
     driverViewModel: DriverViewModel,
-    onRecenterMap: () -> Unit = {}
+    promotionsViewModel: PromotionsViewModel,
+    onNavigateToPromotions: () -> Unit,
+    onRecenterMap: () -> Unit = {},
+
 ) {
     val context = LocalContext.current
     var locationName by remember { mutableStateOf("Loading location...") }
@@ -166,9 +172,18 @@ fun UIOverlay(
                 onOnlineStatusChanged = onIsOnlineChange,
                 isOnline = isOnline,
                 driverViewModel = driverViewModel,
-                onRecenterMap = onRecenterMap
+                onRecenterMap = onRecenterMap,
+                            promotionsViewModel = promotionsViewModel,
+            onNavigateToPromotions = onNavigateToPromotions
+
             )
         }
+
+        // Promotion Pill
+//        PromotionPill(
+//            promotionsViewModel = promotionsViewModel,
+//            onNavigateToPromotions = onNavigateToPromotions
+//        )
     }
 }
 
@@ -178,6 +193,8 @@ private fun ExpandableDriverStatusCard(
     onLogout: () -> Unit,
     onOnlineStatusChanged: (Boolean) -> Unit,
     isOnline: Boolean,
+    promotionsViewModel: PromotionsViewModel,
+    onNavigateToPromotions: () -> Unit,
     onRecenterMap: () -> Unit = {}
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -189,43 +206,20 @@ private fun ExpandableDriverStatusCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 0.dp)
                 .padding(bottom = 16.dp)
                 .animateContentSize(), // Smooth animation when card expands/collapses
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Promotion Pill
-//            Surface(
-//                shape = RoundedCornerShape(50),
-//                color = Color.White,
-////                shadowElevation = 4.dp
-//            ) {
-//                Row(
-//                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    Text(
-//                        text = "🎉",
-//                        fontSize = 18.sp
-//                    )
-//                    Spacer(modifier = Modifier.width(8.dp))
-//                    Text(
-//                        text = "Promotion ongoing",
-//                        fontWeight = FontWeight.W700,
-//                        fontSize = 14.sp
-//                    )
-//                }
-//            }
-            Spacer(modifier = Modifier.width(40.dp))
-
-            // Compass/Location Button
+            PromotionPill(
+                promotionsViewModel = promotionsViewModel,
+                onNavigateToPromotions = onNavigateToPromotions
+            )
+//            Spacer(modifier = Modifier.width(40.dp))
             Surface(
-                shape = CircleShape,
-                color = Color.White,
-//                shadowElevation = 4.dp,
-                modifier = Modifier.size(60.dp),
-                onClick = onRecenterMap
+                shape = CircleShape, color = Color.White,
+                modifier = Modifier.size(60.dp), onClick = onRecenterMap
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Image(
@@ -252,50 +246,50 @@ private fun ExpandableDriverStatusCard(
                         .animateContentSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            OfflineStatus(isOnline = isOnline)
-                            Spacer(modifier = Modifier.height(16.dp))
-                            DriverStats(
-                                tripsCount = "${todayTripData.totalTrips ?: 0}",
-                                tripsLabel = "Trip Today",
-                                earningsAmount = formatNaira(todayTripData.totalEarnedToday ?: 0.0),
-                                earningsLabel =  "Earned today",
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        OfflineStatus(isOnline = isOnline)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        DriverStats(
+                            tripsCount = "${todayTripData.totalTrips ?: 0}",
+                            tripsLabel = "Trip Today",
+                            earningsAmount = formatNaira(todayTripData.totalEarnedToday ?: 0.0),
+                            earningsLabel = "Earned today",
 
                             )
-                        }
+                    }
 
-                        if (isExpanded) {
-                            DriverStats(
-                                tripsCount =  String.format("%.1f", todayTripData.totalKMToday ?: 0.0),
-                                tripsLabel = "Km covered today",
-                                earningsAmount = "0",
-                                earningsLabel = "Driver Score"
+                    if (isExpanded) {
+                        DriverStats(
+                            tripsCount = String.format("%.1f", todayTripData.totalKMToday ?: 0.0),
+                            tripsLabel = "Km covered today",
+                            earningsAmount = "0",
+                            earningsLabel = "Driver Score"
 
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Divider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            thickness = 1.dp,
+                            color = Color(0xffF1F1F1)
+                        )
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "Preferred payment option (Select one or more)",
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.W500,
+                                fontSize = 12.sp,
+                                color = Color.Black
                             )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Divider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                thickness = 1.dp,
-                                color = Color(0xffF1F1F1)
-                            )
-                            Column(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    "Preferred payment option (Select one or more)",
-                                    textAlign = TextAlign.Center,
-                                    fontWeight = FontWeight.W500,
-                                    fontSize = 12.sp,
-                                    color = Color.Black
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                PaymentOptions(driverViewModel = driverViewModel)
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            PaymentOptions(driverViewModel = driverViewModel)
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
                 }
+            }
 
             ViewMoreButton(
                 modifier = Modifier.align(Alignment.BottomCenter),
@@ -313,8 +307,7 @@ private fun ExpandableDriverStatusCard(
             loadingText = if (isOnline) "Going offline..." else "Going online...",
             onStateChange = { newStatus ->
                 onOnlineStatusChanged(newStatus)
-            }
-        )
+            })
     }
 }
 
@@ -461,7 +454,7 @@ private fun PaymentOptionCheckbox(
 private fun ViewMoreButton(
     modifier: Modifier = Modifier, isExpanded: Boolean, onClick: () -> Unit
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
+    remember { MutableInteractionSource() }
     Surface(
         modifier = modifier.composableSafeClickable { onClick() },
         shape = RoundedCornerShape(10.dp),
@@ -517,3 +510,64 @@ private fun formatNaira(amount: Double): String {
     formatter.maximumFractionDigits = 2
     return "₦" + formatter.format(amount)
 }
+
+
+@Composable
+fun PromotionPill(
+    promotionsViewModel: PromotionsViewModel,
+    onNavigateToPromotions: () -> Unit
+) {
+    val uiState by promotionsViewModel.uiState.collectAsState()
+
+    if (uiState.ongoing.isNotEmpty()) {
+                    Surface(
+                shape = RoundedCornerShape(50),
+                color = Color.White,
+                        modifier = Modifier.safeClickable { onNavigateToPromotions() }
+//                shadowElevation = 4.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(37.dp)
+                            .clip(CircleShape)
+                            .background(Color.Black),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "1",
+                            color = Color.White,
+                            fontWeight = FontWeight.W500,
+                            fontSize = 14.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Promotion ongoing. ",
+                        fontWeight = FontWeight.W500,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "Click to view",
+                        fontWeight = FontWeight.W500,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+    }else{
+        Spacer(modifier = Modifier.width(40.dp))
+    }
+}
+
+//@Preview
+//@Composable
+//fun promotionPillPreview() {
+//    KabukabuDriverTheme() {
+//        PromotionPill()
+//    }
+//}
+

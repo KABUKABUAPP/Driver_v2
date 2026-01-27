@@ -38,7 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.R
 import com.kabukabu.driver.core.theme.KabukabuDriverTheme
 import com.kabukabu.driver.core.utils.safeClickable
-import com.kabukabu.driver.features.support.presentation.SupportViewModel
+import com.kabukabu.driver.features.support.viewmodel.SupportViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

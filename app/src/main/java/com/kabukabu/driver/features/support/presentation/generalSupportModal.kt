@@ -26,7 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kabukabu.driver.R
-import com.kabukabu.driver.features.support.presentation.SupportViewModel
+import com.kabukabu.driver.features.support.viewmodel.SupportViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
