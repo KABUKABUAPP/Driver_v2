@@ -157,6 +157,9 @@ dependencies {
     // OneSignal Push Notifications
     implementation("com.onesignal:OneSignal:[5.0.0, 5.99.99]")
 
+    // Capturable for screenshot
+    implementation(libs.capturable)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

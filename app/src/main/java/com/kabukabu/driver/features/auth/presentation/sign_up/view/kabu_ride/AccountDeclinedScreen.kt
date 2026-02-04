@@ -143,13 +143,13 @@ fun KabuRideAccountDeclinedScreen(
                 lineHeight = 30
             )
 
-//                TitleText(
-//                    text = "Here’s why your account was declined",
-//                    fontSize = 16,
-//                    bottomPadding = 16,
-//                    topPadding = 8,
-//                    fontWeight = FontWeight.W400,
-//                )
+                TitleText(
+                    text = "Here’s why your account was declined",
+                    fontSize = 16,
+                    bottomPadding = 16,
+                    topPadding = 8,
+                    fontWeight = FontWeight.W400,
+                )
 
             Box(
                 modifier = Modifier

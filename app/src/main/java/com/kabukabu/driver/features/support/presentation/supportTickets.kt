@@ -1,5 +1,6 @@
 package com.kabukabu.driver.features.support.presentation
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -101,7 +102,7 @@ fun TicketListScreen(
     onBack: () -> Unit,
     onNavigateToTripSupport: () -> Unit,
     selectedTrip: TripItem?,
-    onTicketClick: (String) -> Unit,
+    onTicketClick: (String, String?) -> Unit, // Now passes (ticketId, status)
     vm: SupportViewModel = viewModel(),
     supportSharedViewModel: SupportSharedViewModel = viewModel()
 ) {
@@ -112,6 +113,12 @@ fun TicketListScreen(
     var showSubjectEntryModal by remember { mutableStateOf(false) }
     var showSelectSubjectModal by remember { mutableStateOf(false) }
     var subjectText by remember { mutableStateOf("") }
+
+    // Clear selected ticket when switching tabs to prevent stale data
+    LaunchedEffect(selectedTab) {
+        Log.d("TicketListScreen", "🔄 Tab switched to: $selectedTab - Clearing selectedTicket")
+        supportSharedViewModel.clear()
+    }
 
     LaunchedEffect(selectedTrip) {
         if (selectedTrip != null) {
@@ -284,12 +291,19 @@ fun TicketListScreen(
                 }
                 else -> {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        itemsIndexed(filteredTickets) { index, ticket ->
+                        itemsIndexed(
+                            items = filteredTickets,
+                            key = { _, ticket -> ticket.id ?: ticket.hashCode() }
+                        ) { index, ticket ->
                             TicketCard(
                                 ticket = ticket,
                                 onTicketClick = { ticketId ->
+                                    Log.d("TicketListScreen", "🎯 Ticket Clicked - ID: ${ticket.id}, TicketID: ${ticket.ticketId}, Title: ${ticket.title}, Tab: $selectedTab")
                                     supportSharedViewModel.selectTicket(ticket)
-                                    onTicketClick(ticketId)
+                                    // Pass status based on which tab user is on, not ticket.status
+                                    val tabStatus = if (selectedTab == TicketStatus.OPEN) "open" else "closed"
+                                    Log.d("TicketListScreen", "🚀 Navigating with ticketId: $ticketId, status: $tabStatus")
+                                    onTicketClick(ticketId, tabStatus)
                                 }
                             )
 
@@ -803,6 +817,6 @@ fun SubjectEntryModalPreview() {
 @Composable
 fun TicketListPreview() {
     KabukabuDriverTheme {
-        TicketListScreen(onBack = {}, onNavigateToTripSupport = {}, selectedTrip = null, onTicketClick = {})
+        TicketListScreen(onBack = {}, onNavigateToTripSupport = {}, selectedTrip = null, onTicketClick = { _, _ -> })
     }
 }

@@ -85,7 +85,7 @@ fun DriverBioDataScreen(
 //    var email by remember { mutableStateOf(uiState?.email ?: "") }
     var houseAddress by remember { mutableStateOf(uiState?.houseAddress ?: "") }
     var city by remember { mutableStateOf(uiState?.city ?: "") }
-    var state by remember { mutableStateOf(uiState?.state ?: "") }
+    var state by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(uiState?.state ?: "") }
 //    var carCategory by remember { mutableStateOf(uiState?.carCategory ?: "") }
 
     val isInputValidated = remember { mutableStateOf(false) }
@@ -101,15 +101,35 @@ fun DriverBioDataScreen(
         driverViewModel.fetchUserProfile()
     }
 
+    var pendingStateSelection by remember { mutableStateOf<String?>(null) }
+
+    // Handle state selection after recomposition
+    LaunchedEffect(pendingStateSelection) {
+        pendingStateSelection?.let { selectedState ->
+            android.util.Log.d("DriverBioData", "Processing pending state: $selectedState")
+            state = selectedState
+            android.util.Log.d("DriverBioData", "State variable set to: $state")
+            showStateSheet = false
+            focusManager.clearFocus()
+            pendingStateSelection = null
+        }
+    }
+
     if (showStateSheet) {
         SelectStateSheet(
-            onDismiss = { showStateSheet = false },
-            onSelectState = { selectedState ->
-                state = selectedState
+            onDismiss = {
                 showStateSheet = false
-                focusManager.clearFocus()
+            },
+            onSelectState = { selectedState ->
+                android.util.Log.d("DriverBioData", "State selected: $selectedState")
+                pendingStateSelection = selectedState
             }
         )
+    }
+
+    // Log state changes
+    LaunchedEffect(state) {
+        android.util.Log.d("DriverBioData", "State changed in LaunchedEffect: $state")
     }
 
 //    if (showCarCategorySheet) {
@@ -435,7 +455,10 @@ internal fun SelectStateSheet(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                items(filteredList) { state ->
+                items(
+                    items = filteredList,
+                    key = { stateItem -> stateItem }
+                ) { state ->
                     AnimatedVisibility(
                         visible = true,
                         enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
@@ -447,8 +470,8 @@ internal fun SelectStateSheet(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
                                 .composableSafeClickable(onClick = {
+                                    android.util.Log.d("DriverBioData", "Item clicked: $state (text displayed: $state)")
                                     onSelectState(state)
-                                    onDismiss()
                                 })
                                 .padding(vertical = 12.dp, horizontal = 16.dp)
                         )

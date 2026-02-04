@@ -527,7 +527,7 @@ fun PromotionPill(
 //                shadowElevation = 4.dp
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -548,12 +548,12 @@ fun PromotionPill(
                     Text(
                         text = "Promotion ongoing. ",
                         fontWeight = FontWeight.W500,
-                        fontSize = 14.sp
+                        fontSize = 12.sp
                     )
                     Text(
                         text = "Click to view",
                         fontWeight = FontWeight.W500,
-                        fontSize = 14.sp
+                        fontSize = 12.sp
                     )
                 }
             }

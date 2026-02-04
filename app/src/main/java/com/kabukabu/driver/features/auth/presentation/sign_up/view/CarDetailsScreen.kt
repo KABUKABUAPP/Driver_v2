@@ -188,6 +188,7 @@ fun KabuRideCarDetailsScreen(
     LaunchedEffect(Unit) {
         authViewModel.fetchCarBrands()
         driverViewModel.fetchUserProfile()
+        driverViewModel.updateFcmId()
     }
 
     LaunchedEffect(uploadCarDetailsUiState) {
@@ -447,6 +448,7 @@ fun KabuRideCarDetailsScreen(
                     )
 
                 }
+                KabuDivider(height = 16.dp)
 
                 Row {
                     Spacer(modifier = Modifier.weight(1f))

@@ -22,6 +22,7 @@ import com.kabukabu.driver.features.home.presentation.views.components.TripCance
 import com.kabukabu.driver.features.home.presentation.views.components.TripRoomHandler
 import com.kabukabu.driver.features.home.presentation.views.components.TripServiceHandler
 import com.kabukabu.driver.features.home.presentation.views.components.TripSoundHandler
+import com.kabukabu.driver.features.promotions.presentation.PromotionsViewModel
 
 @Composable
 fun HomeScreenWithIntegratedTrip(
@@ -35,7 +36,8 @@ fun HomeScreenWithIntegratedTrip(
     onNavigateToRepairLoan: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToChat: (orderId: String, riderName: String, riderPhone: String?) -> Unit = { _, _, _ -> },
-    chatViewModel: ChatViewModel
+    chatViewModel: ChatViewModel,
+    promotionsViewModel: PromotionsViewModel
 ) {
     val context = LocalContext.current
     var hasLocationPermission by remember { mutableStateOf(false) }
@@ -127,6 +129,7 @@ fun HomeScreenWithIntegratedTrip(
         onNavigateToAbout = onNavigateToAbout,
         onNavigateToRepairLoan = onNavigateToRepairLoan,
         onNavigateToProfile = onNavigateToProfile,
-        onNavigateToChat = onNavigateToChat
+        onNavigateToChat = onNavigateToChat,
+        promotionsViewModel = promotionsViewModel
     )
 }

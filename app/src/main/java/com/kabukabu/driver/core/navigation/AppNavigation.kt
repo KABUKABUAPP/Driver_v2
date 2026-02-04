@@ -54,6 +54,7 @@ import com.kabukabu.driver.features.support.presentation.SupportNewTicketScreen
 import com.kabukabu.driver.features.support.presentation.TicketListScreen
 import com.kabukabu.driver.features.support.viewmodel.SupportSharedViewModel
 import com.kabukabu.driver.features.trips.presentation.TripDetailScreen
+import com.kabukabu.driver.features.trips.presentation.TripReceiptScreen
 import com.kabukabu.driver.features.trips.presentation.TripsScreen
 import com.kabukabu.driver.features.wallet.presentation.KabukabuWalletApp
 import com.kabukabu.driver.features.wallet.presentation.PaymentHistoryScreen
@@ -143,6 +144,7 @@ fun AppNavigation() {
             Log.d("OnboardingNavigation", "User is Logged in ${authToken?.take(10)}...")
         } else {
             navigateBasedOnOnboardingStatus(navigation, navController, userDetails)
+
         }
     }
 
@@ -516,8 +518,8 @@ fun AppNavigation() {
                 onBack = { navController.popBackStack() },
                 onNavigateToTripSupport = { navController.navigate(Screen.SelectSupportTripScreen.route) },
                 selectedTrip = result,
-                onTicketClick = { ticketId ->
-                    navController.navigate("${Screen.SupportDetail.route}/$ticketId")
+                onTicketClick = { ticketId, status ->
+                    navController.navigate(Screen.SupportDetail.createRoute(ticketId, status))
                 },
                 supportSharedViewModel = supportSharedViewModel
             )
@@ -533,13 +535,25 @@ fun AppNavigation() {
             )
         }
         composable(
-            route = "${Screen.SupportDetail.route}/{${NavArg.SupportId.key}}",
-            arguments = listOf(navArgument(NavArg.SupportId.key) { type = NavType.StringType })
+            route = "${Screen.SupportDetail.route}/{${NavArg.SupportId.key}}?status={status}",
+            arguments = listOf(
+                navArgument(NavArg.SupportId.key) { type = NavType.StringType },
+                navArgument("status") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
         ) { backStackEntry ->
             val sid = backStackEntry.arguments?.getString(NavArg.SupportId.key) ?: ""
+            val status = backStackEntry.arguments?.getString("status")
             SupportDetailScreen(
                 supportId = sid,
-                onBack = { navController.popBackStack() },
+                initialStatus = status,
+                onBack = {
+                    supportSharedViewModel.clear()
+                    navController.popBackStack()
+                },
                 onViewTrip = {},
                 supportSharedViewModel = supportSharedViewModel
             )
@@ -565,11 +579,29 @@ fun AppNavigation() {
         ) { backStackEntry ->
             // Use the nav-scoped TripSharedViewModel declared earlier in this AppNavigation scope
             val selectedTrip by tripSharedViewModel.selectedTrip.collectAsState()
-            TripDetailScreen(trip = selectedTrip, onBack = {
-                // Clear the selected trip to avoid stale data when returning
-                tripSharedViewModel.clear()
-                navController.popBackStack()
-            })
+            TripDetailScreen(
+                trip = selectedTrip,
+                onBack = {
+                    // Clear the selected trip to avoid stale data when returning
+                    tripSharedViewModel.clear()
+                    navController.popBackStack()
+                },
+                onViewReceipt = {
+                    navController.navigate(Screen.TripReceipt.createRoute(selectedTrip?.id ?: ""))
+                }
+            )
+        }
+        composable(
+            route = "${Screen.TripReceipt.route}",
+            arguments = listOf(navArgument("tripId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val selectedTrip by tripSharedViewModel.selectedTrip.collectAsState()
+            TripReceiptScreen(
+                trip = selectedTrip,
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

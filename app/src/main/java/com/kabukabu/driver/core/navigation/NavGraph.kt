@@ -19,7 +19,15 @@ sealed class Screen(val route: String) {
     object Support : Screen("support")
     object SupportTickets : Screen("support_tickets")
     object SelectSupportTripScreen : Screen("trip_support_list")
-    object SupportDetail : Screen("support_detail")
+    object SupportDetail : Screen("support_detail") {
+        fun createRoute(supportId: String, status: String? = null): String {
+            return if (status != null) {
+                "support_detail/$supportId?status=$status"
+            } else {
+                "support_detail/$supportId"
+            }
+        }
+    }
     object SupportNew : Screen("support_new")
     object About : Screen("about")
     object RepairLoan : Screen("repair_loan")
@@ -41,6 +49,9 @@ sealed class Screen(val route: String) {
     }
     object TripDetail : Screen("trip_detail/{tripId}") {
         fun createRoute(tripId: String) = "trip_detail/$tripId"
+    }
+    object TripReceipt : Screen("trip_receipt/{tripId}") {
+        fun createRoute(tripId: String) = "trip_receipt/$tripId"
     }
 
 }

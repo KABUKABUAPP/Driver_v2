@@ -31,6 +31,7 @@ import com.kabukabu.driver.features.profile.data.ActiveTrip
 import com.kabukabu.driver.features.home.data.EndTripData
 import com.mapbox.maps.MapView
 import TripRequestModalAnimated
+import com.kabukabu.driver.features.promotions.presentation.PromotionsViewModel
 
 @Composable
 fun HomeScreenContent(
@@ -55,6 +56,7 @@ fun HomeScreenContent(
     driverViewModel: DriverViewModel,
     tripViewModel: TripViewModel,
     chatViewModel: ChatViewModel,
+    promotionsViewModel: PromotionsViewModel,
 
     // Callbacks
     onDrawerOpenChange: (Boolean) -> Unit,
@@ -108,7 +110,10 @@ fun HomeScreenContent(
                 driverViewModel = driverViewModel,
                 onRecenterMap = {
                     recenterMapOnDriver(mapViewState.value, currentLocation)
-                }
+                },
+                onNavigateToPromotions = onNavigateToPromotions,
+                promotionsViewModel = promotionsViewModel
+
             )
 
             // Trip found card

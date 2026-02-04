@@ -25,6 +25,7 @@ socketIoClient = "2.1.0"
 camera-core = "1.3.4"
 camera-view = "1.3.4"
 koin = "4.0.1"
+capturable = "2.1.0"
 
 
 [libraries]
@@ -84,6 +85,9 @@ koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", versi
 koin-compose-viewmodel-v401 = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "composeUi" }
+
+# Capturable for screenshot
+capturable = { group = "dev.shreyaspatil", name = "capturable", version.ref = "capturable" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

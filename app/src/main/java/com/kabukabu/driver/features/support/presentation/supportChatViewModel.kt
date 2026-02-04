@@ -33,7 +33,10 @@ class SupportDetailViewModel(
                 try {
                     Log.d("SupportDetailVM", "Received support message via socket: ${jsonObject.toString()}")
 
-                    val supportId = jsonObject.optString("support")
+                    // Extract support ID from support object
+                    val supportObj = jsonObject.optJSONObject("support")
+                    val supportId = supportObj?.optString("_id") ?: jsonObject.optString("support")
+                    Log.d("SupportDetailVM", "supportId is $supportId and currentSupportId $currentSupportId")
 
                     // Only process if it's for the current ticket
                     if (supportId == currentSupportId) {
@@ -41,7 +44,7 @@ class SupportDetailViewModel(
                         val userId = jsonObject.optString("user")
                         val content = jsonObject.optString("content", jsonObject.optString("message"))
                         val createdAt = jsonObject.optString("createdAt", jsonObject.optString("created_at"))
-                        val isReply = jsonObject.optBoolean("isReply", false)
+                        val isReply = jsonObject.optBoolean("is_reply", jsonObject.optBoolean("isReply", false))
 
                         // Parse attachments
                         val attachmentsArr = jsonObject.optJSONArray("attachments")
@@ -58,15 +61,21 @@ class SupportDetailViewModel(
                             AdminInfo(fullName = adminObj.optString("full_name", adminObj.optString("fullName")))
                         } else null
 
-                        // Parse reply info
-                        val replyToObj = jsonObject.optJSONObject("replyTo")
+                        // Parse reply info (using reply_to field)
+                        val replyToObj = jsonObject.optJSONObject("reply_to") ?: jsonObject.optJSONObject("replyTo")
                         val replyTo = if (replyToObj != null && isReply) {
                             val replyContent = replyToObj.optString("content", replyToObj.optString("message"))
                             val replyUserId = replyToObj.optString("user")
+
+                            // Admin might be an object or just a string ID
                             val replyAdminObj = replyToObj.optJSONObject("admin")
                             val replyAdmin = if (replyAdminObj != null) {
                                 AdminInfo(fullName = replyAdminObj.optString("full_name", replyAdminObj.optString("fullName")))
-                            } else null
+                            } else {
+                                // If admin is just a string ID, we won't have the full name
+                                val adminId = replyToObj.optString("admin")
+                                if (adminId.isNotBlank()) AdminInfo(fullName = null) else null
+                            }
 
                             ReplyToInfo(
                                 content = replyContent,
@@ -93,6 +102,8 @@ class SupportDetailViewModel(
                                 messages = currentMessages + newMessage
                             )
                         }
+                    }else{
+                        Log.d("SupportDetailVM", "id does not match")
                     }
                 } catch (e: Exception) {
                     Log.e("SupportDetailVM", "Error processing socket support message", e)

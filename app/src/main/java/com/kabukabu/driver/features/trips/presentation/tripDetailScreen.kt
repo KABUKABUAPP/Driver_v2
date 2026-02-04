@@ -411,11 +411,12 @@ fun ActionButton(
     modifier: Modifier = Modifier,
     backgroundColor: Color,
     contentColor: Color,
-    border: BorderStroke? = null
+    border: BorderStroke? = null,
+    onClick: () -> Unit = {}
 ) {
     Button(
         border = border,
-        onClick = {},
+        onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = backgroundColor, contentColor = contentColor),
         shape = RoundedCornerShape(8.dp),
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 1.dp),
@@ -649,7 +650,7 @@ fun TripRatingCard(trip: TripItem?) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TripDetailScreen(trip: TripItem?, onBack: () -> Unit = {}) {
+fun TripDetailScreen(trip: TripItem?, onBack: () -> Unit = {}, onViewReceipt: () -> Unit = {}) {
     val riderName = capitalizeWords(trip?.user?.fullName) ?: "Rider"
     val (date, time) = formatDateTime(trip?.createdAt ?: trip?.startTime)
     val pickup = trip?.startAddress?.street ?: trip?.startAddress?.street ?: "Pickup"
@@ -735,8 +736,15 @@ fun TripDetailScreen(trip: TripItem?, onBack: () -> Unit = {}) {
                             Row(modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 8.dp, bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                ActionButton(text = "Get receipt", iconPainter = painterResource(id = R.drawable.bk), modifier = Modifier.width(120.dp), backgroundColor = KabukabuYellow, contentColor = Color.Black)
-                                ActionButton(text = "Share receipt", iconPainter = painterResource(id = android.R.drawable.ic_menu_share), modifier = Modifier.width(120.dp), backgroundColor = Color(0xFFEEEEEE), contentColor = Color.Black, border = BorderStroke(1.dp, Color(0xFFE6E6E6)))
+                                ActionButton(
+                                    text = "View Receipt",
+                                    iconPainter = painterResource(id = R.drawable.bk),
+                                    modifier = Modifier.width(120.dp),
+                                    backgroundColor = KabukabuYellow,
+                                    contentColor = Color.Black,
+                                    onClick = onViewReceipt
+                                )
+//                                ActionButton(text = "Share receipt", iconPainter = painterResource(id = android.R.drawable.ic_menu_share), modifier = Modifier.width(120.dp), backgroundColor = Color(0xFFEEEEEE), contentColor = Color.Black, border = BorderStroke(1.dp, Color(0xFFE6E6E6)))
                             }
                         }
                     }

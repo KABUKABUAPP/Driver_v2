@@ -83,6 +83,7 @@ import java.util.Locale
 @Composable
 fun SupportDetailScreen(
     supportId: String,
+    initialStatus: String? = null,
     onBack: () -> Unit,
     onViewTrip: () -> Unit,
     viewModel: SupportDetailViewModel = viewModel(),
@@ -93,8 +94,39 @@ fun SupportDetailScreen(
     val coroutineScope = rememberCoroutineScope()
     var showTripDetailsModal by remember { mutableStateOf(false) }
 
+    // Use initialStatus if provided, otherwise use status from uiState
+    val effectiveStatus = initialStatus ?: uiState.status
+
     // Get the selected ticket from shared ViewModel (still used for navigation context)
     val selectedTicket by supportSharedViewModel.selectedTicket.collectAsState()
+
+    // Only use selectedTicket if it matches the current supportId to prevent stale data
+    val validSelectedTicket = if (selectedTicket?.id == supportId) selectedTicket else null
+
+    // Force recomposition when supportId or selectedTicket changes
+    val ticketTitle = remember(supportId, validSelectedTicket) {
+        validSelectedTicket?.title ?: ""
+    }
+    val ticketIdDisplay = remember(supportId, validSelectedTicket) {
+        validSelectedTicket?.ticketId ?: ""
+    }
+    val ticketCreatedAt = remember(supportId, validSelectedTicket) {
+        validSelectedTicket?.createdAt
+    }
+
+    // Debug logging
+    LaunchedEffect(selectedTicket, supportId) {
+        Log.d("SupportDetailScreen", """
+            📋 Ticket Validation:
+            - supportId: $supportId
+            - selectedTicket.id: ${selectedTicket?.id}
+            - selectedTicket.title: ${selectedTicket?.title}
+            - Match: ${selectedTicket?.id == supportId}
+            - validSelectedTicket: ${if (validSelectedTicket != null) "✅ Valid" else "❌ Null"}
+            - Displaying Title: $ticketTitle
+            - Displaying ID: $ticketIdDisplay
+        """.trimIndent())
+    }
 
     // Image picker
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -146,7 +178,7 @@ fun SupportDetailScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        uiState.ticketId.ifBlank { selectedTicket?.ticketId ?: "" },
+                        ticketIdDisplay,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -168,13 +200,13 @@ fun SupportDetailScreen(
                 Column {
                     Column {
                         Text(
-                            selectedTicket?.title ?: "",
+                            ticketTitle,
                             fontWeight = FontWeight.W600,
                             fontSize = 12.sp,
                             color = Color.Black
                         )
                         Text(
-                            formatTicketDate( selectedTicket?.createdAt),
+                            formatTicketDate(ticketCreatedAt),
                             color = Color.Black,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.W600
@@ -201,39 +233,48 @@ fun SupportDetailScreen(
             HorizontalDivider(color = Color(0xFFEEEEEE))
         }
     }, bottomBar = {
-        Column {
-            // Reply preview
-//            uiState.replyingTo?.let { replyMsg ->
-//                ReplyPreview(
-//                    message = replyMsg, onClose = { viewModel.clearReply() })
-//            }
+        // Only show input bar if ticket is not closed/resolved/completed
+        val statusLower = effectiveStatus.lowercase()
+        val isClosed = statusLower.contains("closed") ||
+                      statusLower.contains("resolved") ||
+                      statusLower.contains("completed")
+        Log.d("SupportDetailScreen", "Effective status: '$effectiveStatus', Initial: '$initialStatus', UI: '${uiState.status}', isClosed: $isClosed")
 
-            // Image preview
-            uiState.selectedImageUri?.let { uri ->
-                ImagePreview(
-                    imageUri = uri, onClose = { viewModel.setSelectedImage(null) })
-            }
+        if (!isClosed) {
+            Column {
+                // Reply preview
+//                uiState.replyingTo?.let { replyMsg ->
+//                    ReplyPreview(
+//                        message = replyMsg, onClose = { viewModel.clearReply() })
+//                }
 
-            MessageInputBar(
-                messageText = uiState.draft,
-                onMessageChange = { viewModel.updateDraft(it) },
-                onSend = {
-                    if (uiState.draft.isNotBlank() || uiState.selectedImageUri != null) {
-                        Log.d("SupportDetailVM", "got here 4")
-                        viewModel.sendReply(
-                            supportId = supportId,
-                            message = uiState.draft,
-                            replyToId = uiState.replyingTo?.id
+                // Image preview
+                uiState.selectedImageUri?.let { uri ->
+                    ImagePreview(
+                        imageUri = uri, onClose = { viewModel.setSelectedImage(null) })
+                }
+
+                MessageInputBar(
+                    messageText = uiState.draft,
+                    onMessageChange = { viewModel.updateDraft(it) },
+                    onSend = {
+                        if (uiState.draft.isNotBlank() || uiState.selectedImageUri != null) {
+                            Log.d("SupportDetailVM", "got here 4")
+                            viewModel.sendReply(
+                                supportId = supportId,
+                                message = uiState.draft,
+                                replyToId = uiState.replyingTo?.id
+                            )
+                        }
+                    },
+                    onPickImage = {
+                        imagePickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                         )
-                    }
-                },
-                onPickImage = {
-                    imagePickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
-                },
-                isSending = uiState.isSending
-            )
+                    },
+                    isSending = uiState.isSending
+                )
+            }
         }
     }, containerColor = Color.White
     ) { padding ->
@@ -319,13 +360,50 @@ fun SupportDetailScreen(
                                     message = message, onReply = { viewModel.setReplyTo(message) })
                             }
                         }
+
+                        // Show closed ticket indicator
+                        val statusLower = effectiveStatus.lowercase()
+                        val isTicketClosed = statusLower.contains("closed") ||
+                                           statusLower.contains("resolved") ||
+                                           statusLower.contains("completed")
+
+                        if (isTicketClosed) {
+                            item {
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 16.dp),
+                                    color = Color(0xFFFFF3CD),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.info_circle),
+                                            contentDescription = "Closed",
+                                            tint = Color(0xFF856404),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "This ticket has been closed. You can no longer send messages.",
+                                            color = Color(0xFF856404),
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.W500
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
         // Show trip details modal
-        val tripToShow = uiState.trip ?: selectedTicket?.trip
+        val tripToShow = uiState.trip ?: validSelectedTicket?.trip
         if (showTripDetailsModal && tripToShow != null) {
             TripDetailsModal(
                 trip = tripToShow, onDismiss = { showTripDetailsModal = false })
@@ -352,40 +430,40 @@ fun MessageBubble(
             modifier = Modifier.padding(12.dp)
         ) {
             // Reply indicator
-            if (message.isReply && message.replyTo != null) {
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = Color.Gray.copy(alpha = 0.2f),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                ) {
-                    Row(modifier = Modifier.padding(8.dp)) {
-                        Box(
-                            modifier = Modifier
-                                .width(3.dp)
-                                .height(40.dp)
-                                .background(KabukabuYellow)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Text(
-                                text = message.replyTo.admin?.fullName ?: "You",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = KabuGray
-                            )
-                            Text(
-                                text = message.replyTo.content ?: "Attachment",
-                                fontSize = 11.sp,
-                                color = KabuGray,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                }
-            }
+//            if (message.isReply && message.replyTo != null) {
+//                Surface(
+//                    shape = RoundedCornerShape(8.dp),
+//                    color = Color.Gray.copy(alpha = 0.2f),
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(bottom = 8.dp)
+//                ) {
+//                    Row(modifier = Modifier.padding(8.dp)) {
+//                        Box(
+//                            modifier = Modifier
+//                                .width(3.dp)
+//                                .height(40.dp)
+//                                .background(KabukabuYellow)
+//                        )
+//                        Spacer(modifier = Modifier.width(8.dp))
+//                        Column {
+//                            Text(
+//                                text = message.replyTo.admin?.fullName ?: "You",
+//                                fontSize = 10.sp,
+//                                fontWeight = FontWeight.Bold,
+//                                color = KabuGray
+//                            )
+//                            Text(
+//                                text = message.replyTo.content ?: "Attachment",
+//                                fontSize = 11.sp,
+//                                color = KabuGray,
+//                                maxLines = 2,
+//                                overflow = TextOverflow.Ellipsis
+//                            )
+//                        }
+//                    }
+//                }
+//            }
 
             // Attachments
             message.attachments?.let { attachments ->

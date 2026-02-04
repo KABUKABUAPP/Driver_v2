@@ -526,10 +526,8 @@ object SocketService {
 
             coroutineScope.launch {
                 try {
-                    val payload = JSONObject().apply {
-                        put("supportId", supportId)
-                    }
-                    mSocket?.emit("join-support", supportId)
+
+                    mSocket?.emit("join-room", supportId)
                     Log.d("SocketService", "EMITTED join-support event for ticket: $supportId")
                 } catch (e: Exception) {
                     Log.e("SocketService", "Error emitting join-support event: ${e.message}", e)
